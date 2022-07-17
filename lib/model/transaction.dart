@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-enum BudgetType {
+enum TransactionType {
   income,
   expense,
   transfer,
 }
 
-class Budget {
+class Transaction {
   String id;
   String name;
   int amount;
   String categoryId;
   DateTime date;
   String walletId;
-  BudgetType type;
+  TransactionType type;
   String description;
 
-  Budget(
+  Transaction(
       {required this.name,
       required this.amount,
       required this.categoryId,

@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../model/budget.dart';
-import '../json/create_budget_json.dart';
+import '../model/transaction.dart';
+import '../json/categories_json.dart';
 import '../common/color_constants.dart';
 import '../common/styles.dart';
 
 // ignore: constant_identifier_names
 const MAX_LENGTH_AMOUNT = 5;
 
-class CreateOrUpdateBudget extends StatefulWidget {
-  late Budget budget;
+class CreateOrUpdateTransaction extends StatefulWidget {
+  late Transaction transaction;
 
-  CreateOrUpdateBudget({Budget? budget, Key? key}) : super(key: key) {
-    if (budget != null) {
-      this.budget = budget;
+  CreateOrUpdateTransaction({Transaction? transaction, Key? key}) : super(key: key) {
+    if (transaction != null) {
+      this.transaction = transaction;
     } else {
-      this.budget = Budget(
+      this.transaction = Transaction(
         name: "",
         amount: 0,
         categoryId: "",
         date: now,
         walletId: "",
-        type: BudgetType.expense,
+        type: TransactionType.expense,
         description: "",
         id: "",
       );
@@ -30,15 +30,15 @@ class CreateOrUpdateBudget extends StatefulWidget {
   }
 
   @override
-  _CreateOrUpdateBudgetState createState() => _CreateOrUpdateBudgetState(budget);
+  _CreateOrUpdateTransactionState createState() => _CreateOrUpdateTransactionState(transaction);
 }
 
 final now = DateTime.now();
 
-class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
-  Budget budget;
+class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
+  Transaction transaction;
 
-  _CreateOrUpdateBudgetState(this.budget);
+  _CreateOrUpdateTransactionState(this.transaction);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -63,7 +63,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [Text("Create budget", style: titleStyle)],
+                      children: const [Text("Create transaction", style: titleStyle)],
                     )
                   ],
                 ),
@@ -82,8 +82,8 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
-          child:
-              Text("Choose category", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5))),
+          child: Text("Choose category",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5))),
         ),
         sizedBoxHeight,
         SingleChildScrollView(
@@ -93,7 +93,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
             return GestureDetector(
               onTap: () {
                 setState(() {
-                  budget.categoryId = categories[index].id;
+                  transaction.categoryId = categories[index].id;
                 });
               },
               child: Padding(
@@ -104,8 +104,9 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
                   height: 110,
                   decoration: BoxDecoration(
                       color: white,
-                      border:
-                          Border.all(width: 2, color: budget.categoryId == categories[index].id ? primary : Colors.transparent),
+                      border: Border.all(
+                          width: 2,
+                          color: transaction.categoryId == categories[index].id ? primary : Colors.transparent),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(color: grey.withOpacity(0.01), spreadRadius: 10, blurRadius: 3),
@@ -118,7 +119,8 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(shape: BoxShape.circle, color: grey.withOpacity(0.15)),
-                        child: Center(child: Image.asset(categories[index].icon, width: 30, height: 30, fit: BoxFit.contain)),
+                        child: Center(
+                            child: Image.asset(categories[index].icon, width: 30, height: 30, fit: BoxFit.contain)),
                       ),
                       Text(
                         categories[index].name,
@@ -142,7 +144,10 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
         widthFactor: 0.45,
         child: TextFormField(
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)],
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
+          ],
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: black),
           decoration: const InputDecoration(border: InputBorder.none, hintText: "\$ 0"),
@@ -151,7 +156,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
             return null;
           },
           onSaved: (String? value) {
-            budget.amount = int.parse(value!);
+            transaction.amount = int.parse(value!);
           },
         ),
       ),
@@ -170,7 +175,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
         return null;
       },
       onSaved: (String? value) {
-        budget.name = value!;
+        transaction.name = value!;
       },
     );
   }
@@ -192,16 +197,16 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
               // Show Date Picker Here
               final DateTime? picked = await showDatePicker(
                 context: context,
-                initialDate: budget.date,
+                initialDate: transaction.date,
                 firstDate: DateTime(2010),
                 lastDate: DateTime.now(),
               );
-              if (picked != null && picked != budget.date) {
+              if (picked != null && picked != transaction.date) {
                 setState(() {
-                  budget.date = picked;
+                  transaction.date = picked;
                 });
               }
-              _dateController.text = DateFormat(formatDate).format(budget.date);
+              _dateController.text = DateFormat(formatDate).format(transaction.date);
             },
             style: InputStyle.textStyle(),
             decoration: InputStyle.inputDecoration(labelTextStr: "Date", hintTextStr: formatDate),
@@ -219,14 +224,14 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudget> {
               // Show Date Picker Here
               final TimeOfDay? picked = await showTimePicker(
                 context: context,
-                initialTime: TimeOfDay(hour: budget.date.hour, minute: budget.date.minute),
+                initialTime: TimeOfDay(hour: transaction.date.hour, minute: transaction.date.minute),
               );
-              if (picked != null && picked != budget.getTime()) {
+              if (picked != null && picked != transaction.getTime()) {
                 setState(() {
-                  budget.setTime(hour: picked.hour, minute: picked.minute);
+                  transaction.setTime(hour: picked.hour, minute: picked.minute);
                 });
               }
-              _timeController.text = DateFormat(formatTime).format(budget.date);
+              _timeController.text = DateFormat(formatTime).format(transaction.date);
             },
             style: InputStyle.textStyle(),
             decoration: InputStyle.inputDecoration(labelTextStr: "Time", hintTextStr: formatTime),

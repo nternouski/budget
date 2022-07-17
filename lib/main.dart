@@ -1,7 +1,7 @@
 // @dart=2.9
 
 import 'package:flutter/material.dart';
-import './widgets/bottom_navigation_bar_widget.dart';
+import './components/bottom_navigation_bar_widget.dart';
 import './common/color_constants.dart';
 
 void main() {

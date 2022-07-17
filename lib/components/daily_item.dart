@@ -1,31 +1,31 @@
-import 'package:budget/common/styles.dart';
-import 'package:budget/screens/create_or_update_budget_screen.dart';
 import 'package:flutter/material.dart';
+import '../screens/create_or_update_transaction_screen.dart';
+import '../common/styles.dart';
 import '../common/color_constants.dart';
-import '../model/budget.dart';
-import '../json/create_budget_json.dart';
+import '../model/transaction.dart';
+import '../json/categories_json.dart';
 
 class DailyItem extends StatefulWidget {
-  Budget budget;
+  Transaction transaction;
 
-  DailyItem(this.budget, {Key? key}) : super(key: key);
+  DailyItem(this.transaction, {Key? key}) : super(key: key);
 
   @override
-  _DailyItemState createState() => _DailyItemState(budget);
+  _DailyItemState createState() => _DailyItemState(transaction);
 }
 
 class _DailyItemState extends State<DailyItem> {
-  Budget budget;
+  Transaction transaction;
 
   final double opacitySlide = 0.1;
   final paddingSlide = const SizedBox(width: 20);
 
-  _DailyItemState(this.budget);
+  _DailyItemState(this.transaction);
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(budget.id),
+      key: Key(transaction.id),
       background: slideRightBackground(),
       secondaryBackground: slideLeftBackground(),
       confirmDismiss: (direction) async {
@@ -34,7 +34,7 @@ class _DailyItemState extends State<DailyItem> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text(budget.name, style: titleStyle),
+                  title: Text(transaction.name, style: titleStyle),
                   content: const Text("Are you sure you want to delete ?"),
                   actions: <Widget>[
                     TextButton(
@@ -60,7 +60,7 @@ class _DailyItemState extends State<DailyItem> {
             context,
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (context) => CreateOrUpdateBudget(budget: budget),
+              builder: (context) => CreateOrUpdateTransaction(transaction: transaction),
             ),
           );
         }
@@ -68,11 +68,11 @@ class _DailyItemState extends State<DailyItem> {
       },
       child: InkWell(
         onTap: () {
-          print("${budget.name} clicked");
+          print("${transaction.name} clicked");
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
-          child: getItem(budget),
+          child: getItem(transaction),
         ),
       ),
     );
@@ -103,7 +103,8 @@ class _DailyItemState extends State<DailyItem> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const Text(" Delete", style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
+            const Text(" Delete",
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
             const Icon(Icons.delete, color: Colors.red),
             paddingSlide,
           ],
@@ -112,7 +113,7 @@ class _DailyItemState extends State<DailyItem> {
     );
   }
 
-  Widget getItem(Budget budget) {
+  Widget getItem(Transaction transaction) {
     var size = MediaQuery.of(context).size;
 
     return Column(
@@ -130,7 +131,9 @@ class _DailyItemState extends State<DailyItem> {
                     decoration: BoxDecoration(shape: BoxShape.circle, color: grey.withOpacity(0.1)),
                     child: Center(
                       child: Image.asset(
-                        categories.firstWhere((book) => book.id == budget.categoryId, orElse: () => categories[0]).icon,
+                        categories
+                            .firstWhere((book) => book.id == transaction.categoryId, orElse: () => categories[0])
+                            .icon,
                         width: 30,
                         height: 30,
                       ),
@@ -144,13 +147,13 @@ class _DailyItemState extends State<DailyItem> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          budget.name,
+                          transaction.name,
                           style: bodyTextStyle,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          budget.getDateFormat(),
+                          transaction.getDateFormat(),
                           style: TextStyle(fontSize: 12, color: black.withOpacity(0.5), fontWeight: FontWeight.w400),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -166,8 +169,9 @@ class _DailyItemState extends State<DailyItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    '\$ ${budget.amount}',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: colorsTypeBudget[budget.type]),
+                    '\$ ${transaction.amount}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 15, color: colorsTypeTransaction[transaction.type]),
                   ),
                 ],
               ),

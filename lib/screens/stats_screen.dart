@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../common/color_constants.dart';
 import '../common/date.dart';
-import '../widgets/chart.dart';
+import '../components/chart.dart';
 
 class StatsScreen extends StatefulWidget {
   @override
@@ -82,7 +82,9 @@ class _StatsScreenState extends State<StatsScreen> {
                                     child: Text(
                                       months[index]['day'],
                                       style: TextStyle(
-                                          fontSize: 10, fontWeight: FontWeight.w600, color: activeDay == index ? white : black),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: activeDay == index ? white : black),
                                     ),
                                   ),
                                 )

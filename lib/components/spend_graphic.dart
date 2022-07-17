@@ -1,7 +1,8 @@
-import 'package:budget/common/color_constants.dart';
-import 'package:budget/model/budget.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+
+import '../common/color_constants.dart';
+import '../model/transaction.dart';
 
 DateTime now = DateTime.now();
 
@@ -14,14 +15,14 @@ class SpendGraphic extends StatelessWidget {
     colors: [blue.withOpacity(0.0), blue.withOpacity(0.6)],
   );
 
-  SpendGraphic(List<Budget> budgets, {Key? key}) : super(key: key) {
+  SpendGraphic(List<Transaction> transaction, {Key? key}) : super(key: key) {
     // final frameDate = now.subtract(const Duration(days: 30));
 
-    // final frameBudgets = budgets.where((b) => b.date.isAfter(frameDate));
+    // final frameTransactions = transaction.where((b) => b.date.isAfter(frameDate));
     double accAmount = 0.0;
 
     spots = List.generate(30, (index) {
-      // frameBudgets.fold(0, (prev, element) => prev + element)
+      // frameTransactions.fold(0, (prev, element) => prev + element)
       return FlSpot(index.toDouble(), accAmount);
     });
   }

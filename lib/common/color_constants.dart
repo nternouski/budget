@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/budget.dart';
+import '../model/transaction.dart';
 
 const Color primary = Colors.green;
 const Color secondary = Colors.pink;
@@ -11,4 +11,8 @@ const Color red = Colors.red;
 const Color green = Colors.green;
 const Color blue = Colors.blue;
 
-Map<BudgetType, Color> colorsTypeBudget = {BudgetType.income: green, BudgetType.expense: red, BudgetType.transfer: grey};
+Map<TransactionType, Color> colorsTypeTransaction = {
+  TransactionType.income: green,
+  TransactionType.expense: red,
+  TransactionType.transfer: grey
+};

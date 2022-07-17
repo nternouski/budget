@@ -1,9 +1,9 @@
 import 'dart:ffi';
-
-import 'package:budget/routes.dart';
-import 'package:budget/widgets/nav_draw.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+
+import '../routes.dart';
+import 'nav_draw.dart';
 import '../common/color_constants.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {

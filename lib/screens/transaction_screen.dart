@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../common/color_constants.dart';
 import '../common/date.dart';
-import '../json/budget_json.dart';
+import '../json/transaction_json.dart';
 
-class BudgetScreen extends StatefulWidget {
+class TransactionScreen extends StatefulWidget {
   @override
-  _BudgetScreenState createState() => _BudgetScreenState();
+  _TransactionScreenState createState() => _TransactionScreenState();
 }
 
-class _BudgetScreenState extends State<BudgetScreen> {
+class _TransactionScreenState extends State<TransactionScreen> {
   int activeDay = 3;
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Budget",
+                        "Transaction",
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black),
                       ),
                       Row(
@@ -94,7 +94,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                     child: Text(
                                       months[index]['day'],
                                       style: TextStyle(
-                                          fontSize: 10, fontWeight: FontWeight.w600, color: activeDay == index ? white : black),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: activeDay == index ? white : black),
                                     ),
                                   ),
                                 )
@@ -116,7 +118,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: Column(
               children: List.generate(
-                budget_json.length,
+                transactionJson.length,
                 (index) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20),
@@ -140,7 +142,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              budget_json[index]['name'],
+                              transactionJson[index]['name'],
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 13,
@@ -156,7 +158,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      budget_json[index]['price'],
+                                      transactionJson[index]['price'],
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 20,
@@ -168,7 +170,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                     Padding(
                                       padding: const EdgeInsets.only(top: 3),
                                       child: Text(
-                                        budget_json[index]['label_percentage'],
+                                        transactionJson[index]['label_percentage'],
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           fontSize: 13,
@@ -205,11 +207,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                                   ),
                                 ),
                                 Container(
-                                  width: (size.width - 40) * budget_json[index]['percentage'],
+                                  width: (size.width - 40) * transactionJson[index]['percentage'],
                                   height: 4,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(5),
-                                    color: budget_json[index]['color'],
+                                    color: transactionJson[index]['color'],
                                   ),
                                 ),
                               ],

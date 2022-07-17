@@ -38,7 +38,8 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
         child: DropdownButton<PlanData>(
           value: mobileDataFormFields.plan,
           isDense: true,
-          onChanged: (PlanData? newPlan) => newPlan != null ? setState(() => mobileDataFormFields.plan = newPlan) : null,
+          onChanged: (PlanData? newPlan) =>
+              newPlan != null ? setState(() => mobileDataFormFields.plan = newPlan) : null,
           items: plans.map((plan) => DropdownMenuItem(value: plan, child: Text(plan.label))).toList(),
         ),
       ),
@@ -62,7 +63,10 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
             ],
           ),
           actions: <Widget>[
-            TextButton(child: const Text("Ok", style: TextStyle(color: primary)), onPressed: () => Navigator.of(context).pop()),
+            TextButton(
+              child: const Text("Ok", style: TextStyle(color: primary)),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ],
         );
       },
@@ -115,7 +119,10 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
         backgroundColor: white,
         leading: Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: IconButton(icon: const Icon(Icons.arrow_back, color: black), onPressed: () => Navigator.of(context).pop()),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
