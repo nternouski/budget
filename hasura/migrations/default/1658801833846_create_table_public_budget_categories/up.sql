@@ -1,0 +1,1 @@
+CREATE TABLE "public"."budget_categories" ("categoryId" uuid NOT NULL, "budgetId" uuid NOT NULL, PRIMARY KEY ("categoryId","budgetId") , FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON UPDATE restrict ON DELETE restrict, FOREIGN KEY ("budgetId") REFERENCES "public"."budgets"("id") ON UPDATE restrict ON DELETE restrict);

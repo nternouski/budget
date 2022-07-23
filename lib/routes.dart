@@ -1,5 +1,6 @@
+import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
-import './screens/transaction_screen.dart';
+import './screens/budgets_screen.dart';
 import './screens/mobile_calculator_screen.dart';
 import './screens/create_or_update_transaction_screen.dart';
 import './screens/create_or_update_wallet_screen.dart';
@@ -7,24 +8,27 @@ import './screens/daily_screen.dart';
 import './screens/profile_screen.dart';
 import './screens/stats_screen.dart';
 
-class Footer {
-  Widget widget;
-  late IconData icon;
-
-  Footer(this.widget, icon) {
-    this.icon = icon ?? Icons.question_mark;
-  }
+enum URLS {
+  daily_transactions,
+  stats,
+  wallets,
+  createOrUpdateWallet,
+  budgets,
+  settings,
+  createOrUpdateTransaction,
+  mobileCalculator
 }
 
-enum URLS { calendar, stats, wallets, createOrUpdateWallet, settings, createOrUpdateTransaction, mobileCalculator }
-
-class RoutePage extends Footer {
+class RoutePage {
+  Widget Function({dynamic param}) widget;
   URLS url;
-  late bool onFooter;
   URLS? actionIcon;
+  late IconData icon;
+  late bool onFooter;
 
-  RoutePage({required Widget widget, required this.url, IconData? icon, this.actionIcon}) : super(widget, icon) {
+  RoutePage({required this.widget, required this.url, IconData? icon, this.actionIcon}) {
     onFooter = icon != null;
+    this.icon = icon ?? Icons.question_mark;
   }
 }
 
@@ -32,21 +36,32 @@ class RouteApp {
   static List<RoutePage> routes = [
     // The first Fours should be the footers
     RoutePage(
-        widget: DailyScreen(),
-        url: URLS.calendar,
+        widget: ({param}) => DailyScreen(),
+        url: URLS.daily_transactions,
         icon: Icons.calendar_month,
         actionIcon: URLS.createOrUpdateTransaction),
-    RoutePage(widget: StatsScreen(), url: URLS.stats, icon: Icons.query_stats),
     RoutePage(
-        widget: TransactionScreen(), url: URLS.wallets, icon: Icons.wallet, actionIcon: URLS.createOrUpdateWallet),
-    RoutePage(widget: ProfileScreen(), url: URLS.settings, icon: Icons.settings),
+        widget: ({param}) => WalletsScreen(),
+        url: URLS.wallets,
+        icon: Icons.wallet,
+        actionIcon: URLS.createOrUpdateWallet),
+    RoutePage(widget: ({param}) => BudgetsScreen(), url: URLS.budgets, icon: Icons.monitor_heart),
+    RoutePage(widget: ({param}) => ProfileScreen(), url: URLS.settings, icon: Icons.settings),
     // --- END FOOTER ---
-    RoutePage(widget: CreateOrUpdateTransaction(), url: URLS.createOrUpdateTransaction),
-    RoutePage(widget: CreatOrUpdateWalletScreen(), url: URLS.createOrUpdateWallet),
-    RoutePage(widget: MobileCalculatorScreen(), url: URLS.mobileCalculator),
+    RoutePage(widget: ({param}) => StatsScreen(), url: URLS.stats),
+    RoutePage(widget: ({param}) => CreateOrUpdateTransaction(transaction: param), url: URLS.createOrUpdateTransaction),
+    RoutePage(widget: ({param}) => CreateOrUpdateWalletScreen(wallet: param), url: URLS.createOrUpdateWallet),
+    RoutePage(widget: ({param}) => MobileCalculatorScreen(), url: URLS.mobileCalculator),
   ];
 
-  static Widget getRoute(URLS url) {
-    return routes.firstWhere((r) => r.url == url).widget;
+  static Widget getRoute(URLS url, dynamic param) {
+    return routes.firstWhere((r) => r.url == url).widget(param: param);
+  }
+
+  static redirect({required BuildContext context, required URLS url, dynamic param, bool fromScaffold = true}) {
+    if (fromScaffold) Scaffold.of(context).closeDrawer(); // Paca cerrar el mat menu.
+    Navigator.of(context).push(
+      MaterialPageRoute(fullscreenDialog: true, builder: (context) => RouteApp.getRoute(url, param)),
+    );
   }
 }

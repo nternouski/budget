@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../common/color_constants.dart';
 import '../common/styles.dart';
@@ -104,7 +105,7 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
               _dateController.text = DateFormat(formatDate).format(mobileDataFormFields.startDate);
             },
             validator: (String? value) {
-              return value!.isEmpty ? 'Event Date is Required.' : null;
+              return value!.isEmpty ? 'Date is Required.' : null;
             },
           ),
         ),
@@ -151,6 +152,7 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                           return 'Please enter your a value grater than $SPENT_DATE_MB_MIN.';
                         }
                       },
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       onSaved: (value) {
                         final int? spentDataMb = int.tryParse(value!);
                         if (spentDataMb != null && spentDataMb != mobileDataFormFields.spentDataMb) {

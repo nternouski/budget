@@ -1,9 +1,11 @@
+import 'package:budget/components/icon_circle.dart';
+import 'package:budget/routes.dart';
+import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 import '../screens/create_or_update_transaction_screen.dart';
 import '../common/styles.dart';
 import '../common/color_constants.dart';
 import '../model/transaction.dart';
-import '../json/categories_json.dart';
 
 class DailyItem extends StatefulWidget {
   Transaction transaction;
@@ -37,17 +39,12 @@ class _DailyItemState extends State<DailyItem> {
                   title: Text(transaction.name, style: titleStyle),
                   content: const Text("Are you sure you want to delete ?"),
                   actions: <Widget>[
-                    TextButton(
-                      child: const Text("Cancel", style: TextStyle(color: Colors.black)),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    TextButton(
-                      child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                    buttonCancelContext(context),
+                    ElevatedButton(
+                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
+                      child: const Text("Delete", style: TextStyle(fontSize: 17)),
                       onPressed: () {
-                        setState(() {
-                          // TODO: Delete the item from DB etc..
-                          // itemsList.removeAt(index);
-                        });
+                        transactionRx.delete(transaction.id);
                         Navigator.of(context).pop();
                       },
                     ),
@@ -56,13 +53,7 @@ class _DailyItemState extends State<DailyItem> {
               });
           return res;
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (context) => CreateOrUpdateTransaction(transaction: transaction),
-            ),
-          );
+          RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: transaction);
         }
         return null;
       },
@@ -70,10 +61,7 @@ class _DailyItemState extends State<DailyItem> {
         onTap: () {
           print("${transaction.name} clicked");
         },
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: getItem(transaction),
-        ),
+        child: Padding(padding: const EdgeInsets.only(left: 20, right: 20), child: getItem(transaction)),
       ),
     );
   }
@@ -115,7 +103,6 @@ class _DailyItemState extends State<DailyItem> {
 
   Widget getItem(Transaction transaction) {
     var size = MediaQuery.of(context).size;
-
     return Column(
       children: [
         Row(
@@ -125,20 +112,7 @@ class _DailyItemState extends State<DailyItem> {
               width: (size.width - 40) * 0.7,
               child: Row(
                 children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: grey.withOpacity(0.1)),
-                    child: Center(
-                      child: Image.asset(
-                        categories
-                            .firstWhere((book) => book.id == transaction.categoryId, orElse: () => categories[0])
-                            .icon,
-                        width: 30,
-                        height: 30,
-                      ),
-                    ),
-                  ),
+                  IconCircle(icon: transaction.category.icon, color: transaction.category.color),
                   paddingSlide,
                   Container(
                     width: (size.width - 90) * 0.5,

@@ -6,6 +6,7 @@ CREATE TABLE "public"."transactions" (
 	"name" text NOT NULL,
 	"description" text,
 	"amount" money NOT NULL,
+	"balance" money NOT NULL,
 	"date" timestamptz NOT NULL DEFAULT now(),
 	"type" text NOT NULL,
 	"walletId" uuid NOT NULL,

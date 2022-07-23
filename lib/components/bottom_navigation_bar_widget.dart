@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
@@ -13,6 +14,8 @@ class BottomNavigationBarWidget extends StatefulWidget {
 
 class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int pageIndex = 0;
+  DateTime? backPressTime;
+  final durationBackTime = const Duration(seconds: 2);
 
   final List<RoutePage> footer = RouteApp.routes.where((f) => f.onFooter).toList();
 
@@ -26,26 +29,37 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     super.dispose();
   }
 
+  Future<bool> onWillPop() {
+    DateTime now = DateTime.now();
+    if (backPressTime != null && (now.difference(backPressTime!) < durationBackTime)) return Future.value(true);
+    backPressTime = now;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Double Tap to Exit'),
+        duration: Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return Future.value(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final floatingActionButton = FloatingActionButton(
-      onPressed: () => selectedTab(RouteApp.routes[pageIndex].actionIcon),
+      onPressed: () =>
+          RouteApp.redirect(context: context, url: RouteApp.routes[pageIndex].actionIcon!, fromScaffold: false),
       backgroundColor: primary,
       child: const Icon(Icons.add, size: 25),
     );
-    return Scaffold(
-      drawer: NavDrawer(),
-      body: getBody(),
-      bottomNavigationBar: getFooter(),
-      floatingActionButton: RouteApp.routes[pageIndex].actionIcon != null ? floatingActionButton : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  Widget getBody() {
-    return IndexedStack(
-      index: pageIndex,
-      children: RouteApp.routes.map((f) => f.widget).toList(),
+    return WillPopScope(
+      onWillPop: () => onWillPop(),
+      child: Scaffold(
+        drawer: NavDrawer(),
+        body: IndexedStack(index: pageIndex, children: RouteApp.routes.map((f) => f.widget()).toList()),
+        bottomNavigationBar: getFooter(),
+        floatingActionButton: RouteApp.routes[pageIndex].actionIcon != null ? floatingActionButton : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      ),
     );
   }
 

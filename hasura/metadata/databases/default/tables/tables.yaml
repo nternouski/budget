@@ -1,3 +1,4 @@
+- "!include public_budget_categories.yaml"
 - "!include public_budgets.yaml"
 - "!include public_categories.yaml"
 - "!include public_currencies.yaml"

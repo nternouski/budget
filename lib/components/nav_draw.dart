@@ -5,13 +5,6 @@ import '../routes.dart';
 class NavDrawer extends StatelessWidget {
   const NavDrawer({Key? key}) : super(key: key);
 
-  redirect(BuildContext context, URLS url) {
-    Scaffold.of(context).closeDrawer();
-    Navigator.of(context).push(
-      MaterialPageRoute(fullscreenDialog: true, builder: (context) => RouteApp.getRoute(url)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     String name = "Sebastian";
@@ -34,7 +27,12 @@ class NavDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.phonelink_setup),
             title: const Text('Mobile Calculator'),
-            onTap: () => redirect(context, URLS.mobileCalculator),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
+          ),
+          ListTile(
+            leading: const Icon(Icons.query_stats),
+            title: const Text('Stats'),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app),

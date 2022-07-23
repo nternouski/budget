@@ -37,6 +37,9 @@ dependencies:
   animated_bottom_navigation_bar: ^1.0.1
   fl_chart: ^0.55.0
   intl: ^0.17.0
+  graphql_flutter: ^5.1.0
+  flex_color_picker: ^2.5.0
+  stream_transform: ^2.0.0
 
 dev_dependencies:
   flutter_test:
