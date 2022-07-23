@@ -1,0 +1,10 @@
+table:
+  schema: public
+  name: integrations
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: userId
+  - name: wallet
+    using:
+      foreign_key_constraint_on: walletId

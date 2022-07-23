@@ -1,0 +1,11 @@
+table:
+  schema: public
+  name: labels
+array_relationships:
+  - name: transaction_labels
+    using:
+      foreign_key_constraint_on:
+        column: labelId
+        table:
+          schema: public
+          name: transaction_labels

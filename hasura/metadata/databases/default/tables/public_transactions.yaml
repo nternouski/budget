@@ -1,0 +1,44 @@
+table:
+  schema: public
+  name: transactions
+object_relationships:
+  - name: category
+    using:
+      foreign_key_constraint_on: categoryId
+  - name: user
+    using:
+      foreign_key_constraint_on: userId
+  - name: wallet
+    using:
+      foreign_key_constraint_on: walletId
+array_relationships:
+  - name: transaction_labels
+    using:
+      foreign_key_constraint_on:
+        column: transactionId
+        table:
+          schema: public
+          name: transaction_labels
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - amount
+        - planedPaymentIteration
+        - description
+        - name
+        - planedPaymentEach
+        - type
+        - createdAt
+        - date
+        - categoryId
+        - id
+        - userId
+        - walletId
+      filter: {}
+      allow_aggregations: true
+delete_permissions:
+  - role: public
+    permission:
+      backend_only: false
+      filter: {}

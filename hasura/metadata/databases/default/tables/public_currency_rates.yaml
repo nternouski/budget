@@ -1,0 +1,10 @@
+table:
+  schema: public
+  name: currency_rates
+object_relationships:
+  - name: currency_from
+    using:
+      foreign_key_constraint_on: currencyIdFrom
+  - name: currency_to
+    using:
+      foreign_key_constraint_on: currencyIdTo

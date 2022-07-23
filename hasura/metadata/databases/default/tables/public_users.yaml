@@ -1,0 +1,43 @@
+table:
+  schema: public
+  name: users
+object_relationships:
+  - name: currency
+    using:
+      foreign_key_constraint_on: defaultCurrencyId
+  - name: setting
+    using:
+      foreign_key_constraint_on:
+        column: userId
+        table:
+          schema: public
+          name: settings
+array_relationships:
+  - name: budgets
+    using:
+      foreign_key_constraint_on:
+        column: userId
+        table:
+          schema: public
+          name: budgets
+  - name: integrations
+    using:
+      foreign_key_constraint_on:
+        column: userId
+        table:
+          schema: public
+          name: integrations
+  - name: transactions
+    using:
+      foreign_key_constraint_on:
+        column: userId
+        table:
+          schema: public
+          name: transactions
+  - name: wallets
+    using:
+      foreign_key_constraint_on:
+        column: userId
+        table:
+          schema: public
+          name: wallets

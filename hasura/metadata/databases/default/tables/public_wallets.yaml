@@ -1,0 +1,68 @@
+table:
+  schema: public
+  name: wallets
+object_relationships:
+  - name: currency
+    using:
+      foreign_key_constraint_on: currencyId
+  - name: user
+    using:
+      foreign_key_constraint_on: userId
+array_relationships:
+  - name: integrations
+    using:
+      foreign_key_constraint_on:
+        column: walletId
+        table:
+          schema: public
+          name: integrations
+  - name: transactions
+    using:
+      foreign_key_constraint_on:
+        column: walletId
+        table:
+          schema: public
+          name: transactions
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - initialAmount
+        - color
+        - icon
+        - name
+        - createdAt
+        - currencyId
+        - id
+        - userId
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - createdAt
+        - name
+        - color
+        - icon
+        - initialAmount
+        - currencyId
+        - userId
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: public
+    permission:
+      columns:
+        - color
+        - currencyId
+        - icon
+        - initialAmount
+        - name
+      filter: {}
+      check: null
+delete_permissions:
+  - role: public
+    permission:
+      backend_only: false
+      filter: {}

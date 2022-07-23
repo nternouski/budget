@@ -1,0 +1,41 @@
+table:
+  schema: public
+  name: currencies
+array_relationships:
+  - name: currency_rates_from
+    using:
+      foreign_key_constraint_on:
+        column: currencyIdFrom
+        table:
+          schema: public
+          name: currency_rates
+  - name: currency_rates_to
+    using:
+      foreign_key_constraint_on:
+        column: currencyIdTo
+        table:
+          schema: public
+          name: currency_rates
+  - name: users
+    using:
+      foreign_key_constraint_on:
+        column: defaultCurrencyId
+        table:
+          schema: public
+          name: users
+  - name: wallets
+    using:
+      foreign_key_constraint_on:
+        column: currencyId
+        table:
+          schema: public
+          name: wallets
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - name
+        - symbol
+        - createdAt
+        - id
+      filter: {}

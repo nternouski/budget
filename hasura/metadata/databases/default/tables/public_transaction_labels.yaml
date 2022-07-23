@@ -1,0 +1,10 @@
+table:
+  schema: public
+  name: transaction_labels
+object_relationships:
+  - name: label
+    using:
+      foreign_key_constraint_on: labelId
+  - name: transaction
+    using:
+      foreign_key_constraint_on: transactionId

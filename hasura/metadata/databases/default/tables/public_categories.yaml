@@ -1,0 +1,47 @@
+table:
+  schema: public
+  name: categories
+array_relationships:
+  - name: budgets
+    using:
+      foreign_key_constraint_on:
+        column: categoryId
+        table:
+          schema: public
+          name: budgets
+  - name: transactions
+    using:
+      foreign_key_constraint_on:
+        column: categoryId
+        table:
+          schema: public
+          name: transactions
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - color
+        - icon
+        - name
+        - createdAt
+        - id
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - color
+        - icon
+        - name
+        - createdAt
+        - id
+      filter: {}
+update_permissions:
+  - role: public
+    permission:
+      columns:
+        - color
+        - icon
+        - name
+      filter: {}
+      check: null
