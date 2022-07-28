@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:rxdart/rxdart.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../common/classes.dart';
@@ -14,8 +12,8 @@ class Database<T extends ModelCommonInterface> {
 
   Database(this._queries, this.collectionName, this.constructor);
 
-  final _behavior = BehaviorSubject<List<T>>();
-  Stream<List<T>> get fetchRx => _behavior.stream;
+  final behavior = BehaviorSubject<List<T>>();
+  Stream<List<T>> get fetchRx => behavior.stream;
 
   final verbose = true;
 
@@ -56,19 +54,21 @@ class Database<T extends ModelCommonInterface> {
     final value = await request(TypeRequest.query, _queries.getAll, {});
     if (value != null && value[collectionName] != null) {
       var t = List<T>.from(value[collectionName].map((t) => constructor(t)).toList());
-      _behavior.add(t);
+      behavior.add(t);
     }
   }
 
-  create(T data) async {
+  Future<String> create(T data) async {
     printMsg('CREATE');
     final variable = data.toJson();
     variable.remove('id');
     final value = await request(TypeRequest.mutation, _queries.create, variable);
     if (value != null && value['action']['returning'] != null) {
       T elementAdded = constructor(value['action']['returning'][0]);
-      _behavior.add([...List.from(_behavior.value), elementAdded]);
+      behavior.add([...List.from(behavior.value), elementAdded]);
+      return elementAdded.id;
     }
+    return '';
   }
 
   update(T data) async {
@@ -76,7 +76,7 @@ class Database<T extends ModelCommonInterface> {
     final value = await request(TypeRequest.mutation, _queries.update, data.toJson());
     if (value != null && value['action']['returning'] != null) {
       T elementUpdated = constructor(value['action']['returning'][0]);
-      _behavior.add(_behavior.value.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
+      behavior.add(behavior.value.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
     }
   }
 
@@ -84,7 +84,7 @@ class Database<T extends ModelCommonInterface> {
     printMsg('DELETE');
     final value = await request(TypeRequest.mutation, _queries.delete, {'id': id});
     if (value != null) {
-      _behavior.add(_behavior.value.where((v) => v.id != id).toList());
+      behavior.add(behavior.value.where((v) => v.id != id).toList());
     }
   }
 }

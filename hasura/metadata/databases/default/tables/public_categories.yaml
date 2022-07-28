@@ -2,13 +2,13 @@ table:
   schema: public
   name: categories
 array_relationships:
-  - name: budgets
+  - name: budget_categories
     using:
       foreign_key_constraint_on:
         column: categoryId
         table:
           schema: public
-          name: budgets
+          name: budget_categories
   - name: transactions
     using:
       foreign_key_constraint_on:

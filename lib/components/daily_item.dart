@@ -2,7 +2,6 @@ import 'package:budget/components/icon_circle.dart';
 import 'package:budget/routes.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
-import '../screens/create_or_update_transaction_screen.dart';
 import '../common/styles.dart';
 import '../common/color_constants.dart';
 import '../model/transaction.dart';
@@ -108,38 +107,31 @@ class _DailyItemState extends State<DailyItem> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
+            SizedBox(
               width: (size.width - 40) * 0.7,
               child: Row(
                 children: [
                   IconCircle(icon: transaction.category.icon, color: transaction.category.color),
                   paddingSlide,
-                  Container(
+                  SizedBox(
                     width: (size.width - 90) * 0.5,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          transaction.name,
-                          style: bodyTextStyle,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(transaction.name, style: bodyTextStyle),
                         const SizedBox(height: 5),
-                        Text(
-                          transaction.getDateFormat(),
-                          style: TextStyle(fontSize: 12, color: black.withOpacity(0.5), fontWeight: FontWeight.w400),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(transaction.getDateFormat(), style: textGreyStyle),
                       ],
                     ),
                   )
                 ],
               ),
             ),
-            Container(
+            SizedBox(
               width: (size.width - 40) * 0.3,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(

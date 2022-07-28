@@ -86,7 +86,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
   getLeftTitles() {
     return SideTitles(
       showTitles: true,
-      interval: maxBalance / 3,
+      interval: maxBalance / 2 + 1,
       reservedSize: 25,
       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis)),
     );
@@ -117,7 +117,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
       child: LineChart(
         LineChartData(
           minY: 0,
-          gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 3),
+          gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 2 + 1),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(axisNameWidget: const Text('Dias'), sideTitles: getBottomTitles()),
             topTitles: AxisTitles(axisNameWidget: const Text(''), sideTitles: SideTitles(showTitles: false)),

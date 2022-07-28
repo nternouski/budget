@@ -19,7 +19,6 @@ class Wallet implements ModelCommonInterface {
   String iconName;
   double initialAmount;
   double balance;
-  List<Category> categories;
   String currencyId;
   Currency? currency;
   String userId;
@@ -32,7 +31,6 @@ class Wallet implements ModelCommonInterface {
     required this.iconName,
     required this.initialAmount,
     required this.balance,
-    required this.categories,
     required this.userId,
     required this.currencyId,
   }) {
@@ -51,7 +49,6 @@ class Wallet implements ModelCommonInterface {
       iconName: json['icon'],
       initialAmount: initialAmount,
       balance: initialAmount + balance,
-      categories: [], // json['categories']
       currencyId: json['currencyId'],
       userId: json['userId'],
     );

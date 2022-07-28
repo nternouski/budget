@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:budget/common/classes.dart';
 import 'package:budget/common/transform.dart';
 import 'package:budget/model/budget.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -20,8 +17,8 @@ class TransactionRx extends Database<Transaction> {
     printMsg('GET');
     final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {});
     if (value != null) {
-      double balance = Convert.currencyToDouble(value['transactions_aggregate']['aggregate']['sum']['balance']);
-      return balance;
+      String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
+      return Convert.currencyToDouble(balance);
     } else {
       return 0;
     }
@@ -44,17 +41,47 @@ class WalletRx extends Database<Wallet> {
 }
 
 class BudgetRx extends Database<Budget> {
-  @override
-  late Stream<List<Budget>> fetchRx;
+  static final _queries = BudgetQueries();
 
-  BudgetRx() : super(BudgetQueries(), "budgets", Budget.fromJson) {
-    fetchRx = super.fetchRx.combineLatest<List<Currency>, List<Budget>>(
-          currencyRx.fetchRx,
-          (budgets, currencies) => budgets.map((w) {
-            w.currency = currencies.firstWhere((c) => c.id == w.currencyId);
-            return w;
-          }).toList(),
-        );
+  BudgetRx() : super(BudgetQueries(), "budgets", Budget.fromJson);
+
+  _updateCategories(String id, List<Category> toUpdate) async {
+    await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
+    List<Category> categories = [];
+    for (var category in toUpdate) {
+      final value =
+          await request(TypeRequest.mutation, _queries.insertCategories, {'budgetId': id, 'categoryId': category.id});
+      if (value != null && value['action']['returning'] != null) {
+        categories.add(Category.fromJson(value['action']['returning'][0]['category']));
+      }
+    }
+    super.behavior.add(behavior.value.map((b) {
+          if (b.id == id) {
+            b.categories = categories;
+            return b;
+          } else {
+            return b;
+          }
+        }).toList());
+  }
+
+  @override
+  create(Budget data) async {
+    String id = await super.create(data);
+    if (id != '') _updateCategories(id, data.categories);
+    return id;
+  }
+
+  @override
+  update(Budget data) async {
+    await super.update(data);
+    _updateCategories(data.id, data.categories);
+  }
+
+  @override
+  delete(String id) async {
+    await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
+    super.delete(id);
   }
 }
 

@@ -1,3 +1,29 @@
 table:
   schema: public
   name: budget_categories
+object_relationships:
+  - name: budget
+    using:
+      foreign_key_constraint_on: budgetId
+  - name: category
+    using:
+      foreign_key_constraint_on: categoryId
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - budgetId
+        - categoryId
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - budgetId
+        - categoryId
+      filter: {}
+delete_permissions:
+  - role: public
+    permission:
+      backend_only: false
+      filter: {}

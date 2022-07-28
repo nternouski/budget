@@ -1,3 +1,4 @@
+import 'package:budget/screens/create_or_update_budget_screen.dart';
 import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import './screens/budgets_screen.dart';
@@ -9,11 +10,12 @@ import './screens/profile_screen.dart';
 import './screens/stats_screen.dart';
 
 enum URLS {
-  daily_transactions,
+  dailyTransactions,
   stats,
   wallets,
   createOrUpdateWallet,
   budgets,
+  createOrUpdateBudgets,
   settings,
   createOrUpdateTransaction,
   mobileCalculator
@@ -37,7 +39,7 @@ class RouteApp {
     // The first Fours should be the footers
     RoutePage(
         widget: ({param}) => DailyScreen(),
-        url: URLS.daily_transactions,
+        url: URLS.dailyTransactions,
         icon: Icons.calendar_month,
         actionIcon: URLS.createOrUpdateTransaction),
     RoutePage(
@@ -45,12 +47,17 @@ class RouteApp {
         url: URLS.wallets,
         icon: Icons.wallet,
         actionIcon: URLS.createOrUpdateWallet),
-    RoutePage(widget: ({param}) => BudgetsScreen(), url: URLS.budgets, icon: Icons.monitor_heart),
+    RoutePage(
+        widget: ({param}) => BudgetsScreen(),
+        url: URLS.budgets,
+        icon: Icons.monitor_heart,
+        actionIcon: URLS.createOrUpdateBudgets),
     RoutePage(widget: ({param}) => ProfileScreen(), url: URLS.settings, icon: Icons.settings),
     // --- END FOOTER ---
     RoutePage(widget: ({param}) => StatsScreen(), url: URLS.stats),
     RoutePage(widget: ({param}) => CreateOrUpdateTransaction(transaction: param), url: URLS.createOrUpdateTransaction),
     RoutePage(widget: ({param}) => CreateOrUpdateWalletScreen(wallet: param), url: URLS.createOrUpdateWallet),
+    RoutePage(widget: ({param}) => CreateOrUpdateBudgetScreen(budget: param), url: URLS.createOrUpdateBudgets),
     RoutePage(widget: ({param}) => MobileCalculatorScreen(), url: URLS.mobileCalculator),
   ];
 

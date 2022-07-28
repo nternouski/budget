@@ -8,19 +8,19 @@ import '../common/styles.dart';
 import '../model/category.dart';
 
 class CreateOrUpdateCategory {
+  static TextEditingController nameController = TextEditingController(text: '');
   static showButtonSheet(context, Category? category) {
+    Category c = category ?? defaultCategory;
+    nameController.text = c.name;
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      builder: (BuildContext context) {
-        Category c = category ?? defaultCategory;
-        return BottomSheet(
-          onClosing: () {},
-          builder: (BuildContext context) => _bottomSheet(context, c),
-        );
-      },
+      builder: (BuildContext context) => BottomSheet(
+        onClosing: () {},
+        builder: (BuildContext context) => _bottomSheet(context, c),
+      ),
     );
   }
 
@@ -30,7 +30,7 @@ class CreateOrUpdateCategory {
 
     var title = category.id == '' ? 'Create Category' : 'Updating ${category.name} category';
     var actionButton = category.id == '' ? 'Create' : 'Update';
-    TextEditingController nameController = TextEditingController(text: category.name);
+
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         return SingleChildScrollView(
@@ -47,7 +47,7 @@ class CreateOrUpdateCategory {
                   controller: nameController,
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Food'),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-z]")),
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z  ]")),
                     LengthLimitingTextInputFormatter(Category.MAX_LENGTH_NAME)
                   ],
                   validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,

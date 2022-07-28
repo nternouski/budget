@@ -1,3 +1,4 @@
+import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 import '../common/color_constants.dart';
 
@@ -98,7 +99,8 @@ class _ProfilePageState extends State<ProfileScreen> {
                             ],
                           ),
                           Container(
-                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: white)),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10), border: Border.all(color: white)),
                             child: Padding(
                               padding: const EdgeInsets.all(13.0),
                               child: Text(
@@ -121,10 +123,7 @@ class _ProfilePageState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Email",
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xff67727d)),
-                ),
+                Text("Email", style: textGreyStyle),
                 TextField(
                   controller: _email,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black),

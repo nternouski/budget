@@ -1,7 +1,6 @@
-import 'dart:developer';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+
 import '../server/model_rx.dart';
 import '../common/styles.dart';
 import '../components/daily_item.dart';
@@ -42,7 +41,7 @@ class _DailyScreenState extends State<DailyScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
                     final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
-                    return SliverToBoxAdapter(child: daily.isEmpty ? const Text('No Graphics') : SpendGraphic(daily));
+                    return SliverToBoxAdapter(child: SpendGraphic(daily));
                   } else {
                     return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en daily_screen Graphics'));
                   }
@@ -65,7 +64,6 @@ class _DailyScreenState extends State<DailyScreen> {
   }
 
   List<Widget> getBody() {
-    // WiseApi().fetchTransfers().then((d) => inspect(d));
     return [
       StreamBuilder<List<Transaction>>(
         stream: transactionRx.fetchRx,
@@ -73,7 +71,6 @@ class _DailyScreenState extends State<DailyScreen> {
           if (snapshot.hasData && snapshot.data != null) {
             final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
             daily.sort((a, b) => b.date.compareTo(a.date));
-            inspect(daily);
             if (daily.isEmpty) {
               return SliverToBoxAdapter(
                 child: Column(

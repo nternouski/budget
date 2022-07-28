@@ -86,11 +86,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(wallet.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                      )),
+                  Text(wallet.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
                   const SizedBox(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,7 +94,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                     children: [
                       Text('\$${wallet.balance}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                       const SizedBox(width: 5),
-                      Text(symbol, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: grey))
+                      Text(symbol, style: textGreyStyle)
                     ],
                   ),
                 ],

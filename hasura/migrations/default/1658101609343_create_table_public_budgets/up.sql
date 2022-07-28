@@ -4,10 +4,8 @@ CREATE TABLE "public"."budgets" (
 	"name" text NOT NULL,
 	"amount" money NOT NULL,
 	"color" text NOT NULL,
-	"categoryId" uuid NOT NULL,
 	"userId" uuid NOT NULL,
 	PRIMARY KEY ("id"),
-	FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON UPDATE restrict ON DELETE restrict,
 	FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON UPDATE restrict ON DELETE restrict,
 	UNIQUE ("id")
 );

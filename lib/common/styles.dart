@@ -8,7 +8,8 @@ class TextColor {
 }
 
 const titleStyle = TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black);
-const bodyTextStyle = TextStyle(fontSize: 17, color: black, fontWeight: FontWeight.w500);
+const bodyTextStyle = TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: black);
+const textGreyStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: grey);
 
 const sliverPaddingBar = SliverPadding(padding: EdgeInsets.symmetric(vertical: 10));
 

@@ -1,5 +1,5 @@
-import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
+import '../model/category.dart';
 import '../common/classes.dart';
 import '../common/transform.dart';
 
@@ -11,10 +11,7 @@ class Budget implements ModelCommonInterface {
   late Color color;
   double amount;
   double balance;
-  String currencyId;
-  Currency? currency;
-
-  List<String> categoryIds; // FIXME: CHANGE ON DDBB
+  List<Category> categories;
   String userId;
 
   Budget({
@@ -24,8 +21,7 @@ class Budget implements ModelCommonInterface {
     required String color,
     required this.amount,
     required this.balance,
-    required this.currencyId,
-    required this.categoryIds,
+    required this.categories,
     required this.userId,
   }) {
     this.color = Convert.colorFromHex(color);
@@ -33,16 +29,17 @@ class Budget implements ModelCommonInterface {
 
   factory Budget.fromJson(Map<String, dynamic> json) {
     double amount = Convert.currencyToDouble(json['amount']);
-    double balance = Convert.currencyToDouble(json['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0');
+    double balance = 500;
+    List<Category> categories =
+        List.from(json['budget_categories']).map((c) => Category.fromJson(c['category'])).toList();
     return Budget(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       color: json['color'],
       amount: amount,
-      balance: (balance * 100) / amount,
-      currencyId: json['currencyId'],
-      categoryIds: [],
+      balance: Convert.roundDouble((balance * 100) / amount, 2),
+      categories: categories,
       userId: json['userId'],
     );
   }
@@ -54,7 +51,6 @@ class Budget implements ModelCommonInterface {
       'name': name,
       'color': Convert.colorToHexString(color),
       'amount': '\$$amount',
-      'currencyId': currencyId,
       // 'categoryIds': categoryIds,
       'userId': userId,
     };
@@ -66,20 +62,20 @@ class BudgetQueries implements GraphQlQuery {
   @override
   String getAll = '''
     query getBudgets {
-      budgets(where: {}) {
+      budgets {
         id
         createdAt
-        name
-        color
         amount
-        currencyId
-        categoryId
+        color
+        name
         userId
-        transactions_aggregate {
-          aggregate {
-            sum {
-              balance
-            }
+        budget_categories {
+          category {
+            id
+            createdAt
+            color
+            icon
+            name
           }
         }
       }
@@ -90,22 +86,22 @@ class BudgetQueries implements GraphQlQuery {
 
   @override
   String create = r'''
-     mutation addBudget($name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!, $userId: uuid!) {
-      action: insert_budgets(objects: [{ name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId, userId: $userId }]) {
+    mutation addBudget($name: String!, $color: String!, $amount: money!, $userId: uuid!) {
+      action: insert_budgets(objects: [{ name: $name, color: $color, amount: $amount, userId: $userId }]) {
         returning {
           id
           createdAt
-          name
+          amount
           color
-          icon
-          initialAmount
-          currencyId
+          name
           userId
-          transactions_aggregate {
-            aggregate {
-              sum {
-                balance
-              }
+          budget_categories {
+            category {
+              id
+              createdAt
+              color
+              icon
+              name
             }
           }
         }
@@ -113,8 +109,58 @@ class BudgetQueries implements GraphQlQuery {
     }''';
 
   @override
-  String update = r'';
+  String update = r'''
+    mutation updateBudget($id: uuid!, $name: String!, $color: String!, $amount: money!, $userId: uuid!) {
+      action: update_budgets(where: {id: {_eq: $id}}, _set: { name: $name, color: $color, amount: $amount, userId: $userId }) {
+        returning {
+          id
+          createdAt
+          amount
+          color
+          name
+          userId
+          budget_categories {
+            category {
+              id
+              createdAt
+              color
+              icon
+              name
+            }
+          }
+        }
+      }
+    }''';
+
+  String insertCategories = r'''
+    mutation insertCategories($budgetId: uuid!, $categoryId: uuid!) {
+      action: insert_budget_categories(objects: { budgetId: $budgetId, categoryId: $categoryId }) {
+        returning {
+          category {
+            id
+            createdAt
+            color
+            icon
+            name
+          }
+        }
+      }
+    }''';
+
+  String deleteCategories = r'''
+    mutation deleteBudget($budgetId: uuid!) {
+      action: delete_budget_categories(where: { budgetId: {_eq: $budgetId} }) {
+          affected_rows
+      }
+    }''';
 
   @override
-  String delete = r'';
+  String delete = r'''
+     mutation deleteBudget($id: uuid!) {
+        action: delete_budgets(where: {id: {_eq: $id}} ) {
+          returning {
+            id
+        }
+      }
+    }''';
 }
