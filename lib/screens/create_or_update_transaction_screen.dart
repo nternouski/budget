@@ -1,3 +1,4 @@
+import 'package:budget/components/create_or_update_label.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/model/wallet.dart';
 import 'package:budget/routes.dart';
@@ -18,34 +19,12 @@ const MAX_LENGTH_AMOUNT = 5;
 enum Action { create, update }
 
 class CreateOrUpdateTransaction extends StatefulWidget {
-  late Transaction _transaction;
-  late String _title;
-  late Action _action;
+  Transaction? transaction;
 
-  CreateOrUpdateTransaction({Transaction? transaction, Key? key}) : super(key: key) {
-    if (transaction != null) {
-      _action = Action.update;
-      _title = "Update transaction";
-      _transaction = transaction;
-    } else {
-      _action = Action.create;
-      _title = "Create transaction";
-      _transaction = Transaction(
-        name: "",
-        amount: 1,
-        balance: 0,
-        categoryId: "",
-        date: now,
-        walletId: "",
-        type: TransactionType.expense,
-        description: "",
-        id: "",
-      );
-    }
-  }
+  CreateOrUpdateTransaction({this.transaction, Key? key}) : super(key: key);
 
   @override
-  _CreateOrUpdateTransactionState createState() => _CreateOrUpdateTransactionState(_transaction, _title, _action);
+  _CreateOrUpdateTransactionState createState() => _CreateOrUpdateTransactionState(transaction);
 }
 
 final now = DateTime.now();
@@ -57,14 +36,34 @@ class SelectedType {
 }
 
 class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
-  final Transaction transaction;
-  final String title;
-  late final Action action;
+  late Transaction transaction;
+  late String title;
+  late Action action;
   late TextEditingController dateController;
   late TextEditingController timeController;
   late List<SelectedType> types;
 
-  _CreateOrUpdateTransactionState(this.transaction, this.title, this.action) {
+  _CreateOrUpdateTransactionState(Transaction? t) {
+    if (t != null) {
+      action = Action.update;
+      title = "Update transaction";
+      transaction = t;
+    } else {
+      action = Action.create;
+      title = "Create transaction";
+      transaction = Transaction(
+        id: "",
+        name: "",
+        amount: 1,
+        balance: 0,
+        categoryId: "",
+        date: now,
+        walletId: "",
+        type: TransactionType.expense,
+        description: "",
+        labels: [],
+      );
+    }
     categoryRx.getAll();
     walletRx.getAll();
     dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(transaction.date));
@@ -144,10 +143,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                         child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Container(
-                            decoration: BoxDecoration(
-                              color: colorItem,
-                              borderRadius: borderRadiusApp,
-                            ),
+                            decoration: BoxDecoration(color: colorItem, borderRadius: borderRadiusApp),
                             child: Padding(
                               padding: const EdgeInsets.all(7),
                               child: Row(
@@ -362,6 +358,12 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget getForm() {
+    CreateOrUpdateLabel componentLabel = CreateOrUpdateLabel(
+      onSelect: (selection) => setState(() => transaction.labels.add(selection)),
+      onDelete: (label) => setState(
+        () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
+      ),
+    );
     return Form(
         key: _formKey,
         child: Padding(
@@ -380,6 +382,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             buildWallet(),
             buildAmount(),
             buildCategory(),
+            componentLabel.build(transaction.labels),
             buildName(),
             buildDescription(),
             buildDateField(),

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:rxdart/rxdart.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../common/classes.dart';
@@ -10,10 +12,10 @@ class Database<T extends ModelCommonInterface> {
   final String collectionName;
   T Function(Map<String, dynamic> json) constructor;
 
-  Database(this._queries, this.collectionName, this.constructor);
-
   final behavior = BehaviorSubject<List<T>>();
   Stream<List<T>> get fetchRx => behavior.stream;
+
+  Database(this._queries, this.collectionName, this.constructor);
 
   final verbose = true;
 
@@ -23,7 +25,7 @@ class Database<T extends ModelCommonInterface> {
 
   void _printError(String from, String message) {
     print('==============');
-    print("Error $from: $message");
+    print("Error on $collectionName | $from: $message");
     print('==============');
   }
 
@@ -44,7 +46,7 @@ class Database<T extends ModelCommonInterface> {
         return result.data;
       }
     } catch (error) {
-      _printError('API_client', 'Error catch: $error');
+      _printError('API_client $type', 'Error catch: $error');
     }
     return null;
   }
@@ -58,17 +60,17 @@ class Database<T extends ModelCommonInterface> {
     }
   }
 
-  Future<String> create(T data) async {
+  Future<T?> create(T data) async {
     printMsg('CREATE');
     final variable = data.toJson();
     variable.remove('id');
     final value = await request(TypeRequest.mutation, _queries.create, variable);
     if (value != null && value['action']['returning'] != null) {
       T elementAdded = constructor(value['action']['returning'][0]);
-      behavior.add([...List.from(behavior.value), elementAdded]);
-      return elementAdded.id;
+      if (behavior.valueOrNull != null) behavior.add([...List.from(behavior.value), elementAdded]);
+      return elementAdded;
     }
-    return '';
+    return null;
   }
 
   update(T data) async {

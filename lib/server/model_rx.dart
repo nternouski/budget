@@ -1,5 +1,6 @@
 import 'package:budget/common/transform.dart';
 import 'package:budget/model/budget.dart';
+import 'package:budget/model/label.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../model/currency.dart';
@@ -13,15 +14,54 @@ class TransactionRx extends Database<Transaction> {
 
   TransactionRx() : super(_queries, "transactions", Transaction.fromJson);
 
-  Future<double> getBalanceAt() async {
+  Future<double> getBalanceAt(DateTime until) async {
     printMsg('GET');
-    final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {});
+    final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {'until': until.toString()});
     if (value != null) {
       String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
       return Convert.currencyToDouble(balance);
     } else {
       return 0;
     }
+  }
+
+  _updateLabels(String id, List<Label> toUpdate) async {
+    await request(TypeRequest.mutation, _queries.deleteLabels, {'transactionId': id});
+    List<Label> labels = [];
+    for (var label in toUpdate) {
+      final value =
+          await request(TypeRequest.mutation, _queries.insertLabels, {'transactionId': id, 'labelId': label.id});
+      if (value != null && value['action']['returning'] != null) {
+        labels.add(Label.fromJson(value['action']['returning'][0]['label']));
+      }
+    }
+    super.behavior.add(behavior.value.map((t) {
+          if (t.id == id) {
+            t.labels = labels;
+            return t;
+          } else {
+            return t;
+          }
+        }).toList());
+  }
+
+  @override
+  create(Transaction data) async {
+    Transaction? t = await super.create(data);
+    if (t != null) _updateLabels(t.id, data.labels);
+    return t;
+  }
+
+  @override
+  update(Transaction data) async {
+    await super.update(data);
+    _updateLabels(data.id, data.labels);
+  }
+
+  @override
+  delete(String id) async {
+    await request(TypeRequest.mutation, _queries.deleteLabels, {'transactionId': id});
+    super.delete(id);
   }
 }
 
@@ -67,9 +107,9 @@ class BudgetRx extends Database<Budget> {
 
   @override
   create(Budget data) async {
-    String id = await super.create(data);
-    if (id != '') _updateCategories(id, data.categories);
-    return id;
+    Budget? b = await super.create(data);
+    if (b != null) _updateCategories(b.id, data.categories);
+    return b;
   }
 
   @override
@@ -90,5 +130,6 @@ var walletRx = WalletRx();
 var budgetRx = BudgetRx();
 var currencyRx = Database(CurrencyQueries(), "currencies", Currency.fromJson);
 var transactionRx = TransactionRx();
+var labelRx = Database(LabelQueries(), "labels", Label.fromJson);
 
 String userId = '3c940882-4628-4f71-9109-ff9439ee87fa';

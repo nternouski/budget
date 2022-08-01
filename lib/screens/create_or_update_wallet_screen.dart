@@ -14,19 +14,30 @@ import '../common/styles.dart';
 enum Action { create, update }
 
 class CreateOrUpdateWalletScreen extends StatefulWidget {
-  late Wallet _wallet;
-  late String _title;
-  late Action _action;
+  final Wallet? wallet;
 
-  CreateOrUpdateWalletScreen({Wallet? wallet, Key? key}) : super(key: key) {
-    if (wallet != null) {
-      _action = Action.update;
-      _title = 'Update wallet';
-      _wallet = wallet;
+  CreateOrUpdateWalletScreen({required this.wallet, Key? key}) : super(key: key);
+
+  @override
+  CreateOrUpdateWalletState createState() => CreateOrUpdateWalletState(wallet);
+}
+
+final now = DateTime.now();
+
+class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
+  late Wallet wallet;
+  late String title;
+  late Action action;
+
+  CreateOrUpdateWalletState(Wallet? w) {
+    if (w != null) {
+      action = Action.update;
+      title = 'Update wallet';
+      wallet = w;
     } else {
-      _action = Action.create;
-      _title = 'Create wallet';
-      _wallet = Wallet(
+      action = Action.create;
+      title = 'Create wallet';
+      wallet = Wallet(
         id: '',
         createdAt: DateTime.now(),
         name: '',
@@ -39,19 +50,6 @@ class CreateOrUpdateWalletScreen extends StatefulWidget {
       );
     }
   }
-
-  @override
-  _CreateOrUpdateWalletState createState() => _CreateOrUpdateWalletState(_wallet, _title, _action);
-}
-
-final now = DateTime.now();
-
-class _CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
-  final Wallet wallet;
-  final String title;
-  final Action action;
-
-  _CreateOrUpdateWalletState(this.wallet, this.title, this.action);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 

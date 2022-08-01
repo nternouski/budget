@@ -8,3 +8,22 @@ object_relationships:
   - name: transaction
     using:
       foreign_key_constraint_on: transactionId
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - labelId
+        - transactionId
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - labelId
+        - transactionId
+      filter: {}
+delete_permissions:
+  - role: public
+    permission:
+      backend_only: false
+      filter: {}

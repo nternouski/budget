@@ -20,7 +20,7 @@ class InputStyle {
   static InputDecoration inputDecoration({
     String labelTextStr = "",
     String hintTextStr = "",
-    Icon? suffixIcon,
+    Widget? suffixIcon,
     Widget? prefix,
   }) {
     return InputDecoration(

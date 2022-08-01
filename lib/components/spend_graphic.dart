@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:budget/common/transform.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +31,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
   late List<FlSpot> spots;
 
   late double maxBalance = 0;
-  double firstBalanceOfFrame = -1;
+  double? firstBalanceOfFrame;
   List<Balance> frame = [];
 
   final _gradient = LinearGradient(
@@ -94,8 +92,8 @@ class _SpendGraphicState extends State<SpendGraphic> {
 
   void updateFirstBalanceFrame() async {
     // FIXME: Hacerlo mas eficiente
-    if (firstBalanceOfFrame == -1.0) {
-      double balance = await transactionRx.getBalanceAt();
+    if (firstBalanceOfFrame == null) {
+      double balance = await transactionRx.getBalanceAt(_frameDate);
       setState(() {
         firstBalanceOfFrame = balance;
         frame = [];
@@ -107,7 +105,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
   Widget build(BuildContext context) {
     updateFirstBalanceFrame();
     widget.transactions.sort((a, b) => b.date.compareTo(a.date));
-    frame = calcFrame(widget.transactions, firstBalanceOfFrame);
+    frame = calcFrame(widget.transactions, firstBalanceOfFrame ?? 0);
     spots = List.generate(SpendGraphic._frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
 
     return Container(

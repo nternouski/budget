@@ -10,11 +10,11 @@ import '../common/color_constants.dart';
 
 class DailyScreen extends StatefulWidget {
   @override
-  _DailyScreenState createState() => _DailyScreenState();
+  DailyScreenState createState() => DailyScreenState();
 }
 
-class _DailyScreenState extends State<DailyScreen> {
-  _DailyScreenState() {
+class DailyScreenState extends State<DailyScreen> {
+  DailyScreenState() {
     transactionRx.getAll();
   }
 

@@ -29,16 +29,18 @@ class Budget implements ModelCommonInterface {
 
   factory Budget.fromJson(Map<String, dynamic> json) {
     double amount = Convert.currencyToDouble(json['amount']);
-    double balance = 500;
-    List<Category> categories =
-        List.from(json['budget_categories']).map((c) => Category.fromJson(c['category'])).toList();
+    double balance = 0;
+    List<Category> categories = List.from(json['budget_categories']).map((c) {
+      balance += Convert.currencyToDouble(c['category']['transactions_aggregate']['aggregate']['sum']['balance']);
+      return Category.fromJson(c['category']);
+    }).toList();
     return Budget(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       color: json['color'],
       amount: amount,
-      balance: Convert.roundDouble((balance * 100) / amount, 2),
+      balance: balance.abs(),
       categories: categories,
       userId: json['userId'],
     );
@@ -76,6 +78,13 @@ class BudgetQueries implements GraphQlQuery {
             color
             icon
             name
+            transactions_aggregate {
+              aggregate {
+                sum {
+                  balance
+                }
+              }
+            }
           }
         }
       }
@@ -102,6 +111,13 @@ class BudgetQueries implements GraphQlQuery {
               color
               icon
               name
+              transactions_aggregate {
+                aggregate {
+                  sum {
+                    balance
+                  }
+                }
+              }
             }
           }
         }
@@ -126,6 +142,13 @@ class BudgetQueries implements GraphQlQuery {
               color
               icon
               name
+              transactions_aggregate {
+                aggregate {
+                  sum {
+                    balance
+                  }
+                }
+              }
             }
           }
         }

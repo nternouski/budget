@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:budget/model/label.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +34,7 @@ class Transaction implements ModelCommonInterface {
   String walletId;
   TransactionType type;
   String description;
+  List<Label> labels;
 
   String categoryId;
   late Category category;
@@ -44,6 +48,7 @@ class Transaction implements ModelCommonInterface {
     required this.walletId,
     required this.type,
     required this.description,
+    required this.labels,
     required this.categoryId,
     Category? category,
   }) {
@@ -52,6 +57,7 @@ class Transaction implements ModelCommonInterface {
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
+    List<Label> labels = List.from(json['transaction_labels']).map((c) => Label.fromJson(c['label'])).toList();
     return Transaction(
       id: json['id'],
       name: json['name'],
@@ -60,6 +66,7 @@ class Transaction implements ModelCommonInterface {
       date: Convert.parseDate(json['date']),
       type: TransactionType.values.byName(json['type']),
       description: json['description'],
+      labels: labels,
       category: Category.fromJson(json['category']),
       categoryId: json['categoryId'],
       walletId: json['walletId'],
@@ -138,9 +145,16 @@ class TransactionQueries implements GraphQlQuery {
           id
           name
         }
+        transaction_labels {
+          label {
+            id
+            createdAt
+            color
+            name
+          }
+        }
       }
-    }
-    ''';
+    }''';
 
   @override
   late String getById = r'';
@@ -167,6 +181,14 @@ class TransactionQueries implements GraphQlQuery {
             createdAt
             icon
             name
+          }
+          transaction_labels {
+            label {
+              id
+              createdAt
+              color
+              name
+            }
           }
         }
       }
@@ -195,6 +217,14 @@ class TransactionQueries implements GraphQlQuery {
             icon
             name
           }
+          transaction_labels {
+            label {
+              id
+              createdAt
+              color
+              name
+            }
+          }
         }
       }
     }''';
@@ -209,9 +239,9 @@ class TransactionQueries implements GraphQlQuery {
       }
     }''';
 
-  String getBalanceAt = '''
-    query getBalanceAt {
-      transactions_aggregate {
+  String getBalanceAt = r'''
+    query getBalanceAt($until: timestamptz!) {
+      transactions_aggregate(where: {createdAt: {_lte: $until}}) {
         aggregate {
           sum {
             balance
@@ -220,4 +250,25 @@ class TransactionQueries implements GraphQlQuery {
       }
     }
     ''';
+
+  String insertLabels = r'''
+    mutation insertLabels($transactionId: uuid!, $labelId: uuid!) {
+      action: insert_transaction_labels(objects: { transactionId: $transactionId, labelId: $labelId }) {
+        returning {
+          label {
+            id
+            createdAt
+            color
+            name
+          }
+        }
+      }
+    }''';
+
+  String deleteLabels = r'''
+    mutation deleteBudget($transactionId: uuid!) {
+      action: delete_transaction_labels(where: { transactionId: {_eq: $transactionId} }) {
+          affected_rows
+      }
+    }''';
 }
