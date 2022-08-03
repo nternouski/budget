@@ -6,7 +6,7 @@ CREATE TABLE "public"."wallets" (
 	"icon" text NOT NULL,
 	"initialAmount" money NOT NULL,
 	"currencyId" uuid NOT NULL,
-	"userId" uuid NOT NULL,
+	"userId" text NOT NULL,
 	PRIMARY KEY ("id"),
 	FOREIGN KEY ("currencyId") REFERENCES "public"."currencies"("id") ON UPDATE restrict ON DELETE restrict,
 	FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON UPDATE restrict ON DELETE restrict,

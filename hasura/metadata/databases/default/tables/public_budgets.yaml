@@ -14,9 +14,13 @@ array_relationships:
           schema: public
           name: budget_categories
 insert_permissions:
-  - role: public
+  - role: user
     permission:
-      check: {}
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-user-id
       columns:
         - id
         - createdAt
@@ -25,28 +29,40 @@ insert_permissions:
         - color
         - userId
 select_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - amount
         - color
         - name
+        - userId
         - createdAt
         - id
-        - userId
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
 update_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - amount
         - color
         - name
         - userId
-      filter: {}
-      check: null
+        - createdAt
+        - id
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-user-id
 delete_permissions:
-  - role: public
+  - role: user
     permission:
       backend_only: false
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id

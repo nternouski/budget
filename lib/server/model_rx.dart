@@ -19,7 +19,7 @@ class TransactionRx extends Database<Transaction> {
     final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {'until': until.toString()});
     if (value != null) {
       String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
-      return Convert.currencyToDouble(balance);
+      return Convert.currencyToDouble(balance, value);
     } else {
       return 0;
     }
@@ -35,7 +35,8 @@ class TransactionRx extends Database<Transaction> {
         labels.add(Label.fromJson(value['action']['returning'][0]['label']));
       }
     }
-    super.behavior.add(behavior.value.map((t) {
+    var data = behavior.hasValue ? behavior.value : List<Transaction>.from([]);
+    super.behavior.add(data.map((t) {
           if (t.id == id) {
             t.labels = labels;
             return t;
@@ -62,21 +63,6 @@ class TransactionRx extends Database<Transaction> {
   delete(String id) async {
     await request(TypeRequest.mutation, _queries.deleteLabels, {'transactionId': id});
     super.delete(id);
-  }
-}
-
-class WalletRx extends Database<Wallet> {
-  @override
-  late Stream<List<Wallet>> fetchRx;
-
-  WalletRx() : super(WalletQueries(), "wallets", Wallet.fromJson) {
-    fetchRx = super.fetchRx.combineLatest<List<Currency>, List<Wallet>>(
-          currencyRx.fetchRx,
-          (wallets, currencies) => wallets.map((w) {
-            w.currency = currencies.firstWhere((c) => c.id == w.currencyId);
-            return w;
-          }).toList(),
-        );
   }
 }
 
@@ -125,11 +111,9 @@ class BudgetRx extends Database<Budget> {
   }
 }
 
-var categoryRx = Database(CategoryQueries(), "categories", Category.fromJson);
-var walletRx = WalletRx();
+var categoryRx = Database(CategoryQueries(), 'categories', Category.fromJson);
+var walletRx = Database(WalletQueries(), 'wallets', Wallet.fromJson);
 var budgetRx = BudgetRx();
-var currencyRx = Database(CurrencyQueries(), "currencies", Currency.fromJson);
+var currencyRx = Database(CurrencyQueries(), 'currencies', Currency.fromJson);
 var transactionRx = TransactionRx();
-var labelRx = Database(LabelQueries(), "labels", Label.fromJson);
-
-String userId = '3c940882-4628-4f71-9109-ff9439ee87fa';
+var labelRx = Database(LabelQueries(), 'labels', Label.fromJson);

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:rxdart/rxdart.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import '../common/classes.dart';
@@ -25,7 +23,7 @@ class Database<T extends ModelCommonInterface> {
 
   void _printError(String from, String message) {
     print('==============');
-    print("Error on $collectionName | $from: $message");
+    print('Error on $collectionName | $from: $message');
     print('==============');
   }
 

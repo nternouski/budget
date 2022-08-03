@@ -12,7 +12,6 @@ class Budget implements ModelCommonInterface {
   double amount;
   double balance;
   List<Category> categories;
-  String userId;
 
   Budget({
     required this.id,
@@ -22,16 +21,18 @@ class Budget implements ModelCommonInterface {
     required this.amount,
     required this.balance,
     required this.categories,
-    required this.userId,
   }) {
     this.color = Convert.colorFromHex(color);
   }
 
   factory Budget.fromJson(Map<String, dynamic> json) {
-    double amount = Convert.currencyToDouble(json['amount']);
+    double amount = Convert.currencyToDouble(json['amount'], json);
     double balance = 0;
     List<Category> categories = List.from(json['budget_categories']).map((c) {
-      balance += Convert.currencyToDouble(c['category']['transactions_aggregate']['aggregate']['sum']['balance']);
+      balance += Convert.currencyToDouble(
+        c['category']['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0',
+        c,
+      );
       return Category.fromJson(c['category']);
     }).toList();
     return Budget(
@@ -42,7 +43,6 @@ class Budget implements ModelCommonInterface {
       amount: amount,
       balance: balance.abs(),
       categories: categories,
-      userId: json['userId'],
     );
   }
 
@@ -53,8 +53,6 @@ class Budget implements ModelCommonInterface {
       'name': name,
       'color': Convert.colorToHexString(color),
       'amount': '\$$amount',
-      // 'categoryIds': categoryIds,
-      'userId': userId,
     };
     return data;
   }
@@ -70,7 +68,6 @@ class BudgetQueries implements GraphQlQuery {
         amount
         color
         name
-        userId
         budget_categories {
           category {
             id
@@ -95,15 +92,14 @@ class BudgetQueries implements GraphQlQuery {
 
   @override
   String create = r'''
-    mutation addBudget($name: String!, $color: String!, $amount: money!, $userId: uuid!) {
-      action: insert_budgets(objects: [{ name: $name, color: $color, amount: $amount, userId: $userId }]) {
+    mutation addBudget($name: String!, $color: String!, $amount: money!) {
+      action: insert_budgets(objects: [{ name: $name, color: $color, amount: $amount }]) {
         returning {
           id
           createdAt
           amount
           color
           name
-          userId
           budget_categories {
             category {
               id
@@ -126,15 +122,14 @@ class BudgetQueries implements GraphQlQuery {
 
   @override
   String update = r'''
-    mutation updateBudget($id: uuid!, $name: String!, $color: String!, $amount: money!, $userId: uuid!) {
-      action: update_budgets(where: {id: {_eq: $id}}, _set: { name: $name, color: $color, amount: $amount, userId: $userId }) {
+    mutation updateBudget($id: uuid!, $name: String!, $color: String!, $amount: money!) {
+      action: update_budgets(where: {id: {_eq: $id}}, _set: { name: $name, color: $color, amount: $amount }) {
         returning {
           id
           createdAt
           amount
           color
           name
-          userId
           budget_categories {
             category {
               id

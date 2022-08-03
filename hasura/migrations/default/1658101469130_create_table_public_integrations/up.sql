@@ -3,7 +3,7 @@ CREATE TABLE "public"."integrations" (
 	"createdAt" timestamptz NOT NULL DEFAULT now(),
 	"apiKey" text NOT NULL,
 	"integrationKey" text NOT NULL,
-	"userId" uuid NOT NULL,
+	"userId" text NOT NULL,
 	"walletId" uuid NOT NULL,
 	PRIMARY KEY ("id"),
 	FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON UPDATE restrict ON DELETE restrict,

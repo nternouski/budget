@@ -4,7 +4,7 @@ CREATE TABLE "public"."budgets" (
 	"name" text NOT NULL,
 	"amount" money NOT NULL,
 	"color" text NOT NULL,
-	"userId" uuid NOT NULL,
+	"userId" text NOT NULL,
 	PRIMARY KEY ("id"),
 	FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON UPDATE restrict ON DELETE restrict,
 	UNIQUE ("id")

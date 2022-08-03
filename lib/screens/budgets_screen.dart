@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../common/color_constants.dart';
 
 class BudgetsScreen extends StatefulWidget {
-  BudgetsScreen({Key? key}) : super(key: key);
+  const BudgetsScreen({Key? key}) : super(key: key);
 
   @override
   _BudgetsScreenState createState() => _BudgetsScreenState();
@@ -46,7 +46,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text("Budgets", style: titleStyle), Icon(Icons.search, color: black)],
+          children: const [Text('Budgets', style: titleStyle), Icon(Icons.search, color: black)],
         ),
       ),
       StreamBuilder<List<Budget>>(
@@ -87,7 +87,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           children: [
             SizedBox(width: widthPaddingValue),
             const Icon(Icons.edit, color: green),
-            const Text(" Edit", style: TextStyle(color: green, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            const Text(' Edit', style: TextStyle(color: green, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
           ],
         ),
       ),
@@ -102,7 +102,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const Text(" Delete",
+            const Text(' Delete',
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
             const Icon(Icons.delete, color: Colors.red),
             SizedBox(width: widthPaddingValue),
@@ -126,12 +126,12 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text(budget.name, style: titleStyle),
-                  content: const Text("Are you sure you want to delete ?"),
+                  content: const Text('Are you sure you want to delete ?'),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
-                      child: const Text("Delete", style: TextStyle(fontSize: 17)),
+                      child: const Text('Delete', style: TextStyle(fontSize: 17)),
                       onPressed: () {
                         budgetRx.delete(budget.id);
                         Navigator.of(context).pop();
@@ -147,7 +147,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         return null;
       },
       child: InkWell(
-        onTap: () => print("${budget.name} clicked"),
+        onTap: () => print('${budget.name} clicked'),
         child: Padding(
           padding: EdgeInsets.only(bottom: 8, top: 8, left: widthPaddingValue, right: widthPaddingValue),
           child: Column(

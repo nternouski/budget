@@ -1,6 +1,5 @@
-import 'package:budget/routes.dart';
-import 'package:budget/screens/create_or_update_wallet_screen.dart';
 import 'package:flutter/material.dart';
+import '../routes.dart';
 import '../common/styles.dart';
 import '../common/color_constants.dart';
 import '../components/icon_circle.dart';
@@ -8,21 +7,24 @@ import '../model/wallet.dart';
 import '../server/model_rx.dart';
 
 class WalletsScreen extends StatefulWidget {
-  WalletsScreen({Key? key}) : super(key: key);
+  const WalletsScreen({Key? key}) : super(key: key);
 
   @override
-  _WalletsScreenState createState() => _WalletsScreenState();
+  WalletsScreenState createState() => WalletsScreenState();
 }
 
-class _WalletsScreenState extends State<WalletsScreen> {
+class WalletsScreenState extends State<WalletsScreen> {
   @override
   Widget build(BuildContext context) {
     walletRx.getAll();
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: getBody(),
+      body: RefreshIndicator(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          slivers: getBody(),
+        ),
+        onRefresh: () => walletRx.getAll(),
       ),
     );
   }
@@ -35,7 +37,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
         leading: getLadingButton(context),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text("Wallets", style: titleStyle)],
+          children: const [Text('Wallets', style: titleStyle)],
         ),
       ),
       StreamBuilder<List<Wallet>>(
@@ -101,13 +103,11 @@ class _WalletsScreenState extends State<WalletsScreen> {
               ),
               const Expanded(child: Text('')),
               IconButton(
-                onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, param: wallet),
+                onPressed: () => RouteApp.redirect(
+                    context: context, url: URLS.createOrUpdateWallet, param: wallet, fromScaffold: false),
                 icon: const Icon(Icons.edit, color: grey),
               ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.delete, color: grey),
-              ),
+              IconButton(onPressed: () => walletRx.delete(wallet.id), icon: const Icon(Icons.delete, color: grey)),
             ],
           ),
         ),

@@ -1,28 +1,33 @@
 import 'package:budget/common/styles.dart';
+import 'package:budget/components/user_login.dart';
+import 'package:budget/model/user.dart';
+import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
 import '../common/color_constants.dart';
 
-class Profile {
-  String name;
-  String email;
-
-  Profile(this.name, this.email);
-}
-
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
+
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfileScreen> {
-  var profile = Profile("Sebastian Nahuel", "nahuelternouski@gmail.com");
-
+class ProfilePageState extends State<ProfileScreen> {
   final smallPadding = const SizedBox(height: 10);
   final bigPadding = const SizedBox(height: 20);
 
-  TextEditingController _email = TextEditingController(text: "abbie_wilson@gmail.com");
-  TextEditingController dateOfBirth = TextEditingController(text: "04-19-1992");
-  TextEditingController password = TextEditingController(text: "123456");
+  UserService userService = UserService();
+  User user = User(
+    id: '',
+    createdAt: DateTime(2022),
+    name: 'Sebas',
+    email: 'nahuelternouski@gmail.com',
+    defaultCurrencyId: '',
+  );
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _email = TextEditingController(text: 'abbie_wilson@gmail.com');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,135 +37,80 @@ class _ProfilePageState extends State<ProfileScreen> {
   }
 
   Widget getBody() {
-    var size = MediaQuery.of(context).size;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            decoration: BoxDecoration(color: white, boxShadow: [
-              BoxShadow(color: grey.withOpacity(0.01), spreadRadius: 10, blurRadius: 3),
-            ]),
+            decoration: const BoxDecoration(color: white),
             child: Padding(
-              padding: const EdgeInsets.only(top: 60, right: 20, left: 20, bottom: 25),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text("Profile", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black)),
-                      Icon(Icons.settings_outlined)
-                    ],
-                  ),
-                  bigPadding,
-                  Row(
-                    children: [
-                      Container(
-                        width: (size.width - 40) * 0.6,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              profile.name,
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                  bigPadding,
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(color: primary, borderRadius: BorderRadius.circular(12), boxShadow: [
-                      BoxShadow(
-                        color: primary.withOpacity(0.01),
-                        spreadRadius: 10,
-                        blurRadius: 3,
-                      ),
-                    ]),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20, right: 20, top: 25, bottom: 25),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "United Bank Asia",
-                                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: white),
-                              ),
-                              smallPadding,
-                              Text(
-                                "\$2446.90",
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: white),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10), border: Border.all(color: white)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(13.0),
-                              child: Text(
-                                "Update",
-                                style: TextStyle(color: white),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
+              padding: const EdgeInsets.only(top: 70, right: 20, left: 20, bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black)),
+                  UserLogin()
                 ],
               ),
             ),
           ),
           bigPadding,
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Email", style: textGreyStyle),
-                TextField(
-                  controller: _email,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black),
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                  ),
-                ),
-                bigPadding,
-                Text(
-                  "Date of birth",
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xff67727d)),
-                ),
-                TextField(
-                  controller: dateOfBirth,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black),
-                  decoration: InputDecoration(
-                    hintText: "Date of birth",
-                  ),
-                ),
-                bigPadding,
-                Text(
-                  "Date of birth",
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xff67727d)),
-                ),
-                TextField(
-                  obscureText: true,
-                  controller: password,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black),
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                  ),
-                ),
-              ],
-            ),
-          )
+          StreamBuilder<User>(
+            stream: Stream.value(user),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                var user = snapshot.data;
+                if (user != null) return getForm();
+              }
+              return UserLogin();
+            },
+          ),
         ],
       ),
     );
+  }
+
+  Widget buildName() {
+    return TextFormField(
+      initialValue: user.name,
+      decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Cookies'),
+      validator: (String? value) {
+        if (value!.isEmpty) return 'Name is Required.';
+        return null;
+      },
+      onSaved: (String? value) {
+        user.name = value!;
+      },
+    );
+  }
+
+  Widget getForm() {
+    return Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: Column(children: <Widget>[
+            buildName(),
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buttonCancelContext(context),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (!_formKey.currentState!.validate()) return;
+                      _formKey.currentState!.save();
+                      userService.userRx.update(user);
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Update', style: TextStyle(fontSize: 17)),
+                  )
+                ],
+              ),
+            )
+          ]),
+        ));
   }
 }

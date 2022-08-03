@@ -1,13 +1,15 @@
+import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
 import '../common/color_constants.dart';
 import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
-  const NavDrawer({Key? key}) : super(key: key);
+  UserService userService = UserService();
+
+  NavDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    String name = "Sebastian";
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -17,7 +19,7 @@ class NavDrawer extends StatelessWidget {
               color: primary.withOpacity(0.7),
               image: const DecorationImage(fit: BoxFit.scaleDown, image: AssetImage('assets/images/auto.png')),
             ),
-            child: Text(name, style: const TextStyle(color: Colors.white, fontSize: 25)),
+            child: const Text('Budget app', style: TextStyle(color: Colors.white, fontSize: 25)),
           ),
           ListTile(
             leading: const Icon(Icons.input),
@@ -37,7 +39,29 @@ class NavDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text('Logout'),
-            onTap: () => {Navigator.of(context).pop()},
+            onTap: () {
+              userService.logout();
+              Navigator.of(context).pop();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('About'),
+            onTap: () {
+              Navigator.of(context).pop();
+              showAboutDialog(
+                context: context,
+                applicationIcon: const FlutterLogo(),
+                applicationName: 'Budget',
+                applicationVersion: '0.0.1',
+                applicationLegalese: '©2022 budget',
+                children: [
+                  const Padding(
+                      padding: EdgeInsets.only(top: 15),
+                      child: Text('This app is created by Sebstian Nahuel Ternouski'))
+                ],
+              );
+            },
           ),
         ],
       ),

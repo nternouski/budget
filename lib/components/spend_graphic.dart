@@ -21,7 +21,7 @@ class SpendGraphic extends StatefulWidget {
   List<Transaction> transactions;
 
   static const int _frameRange = 30;
-  SpendGraphic(this.transactions, {Key? key}) : super(key: key) {}
+  SpendGraphic(this.transactions, {Key? key}) : super(key: key);
 
   @override
   State<SpendGraphic> createState() => _SpendGraphicState();
@@ -91,7 +91,6 @@ class _SpendGraphicState extends State<SpendGraphic> {
   }
 
   void updateFirstBalanceFrame() async {
-    // FIXME: Hacerlo mas eficiente
     if (firstBalanceOfFrame == null) {
       double balance = await transactionRx.getBalanceAt(_frameDate);
       setState(() {

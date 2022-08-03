@@ -9,21 +9,57 @@ object_relationships:
     using:
       foreign_key_constraint_on: transactionId
 insert_permissions:
-  - role: public
+  - role: user
     permission:
-      check: {}
+      check:
+        _and:
+          - transaction:
+              userId:
+                _eq: X-Hasura-User-Id
+          - label:
+              userId:
+                _eq: X-Hasura-User-Id
       columns:
         - labelId
         - transactionId
 select_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - labelId
         - transactionId
-      filter: {}
+      filter:
+        _and:
+          - transaction:
+              userId:
+                _eq: X-Hasura-User-Id
+          - label:
+              userId:
+                _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - labelId
+        - transactionId
+      filter:
+        _and:
+          - transaction:
+              userId:
+                _eq: X-Hasura-User-Id
+          - label:
+              userId:
+                _eq: X-Hasura-User-Id
+      check: null
 delete_permissions:
-  - role: public
+  - role: user
     permission:
       backend_only: false
-      filter: {}
+      filter:
+        _and:
+          - transaction:
+              userId:
+                _eq: X-Hasura-User-Id
+          - label:
+              userId:
+                _eq: X-Hasura-User-Id

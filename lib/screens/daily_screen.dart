@@ -3,23 +3,26 @@ import 'package:flutter/material.dart';
 
 import '../server/model_rx.dart';
 import '../common/styles.dart';
-import '../components/daily_item.dart';
-import '../model/transaction.dart';
-import '../components/spend_graphic.dart';
 import '../common/color_constants.dart';
+import '../components/user_login.dart';
+import '../components/daily_item.dart';
+import '../components/spend_graphic.dart';
+import '../model/transaction.dart';
 
 class DailyScreen extends StatefulWidget {
+  const DailyScreen({Key? key}) : super(key: key);
+
   @override
   DailyScreenState createState() => DailyScreenState();
 }
 
 class DailyScreenState extends State<DailyScreen> {
-  DailyScreenState() {
-    transactionRx.getAll();
-  }
+  DailyScreenState();
 
   @override
   Widget build(BuildContext context) {
+    // FIXME: Hacerlo mas eficiente.
+    transactionRx.getAll();
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Column(children: [
@@ -33,7 +36,7 @@ class DailyScreenState extends State<DailyScreen> {
                 leading: getLadingButton(context),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [Text("Daily Transaction", style: titleStyle), Icon(Icons.search, color: black)],
+                  children: const [Text('Daily Transaction', style: titleStyle), UserLogin()],
                 ),
               ),
               StreamBuilder<List<Transaction>>(
@@ -84,7 +87,7 @@ class DailyScreenState extends State<DailyScreen> {
                 child: Column(
                   children: List.generate(
                     daily.length,
-                    (index) => DailyItem(daily[index], key: Key("${Random().nextDouble()}")),
+                    (index) => DailyItem(daily[index], key: Key(Random().nextDouble().toString())),
                   ),
                 ),
               );

@@ -1,8 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import './icon_helper.dart';
 
 class Convert {
-  static double currencyToDouble(String currency) {
+  static double currencyToDouble(String? currency, dynamic context) {
+    if (currency == null) inspect(context);
+    currency ??= '\$ -1';
     return double.parse(currency.replaceAll(RegExp(r'[\$,]'), ''));
   }
 

@@ -1,11 +1,11 @@
-import 'package:budget/common/icon_helper.dart';
-import 'package:budget/components/icon_picker.dart';
-import 'package:budget/model/currency.dart';
-import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
+import 'package:budget/common/icon_helper.dart';
+import 'package:budget/components/icon_picker.dart';
+import 'package:budget/model/currency.dart';
+import 'package:budget/routes.dart';
 import '../model/wallet.dart';
 import '../server/model_rx.dart';
 import '../common/color_constants.dart';
@@ -30,6 +30,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   late Action action;
 
   CreateOrUpdateWalletState(Wallet? w) {
+    currencyRx.getAll();
     if (w != null) {
       action = Action.update;
       title = 'Update wallet';
@@ -45,7 +46,6 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
         iconName: 'question_mark',
         initialAmount: 0,
         currencyId: '',
-        userId: userId,
         balance: 0,
       );
     }
@@ -93,7 +93,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
         child: TextFormField(
           initialValue: wallet.initialAmount.toString(),
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[0-9.]"))],
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
           decoration: InputStyle.inputDecoration(
             labelTextStr: 'Initial Amount',
             hintTextStr: '1300',

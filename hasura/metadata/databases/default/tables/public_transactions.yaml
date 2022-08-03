@@ -20,62 +20,73 @@ array_relationships:
           schema: public
           name: transaction_labels
 insert_permissions:
-  - role: public
+  - role: user
     permission:
-      check: {}
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-user-id
       columns:
-        - amount
-        - balance
-        - categoryId
-        - createdAt
-        - date
-        - description
         - id
-        - name
+        - createdAt
         - planedPaymentEach
         - planedPaymentIteration
+        - name
+        - description
+        - amount
+        - balance
+        - date
         - type
-        - userId
         - walletId
+        - categoryId
+        - userId
 select_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - amount
         - balance
-        - categoryId
-        - createdAt
-        - date
+        - planedPaymentIteration
         - description
-        - id
         - name
         - planedPaymentEach
-        - planedPaymentIteration
         - type
         - userId
+        - createdAt
+        - date
+        - categoryId
+        - id
         - walletId
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
       allow_aggregations: true
 update_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - amount
         - balance
-        - categoryId
-        - createdAt
-        - date
+        - planedPaymentIteration
         - description
         - name
         - planedPaymentEach
-        - planedPaymentIteration
         - type
         - userId
+        - createdAt
+        - date
+        - categoryId
+        - id
         - walletId
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
-  - role: public
+  - role: user
     permission:
       backend_only: false
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id

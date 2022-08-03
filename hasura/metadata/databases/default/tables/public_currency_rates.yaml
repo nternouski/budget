@@ -8,3 +8,37 @@ object_relationships:
   - name: currency_to
     using:
       foreign_key_constraint_on: currencyIdTo
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - rate
+        - createdAt
+        - currencyIdFrom
+        - currencyIdTo
+        - id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - rate
+        - createdAt
+        - currencyIdFrom
+        - currencyIdTo
+        - id
+      filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - currencyIdFrom
+        - currencyIdTo
+        - rate
+      filter: {}
+      check: {}
+delete_permissions:
+  - role: user
+    permission:
+      backend_only: false
+      filter: {}

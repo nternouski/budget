@@ -10,25 +10,52 @@ array_relationships:
           schema: public
           name: transaction_labels
 insert_permissions:
-  - role: public
+  - role: user
     permission:
-      check: {}
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-user-id
       columns:
         - id
         - createdAt
         - name
         - color
+        - userId
 select_permissions:
-  - role: public
+  - role: user
     permission:
       columns:
         - color
         - name
+        - userId
         - createdAt
         - id
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - color
+        - name
+        - userId
+        - createdAt
+        - id
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-user-id
 delete_permissions:
-  - role: public
+  - role: user
     permission:
       backend_only: false
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id

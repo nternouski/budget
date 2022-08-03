@@ -1,11 +1,7 @@
-import 'package:budget/common/icon_helper.dart';
 import 'package:budget/components/create_or_update_category.dart';
 import 'package:budget/components/icon_circle.dart';
-import 'package:budget/components/icon_picker.dart';
 import 'package:budget/model/budget.dart';
 import 'package:budget/model/category.dart';
-import 'package:budget/model/currency.dart';
-import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -30,13 +26,12 @@ class CreateOrUpdateBudgetScreen extends StatefulWidget {
       _action = Action.create;
       _title = 'Create budget';
       _budget = Budget(
-        id: userId,
+        id: '',
         createdAt: DateTime.now(),
         name: 'asdasd',
         color: 'ff00ffff',
         amount: 2222,
         balance: 0,
-        userId: userId,
         categories: [],
       );
     }

@@ -46,21 +46,21 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   _CreateOrUpdateTransactionState(Transaction? t) {
     if (t != null) {
       action = Action.update;
-      title = "Update transaction";
+      title = 'Update transaction';
       transaction = t;
     } else {
       action = Action.create;
-      title = "Create transaction";
+      title = 'Create transaction';
       transaction = Transaction(
-        id: "",
-        name: "",
+        id: '',
+        name: '',
         amount: 1,
         balance: 0,
-        categoryId: "",
+        categoryId: '',
         date: now,
-        walletId: "",
+        walletId: '',
         type: TransactionType.expense,
-        description: "",
+        description: '',
         labels: [],
       );
     }
@@ -112,7 +112,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Row(children: [
           Text(
-            "Choose wallet",
+            'Choose wallet',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
           ),
           IconButton(
@@ -182,7 +182,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         Row(
           children: [
             Text(
-              "Choose category",
+              'Choose category',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
             ),
             IconButton(
@@ -243,7 +243,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           },
         ),
         const SizedBox(height: 10),
-        const Text("Long press for edit category."),
+        const Text('Long press for edit category.'),
         sizedBoxHeight,
       ],
     );
@@ -262,7 +262,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           ],
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: black),
-          decoration: const InputDecoration(border: InputBorder.none, hintText: "\$ 0"),
+          decoration: const InputDecoration(border: InputBorder.none, hintText: '\$ 0'),
           validator: (String? value) {
             if (value!.isEmpty || double.parse(value) == 0) return 'Amount is Required.';
             return null;
@@ -347,7 +347,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }
               timeController.text = DateFormat(formatTime).format(transaction.date);
             },
-            decoration: InputStyle.inputDecoration(labelTextStr: "Time", hintTextStr: formatTime),
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Time', hintTextStr: formatTime),
             validator: (String? value) {
               return value!.isEmpty ? 'Date is Required.' : null;
             },

@@ -21,8 +21,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    currencyRx.getAll();
-
     return GraphQLProvider(
       client: graphQLConfig.clientValueNotifier,
       child: MaterialApp(

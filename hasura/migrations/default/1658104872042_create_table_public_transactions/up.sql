@@ -11,7 +11,7 @@ CREATE TABLE "public"."transactions" (
 	"type" text NOT NULL,
 	"walletId" uuid NOT NULL,
 	"categoryId" uuid NOT NULL,
-	"userId" uuid NOT NULL,
+	"userId" text NOT NULL,
 	PRIMARY KEY ("id"),
 	FOREIGN KEY ("walletId") REFERENCES "public"."wallets"("id") ON UPDATE restrict ON DELETE restrict,
 	FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON UPDATE restrict ON DELETE restrict,

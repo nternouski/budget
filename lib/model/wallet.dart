@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:budget/model/category.dart';
 import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +19,6 @@ class Wallet implements ModelCommonInterface {
   double balance;
   String currencyId;
   Currency? currency;
-  String userId;
 
   Wallet({
     required this.id,
@@ -31,7 +28,6 @@ class Wallet implements ModelCommonInterface {
     required this.iconName,
     required this.initialAmount,
     required this.balance,
-    required this.userId,
     required this.currencyId,
   }) {
     icon = Convert.toIcon(iconName);
@@ -39,9 +35,10 @@ class Wallet implements ModelCommonInterface {
   }
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
-    double initialAmount = Convert.currencyToDouble(json['initialAmount']);
-    double balance = Convert.currencyToDouble(json['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0');
-    return Wallet(
+    double initialAmount = Convert.currencyToDouble(json['initialAmount'], json);
+    double balance =
+        Convert.currencyToDouble(json['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0', json);
+    Wallet wallet = Wallet(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
@@ -50,8 +47,9 @@ class Wallet implements ModelCommonInterface {
       initialAmount: initialAmount,
       balance: initialAmount + balance,
       currencyId: json['currencyId'],
-      userId: json['userId'],
     );
+    wallet.currency = Currency.fromJson(json['currency']);
+    return wallet;
   }
 
   @override
@@ -63,7 +61,6 @@ class Wallet implements ModelCommonInterface {
       'icon': iconName,
       'initialAmount': '\$$initialAmount',
       'currencyId': currencyId,
-      // 'userId': userId,
     };
     return data;
   }
@@ -81,13 +78,18 @@ class WalletQueries implements GraphQlQuery {
         icon
         initialAmount
         currencyId
-        userId
         transactions_aggregate {
           aggregate {
             sum {
               balance
             }
           }
+        }
+        currency {
+          id
+          createdAt
+          name
+          symbol
         }
       }
     }''';
@@ -97,8 +99,8 @@ class WalletQueries implements GraphQlQuery {
 
   @override
   String create = r'''
-     mutation addWallet($name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!, $userId: uuid!) {
-      action: insert_wallets(objects: [{ name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId, userId: $userId }]) {
+     mutation addWallet($name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!) {
+      action: insert_wallets(objects: [{ name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId}]) {
         returning {
           id
           createdAt
@@ -107,13 +109,18 @@ class WalletQueries implements GraphQlQuery {
           icon
           initialAmount
           currencyId
-          userId
           transactions_aggregate {
             aggregate {
               sum {
                 balance
               }
             }
+          }
+          currency {
+            id
+            createdAt
+            name
+            symbol
           }
         }
       }
@@ -131,13 +138,18 @@ class WalletQueries implements GraphQlQuery {
           icon
           initialAmount
           currencyId
-          userId
           transactions_aggregate {
             aggregate {
               sum {
                 balance
               }
             }
+          }
+          currency {
+            id
+            createdAt
+            name
+            symbol
           }
         }
       }
