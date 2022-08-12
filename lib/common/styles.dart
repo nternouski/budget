@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../common/color_constants.dart';
 
 class TextColor {
   static Color getContrastOf(Color color) {
@@ -7,31 +6,28 @@ class TextColor {
   }
 }
 
-const titleStyle = TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: black);
-const bodyTextStyle = TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: black);
-const textGreyStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: grey);
-
 const sliverPaddingBar = SliverPadding(padding: EdgeInsets.symmetric(vertical: 10));
 
-BorderRadius borderRadiusApp = BorderRadius.circular(40);
+BorderRadius categoryBorderRadius = BorderRadius.circular(40);
+BorderRadius borderRadiusApp = BorderRadius.circular(20);
 const Radius radiusApp = Radius.circular(15);
 
 class InputStyle {
   static InputDecoration inputDecoration({
-    String labelTextStr = "",
-    String hintTextStr = "",
+    String labelTextStr = '',
+    String hintTextStr = '',
     Widget? suffixIcon,
     Widget? prefix,
   }) {
     return InputDecoration(
       contentPadding: const EdgeInsets.all(10),
       labelText: labelTextStr,
-      labelStyle: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
+      labelStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
       hintText: hintTextStr,
-      hintStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: grey.withOpacity(0.5)),
+      hintStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       suffixIcon: suffixIcon,
       prefix: prefix,
-      prefixStyle: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
+      prefixStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
       // floatingLabelBehavior: FloatingLabelBehavior.always,
       alignLabelWithHint: true,
       // border: OutlineInputBorder(),
@@ -42,25 +38,30 @@ class InputStyle {
 
 TextButton buttonCancelContext(BuildContext context) {
   return TextButton(
-    style: TextButton.styleFrom(primary: Colors.red),
+    style: TextButton.styleFrom(primary: Theme.of(context).colorScheme.error),
     onPressed: () => Navigator.of(context).pop(),
-    child: const Text("Cancel"),
+    child: const Text('Cancel'),
   );
 }
 
-Padding getLadingButton(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 2),
-    child: IconButton(icon: const Icon(Icons.menu, color: black), onPressed: () => Scaffold.of(context).openDrawer()),
+Widget getLadingButton(BuildContext context) {
+  return IconButton(
+    icon: const Icon(Icons.menu),
+    onPressed: () => Scaffold.of(context).openDrawer(),
   );
+}
+
+Widget getBackButton(BuildContext context) {
+  return IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).pop());
 }
 
 void displayError(BuildContext context, String test) {
+  final theme = Theme.of(context);
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      backgroundColor: red,
-      content: Text(test),
-      duration: const Duration(seconds: 3),
+      backgroundColor: theme.colorScheme.error,
+      content: Text(test, style: TextStyle(color: theme.colorScheme.onError)),
+      duration: const Duration(seconds: 5),
       behavior: SnackBarBehavior.floating,
     ),
   );

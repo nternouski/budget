@@ -6,7 +6,6 @@ abstract class ModelCommonInterface {
 
 abstract class GraphQlQuery {
   late String getAll;
-  late String getById;
   late String create;
   late String update;
   late String delete;

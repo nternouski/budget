@@ -2,6 +2,7 @@ import 'package:budget/components/create_or_update_label.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/model/wallet.dart';
 import 'package:budget/routes.dart';
+import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,6 @@ import '../components/create_or_update_category.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
 import '../server/model_rx.dart';
-import '../common/color_constants.dart';
 import '../common/styles.dart';
 
 // ignore: constant_identifier_names
@@ -19,12 +19,12 @@ const MAX_LENGTH_AMOUNT = 5;
 enum Action { create, update }
 
 class CreateOrUpdateTransaction extends StatefulWidget {
-  Transaction? transaction;
+  final Transaction? transaction;
 
-  CreateOrUpdateTransaction({this.transaction, Key? key}) : super(key: key);
+  const CreateOrUpdateTransaction({this.transaction, Key? key}) : super(key: key);
 
   @override
-  _CreateOrUpdateTransactionState createState() => _CreateOrUpdateTransactionState(transaction);
+  CreateOrUpdateTransactionState createState() => CreateOrUpdateTransactionState(transaction);
 }
 
 final now = DateTime.now();
@@ -35,7 +35,7 @@ class SelectedType {
   SelectedType(this.type, this.isSelected);
 }
 
-class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
+class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   late Transaction transaction;
   late String title;
   late Action action;
@@ -43,7 +43,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   late TextEditingController timeController;
   late List<SelectedType> types;
 
-  _CreateOrUpdateTransactionState(Transaction? t) {
+  CreateOrUpdateTransactionState(Transaction? t) {
     if (t != null) {
       action = Action.update;
       title = 'Update transaction';
@@ -54,7 +54,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       transaction = Transaction(
         id: '',
         name: '',
-        amount: 1,
+        amount: 0,
         balance: 0,
         categoryId: '',
         date: now,
@@ -77,44 +77,27 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: white,
-                boxShadow: [BoxShadow(color: grey.withOpacity(0.01), spreadRadius: 10, blurRadius: 3)],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 60, right: 20, left: 20, bottom: 25),
-                child: Column(
-                  children: [
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [Text('$title ${transaction.name}', style: titleStyle)])
-                  ],
-                ),
-              ),
-            ),
-            sizedBoxHeight,
-            getForm()
-          ],
-        ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            titleTextStyle: theme.textTheme.titleLarge,
+            pinned: true,
+            leading: getBackButton(context),
+            title: Text('$title ${transaction.name}'),
+          ),
+          SliverToBoxAdapter(child: getForm(theme))
+        ],
       ),
     );
   }
 
-  Widget buildWallet() {
+  Widget buildWallet(Color disabledColor) {
     return Column(
       children: [
         Row(children: [
-          Text(
-            'Choose wallet',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
-          ),
+          const Text('Choose wallet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
@@ -135,35 +118,20 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: List.generate(wallets.length, (index) {
-                      var isSelected = transaction.walletId == wallets[index].id;
-                      var colorItem = isSelected ? wallets[index].color : grey.withOpacity(0.5);
-                      return GestureDetector(
-                        onTap: () => setState(() => transaction.walletId = wallets[index].id),
-                        child: Padding(
-                          padding: EdgeInsets.all(5),
-                          child: Container(
-                            decoration: BoxDecoration(color: colorItem, borderRadius: borderRadiusApp),
-                            child: Padding(
-                              padding: const EdgeInsets.all(7),
-                              child: Row(
-                                children: [
-                                  Icon(wallets[index].icon, color: TextColor.getContrastOf(colorItem)),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    wallets[index].name,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 17,
-                                        color: TextColor.getContrastOf(colorItem)),
-                                  )
-                                ],
-                              ),
+                    children: List.generate(
+                      wallets.length,
+                      (index) => GestureDetector(
+                          onTap: () => setState(() => transaction.walletId = wallets[index].id),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 20),
+                            child: WalletItem(
+                              wallet: wallets[index],
+                              showBalance: false,
+                              showActions: false,
+                              selected: transaction.walletId == wallets[index].id,
                             ),
-                          ),
-                        ),
-                      );
-                    }),
+                          )),
+                    ),
                   ),
                 );
               }
@@ -181,10 +149,7 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Row(
           children: [
-            Text(
-              'Choose category',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
-            ),
+            const Text('Choose category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
@@ -216,9 +181,8 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                         onTap: () => setState(() => transaction.categoryId = categories[index].id),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: white,
                             border: Border.all(width: 2, color: colorItem),
-                            borderRadius: borderRadiusApp,
+                            borderRadius: categoryBorderRadius,
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(5),
@@ -250,28 +214,43 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget buildAmount() {
-    return Center(
-      child: FractionallySizedBox(
-        widthFactor: 0.45,
-        child: TextFormField(
-          initialValue: transaction.amount.toString(),
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
-          ],
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: black),
-          decoration: const InputDecoration(border: InputBorder.none, hintText: '\$ 0'),
-          validator: (String? value) {
-            if (value!.isEmpty || double.parse(value) == 0) return 'Amount is Required.';
-            return null;
-          },
-          onSaved: (String? value) {
-            transaction.amount = double.parse(value!);
-          },
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Flexible(
+          flex: 3,
+          child: TextFormField(
+            initialValue: transaction.amount.toInt().toString(),
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
+            ],
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold),
+            decoration: const InputDecoration(border: InputBorder.none, hintText: '\$ 0'),
+            onSaved: (String? value) {
+              final decimals = transaction.amount.toString().split('.')[1];
+              transaction.amount = double.parse('$value.$decimals');
+            },
+          ),
         ),
-      ),
+        Flexible(
+          flex: 1,
+          child: TextFormField(
+            initialValue: transaction.amount.toString().split('.')[1],
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
+            textAlign: TextAlign.start,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            decoration: const InputDecoration(border: InputBorder.none, hintText: '00'),
+            onSaved: (String? value) {
+              final intValue = transaction.amount.toString().split('.')[0];
+              transaction.amount = double.parse('$intValue.$value');
+            },
+          ),
+        )
+      ],
     );
   }
 
@@ -357,65 +336,66 @@ class _CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget getForm() {
-    CreateOrUpdateLabel componentLabel = CreateOrUpdateLabel(
-      onSelect: (selection) => setState(() => transaction.labels.add(selection)),
-      onDelete: (label) => setState(
-        () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
-      ),
-    );
+  Widget getForm(ThemeData theme) {
     return Form(
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
           child: Column(children: <Widget>[
-            ToggleButtons(
-              onPressed: (int index) => setState(() {
-                for (int i = 0; i < types.length; i++) {
-                  types[i].isSelected = i == index;
-                }
-                transaction.type = types[index].type;
-              }),
-              isSelected: types.map((t) => t.isSelected).toList(),
-              children: types.map((t) => Text(t.type.toShortString())).toList(),
-            ),
-            buildWallet(),
-            buildAmount(),
+            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Expanded(child: buildAmount()),
+              Expanded(
+                child: ToggleButtons(
+                  onPressed: (int index) => setState(() {
+                    for (int i = 0; i < types.length; i++) {
+                      types[i].isSelected = i == index;
+                    }
+                    transaction.type = types[index].type;
+                  }),
+                  isSelected: types.map((t) => t.isSelected).toList(),
+                  children: types.map((t) => Text(t.type.toShortString())).toList(),
+                ),
+              ),
+            ]),
+            buildWallet(theme.disabledColor),
             buildCategory(),
-            componentLabel.build(transaction.labels),
+            CreateOrUpdateLabel(
+              labels: transaction.labels,
+              onSelect: (selection) => setState(() => transaction.labels.add(selection)),
+              onDelete: (label) => setState(
+                () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
+              ),
+            ),
             buildName(),
             buildDescription(),
             buildDateField(),
             sizedBoxHeight,
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buttonCancelContext(context),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (!_formKey.currentState!.validate()) return;
-                      if (transaction.walletId == '') {
-                        displayError(context, 'You must choice a wallet first');
-                        return;
-                      }
-                      _formKey.currentState!.save();
-                      if (action == Action.create) {
-                        transaction.updateBalance();
-                        transactionRx.create(transaction);
-                      } else {
-                        transaction.updateBalance();
-                        transactionRx.update(transaction);
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(title, style: const TextStyle(fontSize: 17)),
-                  )
-                ],
-              ),
-            )
+            sizedBoxHeight,
+            ElevatedButton(
+              onPressed: () {
+                if (!_formKey.currentState!.validate()) return;
+                if (transaction.walletId == '') {
+                  return displayError(context, 'You must choice a wallet first');
+                }
+                if (transaction.categoryId == '') {
+                  return displayError(context, 'You must choice a category first');
+                }
+                _formKey.currentState!.save();
+                if (transaction.amount <= 0.0) {
+                  return displayError(context, 'Amount is Required and must be grater than 0.');
+                }
+                if (action == Action.create) {
+                  transaction.updateBalance();
+                  transactionRx.create(transaction);
+                } else {
+                  transaction.updateBalance();
+                  transactionRx.update(transaction);
+                }
+                Navigator.of(context).pop();
+              },
+              child: Text(title, style: const TextStyle(fontSize: 17)),
+            ),
+            sizedBoxHeight,
           ]),
         ));
   }

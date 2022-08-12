@@ -1,7 +1,8 @@
-import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../common/color_constants.dart';
+import '../model/user.dart';
+import '../server/user_service.dart';
 
 /// -----------------------------------
 ///                 UserLogin
@@ -25,22 +26,12 @@ class UserLoginState extends State<UserLogin> {
   @override
   Widget build(BuildContext context) {
     if (isBusy) {
-      return const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: primary));
+      final primary = Theme.of(context).colorScheme.primary;
+      return SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: primary));
     } else {
-      return Center(
-          child: StreamBuilder<Token>(
-        stream: userService.tokenRx,
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final token = snapshot.data;
-            return token != null && token.isLogged() ? buildProfile(token) : buildLogin();
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          } else {
-            return const Text('Error login');
-          }
-        },
-      ));
+      return Consumer<Token>(
+        builder: (context, token, child) => token.isLogged() ? buildProfile(token) : buildLogin(),
+      );
     }
   }
 
@@ -68,11 +59,5 @@ class UserLoginState extends State<UserLogin> {
     setState(() => isBusy = true);
     await userService.login(context);
     setState(() => isBusy = false);
-  }
-
-  @override
-  void initState() {
-    userService.init(context);
-    super.initState();
   }
 }

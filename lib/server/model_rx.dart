@@ -1,8 +1,10 @@
-import 'package:budget/common/transform.dart';
-import 'package:budget/model/budget.dart';
-import 'package:budget/model/label.dart';
-import 'package:stream_transform/stream_transform.dart';
+import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 
+import '../common/transform.dart';
+import '../model/budget.dart';
+import '../model/label.dart';
+import '../model/user.dart';
 import '../model/currency.dart';
 import '../model/wallet.dart';
 import '../model/category.dart';
@@ -12,10 +14,10 @@ import './database.dart';
 class TransactionRx extends Database<Transaction> {
   static final _queries = TransactionQueries();
 
-  TransactionRx() : super(_queries, "transactions", Transaction.fromJson);
+  TransactionRx() : super(_queries, 'transactions', Transaction.fromJson);
 
   Future<double> getBalanceAt(DateTime until) async {
-    printMsg('GET');
+    printMsg('GET - BALANCE');
     final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {'until': until.toString()});
     if (value != null) {
       String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
@@ -37,12 +39,8 @@ class TransactionRx extends Database<Transaction> {
     }
     var data = behavior.hasValue ? behavior.value : List<Transaction>.from([]);
     super.behavior.add(data.map((t) {
-          if (t.id == id) {
-            t.labels = labels;
-            return t;
-          } else {
-            return t;
-          }
+          if (t.id == id) t.labels = labels;
+          return t;
         }).toList());
   }
 
@@ -69,7 +67,7 @@ class TransactionRx extends Database<Transaction> {
 class BudgetRx extends Database<Budget> {
   static final _queries = BudgetQueries();
 
-  BudgetRx() : super(BudgetQueries(), "budgets", Budget.fromJson);
+  BudgetRx() : super(_queries, 'budgets', Budget.fromJson);
 
   _updateCategories(String id, List<Category> toUpdate) async {
     await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
@@ -108,6 +106,66 @@ class BudgetRx extends Database<Budget> {
   delete(String id) async {
     await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
     super.delete(id);
+  }
+}
+
+class UserRx extends Database<User> {
+  static final _queries = UserQueries();
+
+  final user$ = BehaviorSubject<User>();
+  Stream<User> get userRx => user$.stream;
+
+  UserRx() : super(_queries, 'users', User.fromJson);
+
+  Future<void> getCurrentUser(Token token, bool singUp, Currency? defaultCurrency) async {
+    if (singUp) {
+      var user = User(
+        id: token.userId,
+        createdAt: DateTime.now(),
+        name: token.name,
+        email: token.email,
+        defaultCurrencyId: defaultCurrency?.id ?? '',
+        defaultCurrency: defaultCurrency,
+      );
+      printMsg('CREATE USER');
+      final value = await request(TypeRequest.mutation, _queries.create, user.toJson());
+      if (value != null && value['action']['returning'] != null) updateData(user);
+    } else {
+      printMsg('GET USER BY ID');
+      final value = await request(TypeRequest.query, _queries.getAll, {});
+      if (value != null && value[collectionName] != null) {
+        var users = List<User>.from(value[collectionName].map((t) => constructor(t)).toList());
+        debugPrint('_______________________________________________________');
+        debugPrint(users.isNotEmpty.toString());
+        if (users.isNotEmpty) {
+          updateData(users[0]);
+        } else {
+          throw Exception('User not created');
+        }
+      }
+    }
+  }
+
+  updateData(User user) {
+    user$.add(user);
+    transactionRx.getAll();
+    labelRx.getAll();
+  }
+
+  Future<User?> getUser(String id) async {
+    printMsg('GET USER BY ID: $id');
+    final value = await request(TypeRequest.query, _queries.getUser, {'id': id});
+    if (value != null && value[collectionName] != null) {
+      var users = List<User>.from(value[collectionName].map((t) => constructor(t)).toList());
+      if (users.isNotEmpty) return users.length == 1 ? users[0] : throw 'More than 1 user';
+    }
+    return null;
+  }
+
+  @override
+  update(User data) async {
+    super.update(data);
+    user$.add(data);
   }
 }
 

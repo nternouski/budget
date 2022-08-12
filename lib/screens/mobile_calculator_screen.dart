@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:sim_data/sim_data.dart';
+// import 'package:ussd_service/ussd_service.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../common/color_constants.dart';
+
 import '../common/styles.dart';
 import '../model/mobile_calculator.dart';
 
 class MobileCalculatorScreen extends StatefulWidget {
+  const MobileCalculatorScreen({Key? key}) : super(key: key);
+
   @override
-  _MobileCalculatorScreenState createState() => _MobileCalculatorScreenState();
+  MobileCalculatorScreenState createState() => MobileCalculatorScreenState();
 }
 
 // ignore: constant_identifier_names
 const int SPENT_DATE_MB_MIN = 0;
 final DateTime now = DateTime.now();
 
-class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
+class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   final sizedBoxHeight = const SizedBox(height: 15);
 
   final _formKey = GlobalKey<FormState>();
   final mobileDataFormFields = MobileDataFormFields(now, plans[0], 0);
 
-  _MobileCalculatorScreenState();
+  MobileCalculatorScreenState();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: getBody(),
       ),
@@ -50,22 +54,36 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   _showDialog(BuildContext context) {
     final data = mobileDataFormFields;
     int daysRemaining = data.plan.totalDays - DateTime.now().difference(data.startDate).inDays;
-    double dataRemaining = double.parse(((data.plan.gb - data.spentDataMb / 1024) / daysRemaining).toStringAsFixed(2));
+    double dataRemaining = double.parse(((data.plan.gb - data.spentDataMb / 1024) / daysRemaining).toStringAsFixed(1));
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Resultado"),
+          title: const Text('Resultado'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(children: [const Text("Restante promedio:", style: titleStyle), Text("$dataRemaining Gb/dia")]),
-              Row(children: [const Text("Dias restantes:", style: titleStyle), Text("$daysRemaining")]),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Restante promedio:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                  Text('$dataRemaining Gb/dia')
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Dias restantes:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                  Text('$daysRemaining')
+                ],
+              ),
             ],
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text("Ok", style: TextStyle(color: primary)),
+            ElevatedButton(
+              child: const Text('Ok'),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -113,22 +131,39 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     );
   }
 
+  // makeMyRequest({String code = '*999*#' /*'*#21#' */}) async {
+  //   debugPrint('----------------');
+  //   var phone = await Permission.phone.request();
+  //   if (!phone.isGranted) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //           content: Text('No permission for phone!'),
+  //           duration: Duration(seconds: 5),
+  //           behavior: SnackBarBehavior.floating,
+  //           backgroundColor: red),
+  //     );
+  //     return;
+  //   }
+  //   try {
+  //     var sims = await SimDataPlugin.getSimData();
+  //     int subscriptionId = sims.cards.firstWhere((c) => c.carrierName == 'Tuenti').subscriptionId;
+  //     debugPrint('--------> subscriptionId = $subscriptionId | code = $code');
+  //     String response = await UssdService.makeRequest(subscriptionId, code, const Duration(seconds: 15));
+  //     debugPrint('--------> success! message: $response');
+  //   } catch (e) {
+  //     debugPrint('--------> error! code: $e');
+  //   }
+  //   debugPrint('----------------');
+  // }
+
   List<Widget> getBody() {
+    final textTheme = Theme.of(context).textTheme;
     return [
       SliverAppBar(
+        titleTextStyle: textTheme.titleLarge,
         pinned: true,
-        backgroundColor: white,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: black),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text("Mobile Data Calculator", style: titleStyle)],
-        ),
+        leading: getBackButton(context),
+        title: const Text('Mobile Data Calculator'),
       ),
       SliverPadding(
         padding: const EdgeInsets.all(0),
@@ -143,7 +178,7 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                     buildSelectPlan(),
                     buildDateField(),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Datos Gastados', hintText: "0", suffix: Text("Mb")),
+                      decoration: const InputDecoration(labelText: 'Datos Gastados', hintText: '0', suffix: Text('Mb')),
                       validator: (value) {
                         final int? spentDataMb = int.tryParse(value!);
                         if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {
@@ -173,6 +208,12 @@ class _MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                         child: const Text('Calculate'),
                       ),
                     ),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     makeMyRequest();
+                    //   },
+                    //   child: const Text('make'),
+                    // ),
                   ]),
                 ),
               ),

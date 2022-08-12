@@ -1,24 +1,26 @@
-import 'dart:ffi';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
 import '../routes.dart';
 import 'nav_draw.dart';
-import '../common/color_constants.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
+  const BottomNavigationBarWidget({Key? key}) : super(key: key);
+
   @override
-  _BottomNavigationBarWidgetState createState() => _BottomNavigationBarWidgetState();
+  BottomNavigationBarWidgetState createState() => BottomNavigationBarWidgetState();
 }
 
-class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
+class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int pageIndex = 0;
   DateTime? backPressTime;
   final durationBackTime = const Duration(seconds: 2);
 
   final List<RoutePage> footer = RouteApp.routes.where((f) => f.onFooter).toList();
 
+  BottomNavigationBarWidgetState() {
+    assert(footer.length == 4);
+  }
   @override
   void initState() {
     super.initState();
@@ -36,7 +38,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Double Tap to Exit'),
-        duration: Duration(seconds: 1),
+        duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -48,7 +50,8 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     final floatingActionButton = FloatingActionButton(
       onPressed: () =>
           RouteApp.redirect(context: context, url: RouteApp.routes[pageIndex].actionIcon!, fromScaffold: false),
-      backgroundColor: primary,
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      foregroundColor: Colors.white,
       child: const Icon(Icons.add, size: 25),
     );
     return WillPopScope(
@@ -64,16 +67,19 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   }
 
   Widget getFooter() {
+    final theme = Theme.of(context);
     return AnimatedBottomNavigationBar(
-      activeColor: primary,
-      splashColor: secondary,
-      inactiveColor: Colors.black.withOpacity(0.5),
+      activeColor: theme.colorScheme.primary,
+      splashColor: theme.colorScheme.primary,
+      backgroundColor: theme.backgroundColor,
+      inactiveColor: theme.disabledColor,
       icons: footer.map((f) => f.icon).toList(),
       activeIndex: pageIndex,
       gapLocation: GapLocation.center,
       notchSmoothness: NotchSmoothness.softEdge,
       leftCornerRadius: 10,
       iconSize: 25,
+      splashSpeedInMilliseconds: 400,
       rightCornerRadius: 10,
       onTap: (index) {
         selectedTab(footer[index].url);
@@ -88,7 +94,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         if (indexFound != -1) {
           pageIndex = indexFound;
         } else {
-          print("Route $url Not Found!");
+          debugPrint('Route $url Not Found!');
         }
       });
     }

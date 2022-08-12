@@ -39,9 +39,6 @@ class CurrencyQueries implements GraphQlQuery {
     }''';
 
   @override
-  String getById = '';
-
-  @override
   String create = r'';
 
   @override

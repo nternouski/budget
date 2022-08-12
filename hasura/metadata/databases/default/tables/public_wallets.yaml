@@ -24,18 +24,6 @@ array_relationships:
           schema: public
           name: transactions
 insert_permissions:
-  - role: public
-    permission:
-      check: {}
-      columns:
-        - initialAmount
-        - color
-        - icon
-        - name
-        - userId
-        - createdAt
-        - currencyId
-        - id
   - role: user
     permission:
       check:
@@ -53,18 +41,6 @@ insert_permissions:
         - currencyId
         - id
 select_permissions:
-  - role: public
-    permission:
-      columns:
-        - initialAmount
-        - color
-        - icon
-        - name
-        - userId
-        - createdAt
-        - currencyId
-        - id
-      filter: {}
   - role: user
     permission:
       columns:
@@ -80,19 +56,6 @@ select_permissions:
         userId:
           _eq: X-Hasura-User-Id
 update_permissions:
-  - role: public
-    permission:
-      columns:
-        - initialAmount
-        - color
-        - icon
-        - name
-        - userId
-        - createdAt
-        - currencyId
-        - id
-      filter: {}
-      check: null
   - role: user
     permission:
       columns:
@@ -113,10 +76,6 @@ update_permissions:
       set:
         userId: x-hasura-user-id
 delete_permissions:
-  - role: public
-    permission:
-      backend_only: false
-      filter: {}
   - role: user
     permission:
       backend_only: false

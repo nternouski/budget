@@ -1,27 +1,26 @@
 import 'package:budget/common/styles.dart';
+import 'package:budget/components/empty_list.dart';
 import 'package:budget/model/budget.dart';
 import 'package:budget/routes.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
-import '../common/color_constants.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({Key? key}) : super(key: key);
 
   @override
-  _BudgetsScreenState createState() => _BudgetsScreenState();
+  BudgetsScreenState createState() => BudgetsScreenState();
 }
 
-class _BudgetsScreenState extends State<BudgetsScreen> {
+class BudgetsScreenState extends State<BudgetsScreen> {
   final SizedBox heightPadding = const SizedBox(height: 7);
   final double widthPaddingValue = 20;
-  final double opacitySlide = 0.1;
+  final double opacitySlide = 0.25;
 
   @override
   Widget build(BuildContext context) {
     budgetRx.getAll();
     return Scaffold(
-      backgroundColor: white,
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -33,21 +32,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   }
 
   List<Widget> getBody() {
+    final theme = Theme.of(context);
     return [
       SliverAppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        actionsIconTheme: Theme.of(context).iconTheme,
+        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
         pinned: true,
-        backgroundColor: white,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: IconButton(
-            icon: const Icon(Icons.menu, color: black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text('Budgets', style: titleStyle), Icon(Icons.search, color: black)],
-        ),
+        leading: getLadingButton(context),
+        title: const Text('Budgets'),
       ),
       StreamBuilder<List<Budget>>(
         stream: budgetRx.fetchRx,
@@ -55,16 +48,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           if (snapshot.hasData && snapshot.data != null) {
             final budgets = List<Budget>.from(snapshot.data!);
             if (budgets.isEmpty) {
-              return SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [SizedBox(height: 60), Text('No budgets by the moment.', style: titleStyle)],
-                ),
+              return const SliverToBoxAdapter(
+                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'),
               );
             } else {
               return SliverList(
-                delegate: SliverChildBuilderDelegate((_, idx) => getBudget(budgets[idx]), childCount: budgets.length),
+                delegate: SliverChildBuilderDelegate(
+                  (_, idx) => getBudget(budgets[idx], theme),
+                  childCount: budgets.length,
+                ),
               );
             }
           } else if (snapshot.hasError) {
@@ -77,34 +69,34 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     ];
   }
 
-  Widget slideRightBackground() {
+  Widget slideRightBackground(Color primary) {
     return Container(
-      color: green.withOpacity(opacitySlide),
+      color: primary.withOpacity(opacitySlide),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             SizedBox(width: widthPaddingValue),
-            const Icon(Icons.edit, color: green),
-            const Text(' Edit', style: TextStyle(color: green, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            Icon(Icons.edit, color: primary),
+            Text(' Edit', style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
           ],
         ),
       ),
     );
   }
 
-  Widget slideLeftBackground() {
+  Widget slideLeftBackground(Color errorColor) {
     return Container(
-      color: Colors.red.withOpacity(opacitySlide),
+      color: errorColor.withOpacity(opacitySlide),
       child: Align(
         alignment: Alignment.centerRight,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const Text(' Delete',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
-            const Icon(Icons.delete, color: Colors.red),
+            Text(' Delete',
+                style: TextStyle(color: errorColor, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
+            Icon(Icons.delete, color: errorColor),
             SizedBox(width: widthPaddingValue),
           ],
         ),
@@ -112,20 +104,20 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     );
   }
 
-  getBudget(Budget budget) {
+  getBudget(Budget budget, ThemeData themeData) {
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     int porcentaje = ((budget.balance * 100) / budget.amount).round();
     return Dismissible(
       key: Key(budget.id),
-      background: slideRightBackground(),
-      secondaryBackground: slideLeftBackground(),
+      background: slideRightBackground(themeData.colorScheme.primary),
+      secondaryBackground: slideLeftBackground(themeData.colorScheme.error),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           final bool res = await showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text(budget.name, style: titleStyle),
+                  title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   content: const Text('Are you sure you want to delete ?'),
                   actions: <Widget>[
                     buttonCancelContext(context),
@@ -146,40 +138,41 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         }
         return null;
       },
-      child: InkWell(
-        onTap: () => print('${budget.name} clicked'),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: 8, top: 8, left: widthPaddingValue, right: widthPaddingValue),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${budget.name}     \$${budget.balance.toString()}', style: bodyTextStyle),
-              heightPadding,
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('TOTAL: \$ ${budget.amount.round()}', style: textGreyStyle),
-                  Text('$porcentaje %', style: textGreyStyle),
-                ],
-              ),
-              heightPadding,
-              Stack(
-                children: [
-                  Container(
-                    width: sizeBar,
-                    height: 5,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), color: grey.withOpacity(0.3)),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 8, top: 8, left: widthPaddingValue, right: widthPaddingValue),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${budget.name}    \$${budget.balance.toString()}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+            heightPadding,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('TOTAL: \$ ${budget.amount.round()}', style: themeData.textTheme.bodyMedium),
+                Text('$porcentaje %', style: themeData.textTheme.bodyMedium),
+              ],
+            ),
+            heightPadding,
+            Stack(
+              children: [
+                Container(
+                  width: sizeBar,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.grey.withOpacity(0.3),
                   ),
-                  Container(
-                    width: sizeBar * (porcentaje / 100),
-                    height: 5,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), color: budget.color),
-                  ),
-                ],
-              )
-            ],
-          ),
+                ),
+                Container(
+                  width: sizeBar * (porcentaje / 100),
+                  height: 5,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), color: budget.color),
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );

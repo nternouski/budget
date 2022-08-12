@@ -1,5 +1,5 @@
-import 'package:budget/common/color_constants.dart';
 import 'package:flutter/material.dart';
+
 import '../common/icon_helper.dart';
 import '../common/styles.dart';
 
@@ -38,7 +38,7 @@ class IconPicker {
               decoration: InputStyle.inputDecoration(
                 labelTextStr: 'Icon',
                 hintTextStr: 'Icon Name',
-                suffixIcon: Icon(iconMap.icon, size: 30, color: black.withOpacity(0.6)),
+                suffixIcon: Icon(iconMap.icon, size: 30, color: Colors.grey),
               ),
               onSaved: (String? value) {},
             ),

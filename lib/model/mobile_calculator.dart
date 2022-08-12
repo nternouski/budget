@@ -20,7 +20,9 @@ class PlanData extends _PlanData {
 List<PlanData> plans = [
   _PlanData(50, 28, PlanId.p50),
   _PlanData(30, 28, PlanId.p30),
-].map((plan) => PlanData(plan.gb, plan.totalDays, plan.planId, "${plan.gb}Gb Pre-Paid | ${plan.totalDays} days")).toList();
+]
+    .map((plan) => PlanData(plan.gb, plan.totalDays, plan.planId, '${plan.gb}Gb Pre-Paid | ${plan.totalDays} days'))
+    .toList();
 
 class MobileDataFormFields {
   DateTime startDate;
@@ -31,6 +33,6 @@ class MobileDataFormFields {
 
   @override
   String toString() {
-    return "${plan.label}, $spentDataMb, $startDate";
+    return '${plan.label}, $spentDataMb, $startDate';
   }
 }

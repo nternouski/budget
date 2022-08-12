@@ -25,9 +25,6 @@ class CreateOrUpdateCategory {
   }
 
   static _bottomSheet(BuildContext context, Category category) {
-    var icons = <IconMap>[];
-    const sizedBoxHeight = SizedBox(height: 20);
-
     var title = category.id == '' ? 'Create Category' : 'Updating ${category.name} category';
     var actionButton = category.id == '' ? 'Create' : 'Update';
 
@@ -42,12 +39,12 @@ class CreateOrUpdateCategory {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: titleStyle),
+                Text(title, style: Theme.of(context).textTheme.titleLarge),
                 TextFormField(
                   controller: nameController,
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Food'),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z  ]")),
+                    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z  ]')),
                     LengthLimitingTextInputFormatter(Category.MAX_LENGTH_NAME)
                   ],
                   validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
@@ -60,7 +57,11 @@ class CreateOrUpdateCategory {
                   borderRadius: 25,
                   enableShadesSelection: false,
                   onColorChanged: (Color color) => setState(() => category.color = color),
-                  pickersEnabled: const {ColorPickerType.primary: true, ColorPickerType.accent: false},
+                  pickersEnabled: const {
+                    ColorPickerType.both: true,
+                    ColorPickerType.primary: false,
+                    ColorPickerType.accent: false,
+                  },
                 ),
                 IconPicker.picker(
                   IconMap(category.iconName, category.icon),

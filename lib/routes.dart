@@ -1,4 +1,5 @@
 import 'package:budget/screens/create_or_update_budget_screen.dart';
+import 'package:budget/screens/settings.dart';
 import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import './screens/budgets_screen.dart';
@@ -6,7 +7,6 @@ import './screens/mobile_calculator_screen.dart';
 import './screens/create_or_update_transaction_screen.dart';
 import './screens/create_or_update_wallet_screen.dart';
 import './screens/daily_screen.dart';
-import './screens/profile_screen.dart';
 import './screens/stats_screen.dart';
 
 enum URLS {
@@ -36,29 +36,30 @@ class RoutePage {
 
 class RouteApp {
   static List<RoutePage> routes = [
-    // The first Fours should be the footers
+    // Only Fours should be the footers
+    // --- BEGIN FOOTER --- //
     RoutePage(
-        widget: ({param}) => DailyScreen(),
+        widget: ({param}) => const DailyScreen(),
         url: URLS.dailyTransactions,
         icon: Icons.calendar_month,
         actionIcon: URLS.createOrUpdateTransaction),
     RoutePage(
-        widget: ({param}) => WalletsScreen(),
+        widget: ({param}) => const WalletsScreen(),
         url: URLS.wallets,
         icon: Icons.wallet,
         actionIcon: URLS.createOrUpdateWallet),
     RoutePage(
-        widget: ({param}) => BudgetsScreen(),
+        widget: ({param}) => const BudgetsScreen(),
         url: URLS.budgets,
         icon: Icons.monitor_heart,
         actionIcon: URLS.createOrUpdateBudgets),
-    RoutePage(widget: ({param}) => ProfileScreen(), url: URLS.settings, icon: Icons.settings),
-    // --- END FOOTER ---
-    RoutePage(widget: ({param}) => StatsScreen(), url: URLS.stats),
+    RoutePage(widget: ({param}) => const SettingsScreen(), url: URLS.settings, icon: Icons.settings),
+    // --- END FOOTER --- //
+    RoutePage(widget: ({param}) => const StatsScreen(), url: URLS.stats),
     RoutePage(widget: ({param}) => CreateOrUpdateTransaction(transaction: param), url: URLS.createOrUpdateTransaction),
     RoutePage(widget: ({param}) => CreateOrUpdateWalletScreen(wallet: param), url: URLS.createOrUpdateWallet),
     RoutePage(widget: ({param}) => CreateOrUpdateBudgetScreen(budget: param), url: URLS.createOrUpdateBudgets),
-    RoutePage(widget: ({param}) => MobileCalculatorScreen(), url: URLS.mobileCalculator),
+    RoutePage(widget: ({param}) => const MobileCalculatorScreen(), url: URLS.mobileCalculator),
   ];
 
   static Widget getRoute(URLS url, dynamic param) {

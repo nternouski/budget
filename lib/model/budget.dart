@@ -88,9 +88,6 @@ class BudgetQueries implements GraphQlQuery {
     }''';
 
   @override
-  String getById = '';
-
-  @override
   String create = r'''
     mutation addBudget($name: String!, $color: String!, $amount: money!) {
       action: insert_budgets(objects: [{ name: $name, color: $color, amount: $amount }]) {

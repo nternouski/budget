@@ -1,4 +1,3 @@
-import 'package:budget/model/category.dart';
 import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
 import '../common/classes.dart';
@@ -95,9 +94,6 @@ class WalletQueries implements GraphQlQuery {
     }''';
 
   @override
-  String getById = '';
-
-  @override
   String create = r'''
      mutation addWallet($name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!) {
       action: insert_wallets(objects: [{ name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId}]) {
@@ -157,11 +153,20 @@ class WalletQueries implements GraphQlQuery {
 
   @override
   String delete = r'''
-     mutation deleteWallet($id: uuid!) {
-        action: delete_categories(where: {id: {_eq: $id}}, ) {
-          returning {
-            id
-        }
+    mutation deleteWallet($id: uuid!) {
+      action: delete_wallets(where: { id: { _eq: $id } }) {
+        affected_rows
       }
     }''';
 }
+
+final defaultWallet = Wallet(
+  id: '',
+  createdAt: DateTime.now(),
+  name: '',
+  color: 'ff00ffff',
+  iconName: 'question_mark',
+  initialAmount: 0,
+  currencyId: '',
+  balance: 0,
+);

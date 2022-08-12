@@ -21,6 +21,7 @@ class Label implements ModelCommonInterface {
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
@@ -42,9 +43,6 @@ class LabelQueries implements GraphQlQuery {
       }
     }
     ''';
-
-  @override
-  String getById = '';
 
   @override
   String create = r'''

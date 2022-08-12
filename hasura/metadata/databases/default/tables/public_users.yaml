@@ -41,3 +41,48 @@ array_relationships:
         table:
           schema: public
           name: wallets
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - email
+        - id
+        - name
+        - createdAt
+        - defaultCurrencyId
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - createdAt
+        - name
+        - email
+        - defaultCurrencyId
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - createdAt
+        - defaultCurrencyId
+        - email
+        - name
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
+      set:
+        id: x-hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      backend_only: false
+      filter:
+        id:
+          _eq: X-Hasura-User-Id

@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import '../common/classes.dart';
-import '../common/color_constants.dart';
 import '../common/transform.dart';
 
 class Category implements ModelCommonInterface {
@@ -29,6 +26,7 @@ class Category implements ModelCommonInterface {
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
@@ -54,9 +52,6 @@ class CategoryQueries implements GraphQlQuery {
       }
     }
     ''';
-
-  @override
-  String getById = '';
 
   @override
   String create = r'''

@@ -1,5 +1,8 @@
+
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 import '../common/classes.dart';
 import '../server/graphql_config.dart';
 
@@ -18,13 +21,13 @@ class Database<T extends ModelCommonInterface> {
   final verbose = true;
 
   void printMsg(String msg) {
-    if (verbose) print('->> | $collectionName | $msg');
+    if (verbose) debugPrint('->> | $collectionName | $msg');
   }
 
   void _printError(String from, String message) {
-    print('==============');
-    print('Error on $collectionName | $from: $message');
-    print('==============');
+    debugPrint('==============');
+    debugPrint('Error on $collectionName | $from: $message');
+    debugPrint('==============');
   }
 
   Future<Map<String, dynamic>?> request(TypeRequest type, String query, Map<String, dynamic> variable) async {
@@ -36,15 +39,15 @@ class Database<T extends ModelCommonInterface> {
         result = await graphQLConfig.client.mutate(MutationOptions(document: gql(query), variables: variable));
       }
       if (result.hasException) {
-        _printError('hasException', result.exception?.linkException?.originalException);
+        _printError('$type | hasException', result.exception?.linkException?.originalException);
         for (var error in result.exception?.graphqlErrors ?? []) {
-          print("Error hasException: $error");
+          debugPrint('Error hasException: $error');
         }
       } else if (result.data != null) {
         return result.data;
       }
     } catch (error) {
-      _printError('API_client $type', 'Error catch: $error');
+      _printError('$type | API_client', 'Error catch: $error');
     }
     return null;
   }
@@ -76,15 +79,17 @@ class Database<T extends ModelCommonInterface> {
     final value = await request(TypeRequest.mutation, _queries.update, data.toJson());
     if (value != null && value['action']['returning'] != null) {
       T elementUpdated = constructor(value['action']['returning'][0]);
-      behavior.add(behavior.value.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
+      var data = behavior.hasValue ? behavior.value : List<T>.from([]);
+      behavior.add(data.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
     }
   }
 
-  delete(String id) async {
+  Future<void> delete(String id) async {
     printMsg('DELETE');
     final value = await request(TypeRequest.mutation, _queries.delete, {'id': id});
     if (value != null) {
-      behavior.add(behavior.value.where((v) => v.id != id).toList());
+      var data = behavior.hasValue ? behavior.value : List<T>.from([]);
+      behavior.add(data.where((v) => v.id != id).toList());
     }
   }
 }

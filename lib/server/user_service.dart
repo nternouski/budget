@@ -1,82 +1,34 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 import 'dart:convert';
-import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_appauth/flutter_appauth.dart';
 
-import '../server/graphql_config.dart';
-import '../common/color_constants.dart';
-import '../common/preference.dart';
+import 'package:budget/common/styles.dart';
+import '../model/currency.dart';
+import '../server/model_rx.dart';
 import '../model/user.dart';
-import '../server/database.dart';
+import '../server/graphql_config.dart';
+import '../common/preference.dart';
 
 const FlutterAppAuth appAuth = FlutterAppAuth();
 
-class Token {
-  String idToken;
-  String role;
-  String userId;
-  String name;
-  String picture;
-  String email;
-  bool emailVerified;
-  bool logged;
+enum InitStatus { noUserStored, loginCompleted, errorOnLogin, inProgress }
 
-  Token({
-    required this.idToken,
-    required this.role,
-    required this.userId,
-    required this.name,
-    required this.picture,
-    required this.email,
-    required this.emailVerified,
-    required this.logged,
-  });
-
-  factory Token.fromJson(String idToken, Map<String, dynamic> json) {
-    return Token(
-      idToken: idToken,
-      role: json['https://hasura.io/jwt/claims']['x-hasura-default-role'],
-      userId: json['https://hasura.io/jwt/claims']['x-hasura-user-id'],
-      name: json['name'] ?? '',
-      picture: json['picture'] ?? '',
-      email: json['email'] ?? '',
-      emailVerified: json['email_verified'] ?? false,
-      logged: true,
-    );
-  }
-
-  factory Token.init() {
-    return Token(
-      idToken: '',
-      role: '',
-      userId: '',
-      name: '',
-      picture: '',
-      email: '',
-      emailVerified: false,
-      logged: false,
-    );
-  }
-
-  bool isLogged() => logged;
-}
-
-class UserService {
+class UserService extends UserRx {
   static const String AUTH0_DOMAIN = 'dev-cxwsnhav.us.auth0.com';
   static const String AUTH0_CLIENT_ID = '9IbiJ35L10DBCrZtVLPIUyXaDG7LsrmJ';
   static const String AUTH0_REDIRECT_URI = 'com.example.budget://login-callback';
-  static const String _refreshTokenKey = 'refresh_token';
 
   UserService._internal();
   static final UserService _singleton = UserService._internal();
 
-  final userRx = Database(UserQueries(), 'users', User.fromJson);
   final preferences = Preferences();
-  final behavior = BehaviorSubject<Token>();
-  Stream<Token> get tokenRx => behavior.stream;
+  final token$ = BehaviorSubject<Token>();
+  Stream<Token> get tokenRx => token$.stream;
 
   factory UserService() {
     return _singleton;
@@ -99,11 +51,10 @@ class UserService {
     }
   }
 
-  Future<void> init(BuildContext context) async {
-    behavior.add(Token.init());
+  Future<InitStatus> init(BuildContext context) async {
     try {
-      String? storedRefreshToken = await preferences.get(_refreshTokenKey);
-      if (storedRefreshToken == null || storedRefreshToken == '') return;
+      String? storedRefreshToken = await preferences.getString(PreferenceType.refreshToken);
+      if (storedRefreshToken == null || storedRefreshToken == '') return InitStatus.noUserStored;
 
       final response = await appAuth.token(TokenRequest(
         AUTH0_CLIENT_ID,
@@ -113,32 +64,34 @@ class UserService {
       ));
 
       if (response != null) {
-        await preferences.set(_refreshTokenKey, response.refreshToken);
+        if (response.refreshToken != null) {
+          await preferences.setString(PreferenceType.refreshToken, response.refreshToken);
+        }
         var token = _parseIdToken(response.idToken ?? '');
-        behavior.add(_parseIdToken(response.idToken ?? ''));
+        token$.add(_parseIdToken(response.idToken ?? ''));
         if (token.picture == '' || token.email == '' || token.name == '') {
           final profile = await _getUserDetails(response.accessToken ?? '');
           token.picture = profile['picture'];
           token.email = profile['email'];
           token.name = profile['name'];
         }
-        graphQLConfig.setToken(token.idToken);
+        await graphQLConfig.setToken(token.idToken);
+        getCurrentUser(token, false, null);
       }
+      return InitStatus.loginCompleted;
     } catch (e, s) {
-      print(s);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: red,
-        ),
-      );
-      logout();
+      debugPrint(e.toString());
+      debugPrint(s.toString());
+      displayError(context, e.toString());
+      return InitStatus.errorOnLogin;
     }
   }
 
-  Future<void> login(BuildContext context) async {
+  Future<void> singUp(BuildContext context, Currency? defaultCurrency) async {
+    await login(context, defaultCurrency: defaultCurrency, singUp: true);
+  }
+
+  Future<void> login(BuildContext context, {Currency? defaultCurrency, bool singUp = false}) async {
     try {
       var result = await appAuth.authorizeAndExchangeCode(
         AuthorizationTokenRequest(
@@ -151,9 +104,8 @@ class UserService {
       );
 
       if (result != null) {
-        await preferences.set(_refreshTokenKey, result.refreshToken);
+        await preferences.setString(PreferenceType.refreshToken, result.refreshToken);
         var token = _parseIdToken(result.idToken ?? '');
-        behavior.add(_parseIdToken(result.idToken ?? ''));
         if (token.picture == '' || token.email == '' || token.name == '') {
           final profile = await _getUserDetails(result.accessToken ?? '');
           token.picture = profile['picture'];
@@ -161,23 +113,25 @@ class UserService {
           token.name = profile['name'];
         }
         graphQLConfig.setToken(token.idToken);
+        await getCurrentUser(token, singUp, defaultCurrency)
+            .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
+            .catchError((onError) {
+          logout();
+          displayError(context, onError.message);
+        });
       }
+    } on PlatformException {
+      displayError(context, 'User has Cancelled or no Internet');
     } catch (e, s) {
-      print(s);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          duration: const Duration(seconds: 15),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: red,
-        ),
-      );
+      debugPrint(e.toString());
+      debugPrint(s.toString());
+      displayError(context, e.toString());
     }
   }
 
   void logout() async {
-    preferences.set(_refreshTokenKey, '');
-    behavior.add(Token.init());
+    preferences.setString(PreferenceType.refreshToken, '');
+    token$.add(Token.init());
     graphQLConfig.setToken('');
   }
 }

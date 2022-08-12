@@ -7,30 +7,31 @@ import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 import '../server/model_rx.dart';
-import '../common/color_constants.dart';
 import '../common/styles.dart';
 
 enum Action { create, update }
 
+final now = DateTime.now();
+
 class CreateOrUpdateBudgetScreen extends StatefulWidget {
   late Budget _budget;
-  late String _title;
-  late Action _action;
+  late String title;
+  late Action action;
 
   CreateOrUpdateBudgetScreen({Budget? budget, Key? key}) : super(key: key) {
     if (budget != null) {
-      _action = Action.update;
-      _title = 'Update budget';
+      action = Action.update;
+      title = 'Update budget';
       _budget = budget;
     } else {
-      _action = Action.create;
-      _title = 'Create budget';
+      action = Action.create;
+      title = 'Create budget';
       _budget = Budget(
         id: '',
         createdAt: DateTime.now(),
-        name: 'asdasd',
+        name: 'a',
         color: 'ff00ffff',
-        amount: 2222,
+        amount: 2,
         balance: 0,
         categories: [],
       );
@@ -38,17 +39,13 @@ class CreateOrUpdateBudgetScreen extends StatefulWidget {
   }
 
   @override
-  _CreateOrUpdateBudgetState createState() => _CreateOrUpdateBudgetState(_budget, _title, _action);
+  CreateOrUpdateBudgetState createState() => CreateOrUpdateBudgetState(_budget);
 }
 
-final now = DateTime.now();
-
-class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
+class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   final Budget budget;
-  final String title;
-  final Action action;
 
-  _CreateOrUpdateBudgetState(this.budget, this.title, this.action);
+  CreateOrUpdateBudgetState(this.budget);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -56,32 +53,18 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: white,
-                boxShadow: [BoxShadow(color: grey.withOpacity(0.01), spreadRadius: 10, blurRadius: 3)],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 60, right: 20, left: 20, bottom: 25),
-                child: Column(
-                  children: [
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [Text('$title ${budget.name}', style: titleStyle)])
-                  ],
-                ),
-              ),
-            ),
-            sizedBoxHeight,
-            getForm()
-          ],
-        ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            titleTextStyle: textTheme.titleLarge,
+            pinned: true,
+            leading: getBackButton(context),
+            title: Text('${widget.title} ${budget.name}'),
+          ),
+          SliverToBoxAdapter(child: getForm())
+        ],
       ),
     );
   }
@@ -92,7 +75,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
         child: TextFormField(
           initialValue: budget.amount.toString(),
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp("[0-9.]"))],
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
           decoration: InputStyle.inputDecoration(
             labelTextStr: 'Initial Amount',
             hintTextStr: '1300',
@@ -120,52 +103,14 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     );
   }
 
-  _showDialog(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: ColorPicker(
-                    color: budget.color,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 25,
-                    enableShadesSelection: false,
-                    onColorChanged: (Color color) => setState(() {
-                      budget.color = color;
-                      Navigator.of(context).pop();
-                    }),
-                    heading: const Text('Select color', style: titleStyle),
-                    pickersEnabled: const {
-                      ColorPickerType.primary: true,
-                      ColorPickerType.accent: true,
-                      ColorPickerType.custom: true,
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Widget buildCategory() {
     return Column(
       children: [
         Row(
           children: [
-            Text(
-              "Choose category",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: black.withOpacity(0.5)),
+            const Text(
+              'Choose category',
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
             ),
             IconButton(
               icon: const Icon(Icons.add),
@@ -205,9 +150,8 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                         }),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: white,
                             border: Border.all(width: 2, color: colorItem),
-                            borderRadius: borderRadiusApp,
+                            borderRadius: categoryBorderRadius,
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(5),
@@ -215,8 +159,9 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconCircle(icon: categories[index].icon, color: categories[index].color),
+                                const SizedBox(width: 10),
                                 Text(categories[index].name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17))
+                                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16))
                               ],
                             ),
                           ),
@@ -232,7 +177,7 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
           },
         ),
         const SizedBox(height: 10),
-        const Text("Long press for edit category."),
+        const Text('Long press for edit category.'),
         sizedBoxHeight,
       ],
     );
@@ -247,46 +192,30 @@ class _CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
             buildAmount(),
             sizedBoxHeight,
             buildName(),
-            buildCategory(),
-            Padding(
-              padding: const EdgeInsets.only(top: 25, left: 5, bottom: 10),
-              child: Row(children: [
-                const Text("Color selected: ", style: titleStyle),
-                ColorIndicator(
-                  width: 30,
-                  height: 30,
-                  borderRadius: 25,
-                  color: budget.color,
-                  onSelectFocus: false,
-                  onSelect: () async => _showDialog(context),
-                ),
-              ]),
+            ColorPicker(
+              color: budget.color,
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.only(top: 16, bottom: 0),
+              borderRadius: 25,
+              enableShadesSelection: false,
+              onColorChanged: (Color color) => setState(() => budget.color = color),
+              pickersEnabled: const {
+                ColorPickerType.both: true,
+                ColorPickerType.primary: false,
+                ColorPickerType.accent: false,
+              },
             ),
+            buildCategory(),
             sizedBoxHeight,
-            Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buttonCancelContext(context),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (!_formKey.currentState!.validate()) {
-                        return;
-                      }
-                      _formKey.currentState!.save();
-                      if (action == Action.create) {
-                        budgetRx.create(budget);
-                      } else {
-                        budgetRx.update(budget);
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(title, style: const TextStyle(fontSize: 17)),
-                  )
-                ],
-              ),
+            ElevatedButton(
+              onPressed: () {
+                if (!_formKey.currentState!.validate()) return;
+                _formKey.currentState!.save();
+                widget.action == Action.create ? budgetRx.create(budget) : budgetRx.update(budget);
+                Navigator.of(context).pop();
+              },
+              child: Text(widget.title),
             )
           ]),
         ));

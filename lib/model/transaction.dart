@@ -12,6 +12,12 @@ enum TransactionType {
   transfer,
 }
 
+Map<TransactionType, Color> colorsTypeTransaction = {
+  TransactionType.income: Colors.green,
+  TransactionType.expense: Colors.red,
+  TransactionType.transfer: Colors.grey
+};
+
 extension ParseToString on TransactionType {
   String toShortString() {
     return toString().split('.').last;
@@ -152,9 +158,6 @@ class TransactionQueries implements GraphQlQuery {
     }''';
 
   @override
-  late String getById = r'';
-
-  @override
   late String create = r'''
     mutation createTransactions($name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $walletId: uuid!, $categoryId: uuid!) {
       action: insert_transactions(objects: [{name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, walletId: $walletId, categoryId: $categoryId }]) {
@@ -225,7 +228,7 @@ class TransactionQueries implements GraphQlQuery {
   @override
   String delete = r'''
      mutation deleteTransaction($id: uuid!) {
-        action: delete_transactions(where: { id: { _eq: $id } } ) {
+        action: delete_transactions(where: { id: { _eq: $id } }) {
           returning {
             id
         }

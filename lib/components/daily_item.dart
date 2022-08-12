@@ -1,49 +1,46 @@
+import 'package:budget/common/theme.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/routes.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 import '../common/styles.dart';
-import '../common/color_constants.dart';
 import '../model/transaction.dart';
 
 class DailyItem extends StatefulWidget {
-  Transaction transaction;
+  final Transaction transaction;
 
-  DailyItem(this.transaction, {Key? key}) : super(key: key);
+  const DailyItem({Key? key, required this.transaction}) : super(key: key);
 
   @override
-  _DailyItemState createState() => _DailyItemState(transaction);
+  DailyItemState createState() => DailyItemState();
 }
 
-class _DailyItemState extends State<DailyItem> {
-  Transaction transaction;
-
-  final double opacitySlide = 0.1;
+class DailyItemState extends State<DailyItem> {
+  final double opacitySlide = 0.25;
   final paddingSlide = const SizedBox(width: 20);
-
-  _DailyItemState(this.transaction);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Dismissible(
-      key: Key(transaction.id),
-      background: slideRightBackground(),
-      secondaryBackground: slideLeftBackground(),
+      key: Key(widget.transaction.id),
+      background: slideRightBackground(theme.colorScheme.primary),
+      secondaryBackground: slideLeftBackground(theme.colorScheme.error),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           final bool res = await showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text(transaction.name, style: titleStyle),
-                  content: const Text("Are you sure you want to delete ?"),
+                  title: Text(widget.transaction.name, style: Theme.of(context).textTheme.titleLarge),
+                  content: const Text('Are you sure you want to delete ?'),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
-                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
-                      child: const Text("Delete", style: TextStyle(fontSize: 17)),
+                      style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                      child: const Text('Delete', style: TextStyle(fontSize: 17)),
                       onPressed: () {
-                        transactionRx.delete(transaction.id);
+                        transactionRx.delete(widget.transaction.id);
                         Navigator.of(context).pop();
                       },
                     ),
@@ -52,47 +49,42 @@ class _DailyItemState extends State<DailyItem> {
               });
           return res;
         } else {
-          RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: transaction);
+          RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: widget.transaction);
         }
         return null;
       },
-      child: InkWell(
-        onTap: () {
-          print("${transaction.name} clicked");
-        },
-        child: Padding(padding: const EdgeInsets.only(left: 20, right: 20), child: getItem(transaction)),
-      ),
+      child: Padding(padding: const EdgeInsets.only(left: 20, right: 20), child: getItem(widget.transaction)),
     );
   }
 
-  Widget slideRightBackground() {
+  Widget slideRightBackground(Color primary) {
     return Container(
-      color: green.withOpacity(opacitySlide),
+      color: primary.withOpacity(opacitySlide),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             paddingSlide,
-            const Icon(Icons.edit, color: green),
-            const Text(" Edit", style: TextStyle(color: green, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            Icon(Icons.edit, color: primary),
+            Text(' Edit', style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
           ],
         ),
       ),
     );
   }
 
-  Widget slideLeftBackground() {
+  Widget slideLeftBackground(Color errorColor) {
     return Container(
-      color: Colors.red.withOpacity(opacitySlide),
+      color: errorColor.withOpacity(opacitySlide),
       child: Align(
         alignment: Alignment.centerRight,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const Text(" Delete",
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
-            const Icon(Icons.delete, color: Colors.red),
+            Text(' Delete',
+                style: TextStyle(color: errorColor, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
+            Icon(Icons.delete, color: errorColor),
             paddingSlide,
           ],
         ),
@@ -119,9 +111,9 @@ class _DailyItemState extends State<DailyItem> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(transaction.name, style: bodyTextStyle),
+                        Text(transaction.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
                         const SizedBox(height: 5),
-                        Text(transaction.getDateFormat(), style: textGreyStyle),
+                        Text(transaction.getDateFormat(), style: const TextStyle(fontSize: 14)),
                       ],
                     ),
                   )

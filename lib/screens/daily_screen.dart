@@ -1,9 +1,9 @@
 import 'dart:math';
+import 'package:budget/components/empty_list.dart';
 import 'package:flutter/material.dart';
 
 import '../server/model_rx.dart';
 import '../common/styles.dart';
-import '../common/color_constants.dart';
 import '../components/user_login.dart';
 import '../components/daily_item.dart';
 import '../components/spend_graphic.dart';
@@ -23,20 +23,20 @@ class DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     // FIXME: Hacerlo mas eficiente.
     transactionRx.getAll();
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: backgroundColor,
       body: Column(children: [
         SizedBox(
           height: 310,
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
+                titleTextStyle: textTheme.titleLarge,
                 pinned: true,
-                backgroundColor: white,
                 leading: getLadingButton(context),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [Text('Daily Transaction', style: titleStyle), UserLogin()],
+                  children: const [Text('Daily Transaction'), UserLogin()],
                 ),
               ),
               StreamBuilder<List<Transaction>>(
@@ -44,7 +44,7 @@ class DailyScreenState extends State<DailyScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
                     final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
-                    return SliverToBoxAdapter(child: SpendGraphic(daily));
+                    return SliverToBoxAdapter(child: SpendGraphic(transactions: daily));
                   } else {
                     return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en daily_screen Graphics'));
                   }
@@ -75,19 +75,14 @@ class DailyScreenState extends State<DailyScreen> {
             final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
             daily.sort((a, b) => b.date.compareTo(a.date));
             if (daily.isEmpty) {
-              return SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [SizedBox(height: 60), Text('No transactions by the moment.', style: titleStyle)],
-                ),
-              );
+              return const SliverToBoxAdapter(
+                  child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'));
             } else {
               return SliverToBoxAdapter(
                 child: Column(
                   children: List.generate(
                     daily.length,
-                    (index) => DailyItem(daily[index], key: Key(Random().nextDouble().toString())),
+                    (index) => DailyItem(transaction: daily[index], key: Key(Random().nextDouble().toString())),
                   ),
                 ),
               );

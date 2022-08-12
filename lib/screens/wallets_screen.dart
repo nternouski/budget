@@ -1,7 +1,8 @@
+import 'package:budget/common/theme.dart';
+import 'package:budget/components/empty_list.dart';
 import 'package:flutter/material.dart';
 import '../routes.dart';
 import '../common/styles.dart';
-import '../common/color_constants.dart';
 import '../components/icon_circle.dart';
 import '../model/wallet.dart';
 import '../server/model_rx.dart';
@@ -18,27 +19,24 @@ class WalletsScreenState extends State<WalletsScreen> {
   Widget build(BuildContext context) {
     walletRx.getAll();
     return Scaffold(
-      backgroundColor: backgroundColor,
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          slivers: getBody(),
+          slivers: getBody(context),
         ),
         onRefresh: () => walletRx.getAll(),
       ),
     );
   }
 
-  List<Widget> getBody() {
+  List<Widget> getBody(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return [
       SliverAppBar(
+        titleTextStyle: textTheme.titleLarge,
         pinned: true,
-        backgroundColor: white,
         leading: getLadingButton(context),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text('Wallets', style: titleStyle)],
-        ),
+        title: const Text('Wallets'),
       ),
       StreamBuilder<List<Wallet>>(
         stream: walletRx.fetchRx,
@@ -46,16 +44,18 @@ class WalletsScreenState extends State<WalletsScreen> {
           if (snapshot.hasData && snapshot.data != null) {
             final wallets = List<Wallet>.from(snapshot.data!);
             if (wallets.isEmpty) {
-              return SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [SizedBox(height: 60), Text('No wallets by the moment.', style: titleStyle)],
-                ),
+              return const SliverToBoxAdapter(
+                child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'),
               );
             } else {
               return SliverList(
-                delegate: SliverChildBuilderDelegate((_, idx) => getWallet(wallets[idx]), childCount: wallets.length),
+                delegate: SliverChildBuilderDelegate(
+                  (_, idx) => Padding(
+                    padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                    child: WalletItem(wallet: wallets[idx], showBalance: true, showActions: true, selected: true),
+                  ),
+                  childCount: wallets.length,
+                ),
               );
             }
           } else if (snapshot.hasError) {
@@ -67,49 +67,97 @@ class WalletsScreenState extends State<WalletsScreen> {
       ),
     ];
   }
+}
 
-  Padding getWallet(Wallet wallet) {
-    String symbol = wallet.currency!.symbol;
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, left: 15, right: 15),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(12), boxShadow: [
-          BoxShadow(color: grey.withOpacity(0.01), spreadRadius: 10, blurRadius: 3),
-        ]),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              IconCircle(icon: wallet.icon, color: wallet.color),
-              const SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(wallet.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+class WalletItem extends StatelessWidget {
+  final Wallet wallet;
+  final bool showBalance;
+  final bool showActions;
+  final bool selected;
+
+  const WalletItem({
+    Key? key,
+    required this.wallet,
+    required this.showBalance,
+    required this.showActions,
+    required this.selected,
+  }) : super(key: key);
+
+  Future<bool?> _confirm(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text('This action will delete all transaction of this wallets too.'),
+          actions: <Widget>[
+            buttonCancelContext(context),
+            ElevatedButton(
+              style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+              child: const Text('Delete', style: TextStyle(fontSize: 17)),
+              onPressed: () {
+                walletRx.delete(wallet.id);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final color = selected ? wallet.color : Theme.of(context).disabledColor;
+    final contrastColor = TextColor.getContrastOf(color);
+    return Container(
+      decoration: BoxDecoration(borderRadius: borderRadiusApp, color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconCircle(icon: wallet.icon, color: contrastColor),
+                    const SizedBox(width: 15),
+                    Text(wallet.name, style: textTheme.titleLarge?.copyWith(color: contrastColor)),
+                  ],
+                ),
+                if (showBalance) ...[
                   const SizedBox(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('\$${wallet.balance}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      const SizedBox(width: 55),
+                      Text('\$${wallet.balance.floor()}', style: TextStyle(fontSize: 23, color: contrastColor)),
                       const SizedBox(width: 5),
-                      Text(symbol, style: textGreyStyle)
+                      Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor))
                     ],
                   ),
                 ],
-              ),
+              ],
+            ),
+            if (showActions) ...[
               const Expanded(child: Text('')),
               IconButton(
                 onPressed: () => RouteApp.redirect(
                     context: context, url: URLS.createOrUpdateWallet, param: wallet, fromScaffold: false),
-                icon: const Icon(Icons.edit, color: grey),
+                icon: Icon(Icons.edit, color: contrastColor),
               ),
-              IconButton(onPressed: () => walletRx.delete(wallet.id), icon: const Icon(Icons.delete, color: grey)),
-            ],
-          ),
+              IconButton(
+                onPressed: () async => _confirm(context),
+                icon: Icon(Icons.delete, color: contrastColor),
+              ),
+            ]
+          ],
         ),
       ),
     );

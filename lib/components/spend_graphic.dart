@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
-import '../common/color_constants.dart';
 import '../model/transaction.dart';
 
 DateTime now = DateTime.now();
@@ -18,10 +17,10 @@ class Balance {
 }
 
 class SpendGraphic extends StatefulWidget {
-  List<Transaction> transactions;
-
+  final List<Transaction> transactions;
   static const int _frameRange = 30;
-  SpendGraphic(this.transactions, {Key? key}) : super(key: key);
+
+  const SpendGraphic({Key? key, required this.transactions}) : super(key: key);
 
   @override
   State<SpendGraphic> createState() => _SpendGraphicState();
@@ -33,12 +32,6 @@ class _SpendGraphicState extends State<SpendGraphic> {
   late double maxBalance = 0;
   double? firstBalanceOfFrame;
   List<Balance> frame = [];
-
-  final _gradient = LinearGradient(
-    begin: Alignment.bottomCenter,
-    end: Alignment.topCenter,
-    colors: [blue.withOpacity(0.0), blue.withOpacity(0.6)],
-  );
 
   final _formatKey = DateFormat('y/M/d');
 
@@ -107,6 +100,13 @@ class _SpendGraphicState extends State<SpendGraphic> {
     frame = calcFrame(widget.transactions, firstBalanceOfFrame ?? 0);
     spots = List.generate(SpendGraphic._frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
 
+    final color = Theme.of(context).colorScheme.primary;
+    final gradient = LinearGradient(
+      begin: Alignment.bottomCenter,
+      end: Alignment.topCenter,
+      colors: [color.withOpacity(0.0), color.withOpacity(0.6)],
+    );
+
     return Container(
       padding: const EdgeInsets.all(0),
       width: double.infinity,
@@ -129,8 +129,8 @@ class _SpendGraphicState extends State<SpendGraphic> {
               preventCurveOverShooting: true,
               curveSmoothness: 0.7,
               dotData: FlDotData(show: false),
-              color: blue,
-              belowBarData: BarAreaData(show: true, gradient: _gradient),
+              color: color,
+              belowBarData: BarAreaData(show: true, gradient: gradient),
             )
           ],
         ),
