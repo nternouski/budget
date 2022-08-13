@@ -101,14 +101,11 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
           child: TextFormField(
             controller: _dateController,
             decoration: const InputDecoration(
-              labelText: 'Fecha Inicio Plan',
+              labelText: 'Start Date Plan',
               suffixIcon: Icon(Icons.calendar_today),
               hintText: 'Search',
             ),
             onTap: () async {
-              // Below line stops keyboard from appearing
-              FocusScope.of(context).requestFocus(FocusNode());
-              // Show Date Picker Here
               final DateTime? picked = await showDatePicker(
                 context: context,
                 initialDate: mobileDataFormFields.startDate,
@@ -178,7 +175,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                     buildSelectPlan(),
                     buildDateField(),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Datos Gastados', hintText: '0', suffix: Text('Mb')),
+                      decoration: const InputDecoration(labelText: 'Data Spent', hintText: '0', suffix: Text('Mb')),
                       validator: (value) {
                         final int? spentDataMb = int.tryParse(value!);
                         if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {

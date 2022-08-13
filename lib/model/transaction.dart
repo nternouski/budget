@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:budget/common/classes.dart';
-import 'package:budget/common/transform.dart';
+import 'package:budget/common/convert.dart';
 import 'package:budget/model/category.dart';
 
 enum TransactionType {
@@ -13,8 +13,8 @@ enum TransactionType {
 }
 
 Map<TransactionType, Color> colorsTypeTransaction = {
-  TransactionType.income: Colors.green,
-  TransactionType.expense: Colors.red,
+  TransactionType.income: const Color.fromARGB(255, 0, 203, 112),
+  TransactionType.expense: Colors.red[700] ?? Colors.red,
   TransactionType.transfer: Colors.grey
 };
 
@@ -237,7 +237,7 @@ class TransactionQueries implements GraphQlQuery {
 
   String getBalanceAt = r'''
     query getBalanceAt($until: timestamptz!) {
-      transactions_aggregate(where: {createdAt: {_lte: $until}}) {
+      transactions_aggregate(where: {date: {_lte: $until}}) {
         aggregate {
           sum {
             balance

@@ -38,4 +38,8 @@ class Convert {
   static double roundDouble(double value, int decimal) {
     return double.parse(value.toStringAsFixed(decimal));
   }
+
+  static String capitalize(String text) {
+    return '${text[0].toUpperCase()}${text.substring(1).toLowerCase()}';
+  }
 }

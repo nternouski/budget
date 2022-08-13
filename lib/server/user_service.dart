@@ -75,8 +75,7 @@ class UserService extends UserRx {
           token.email = profile['email'];
           token.name = profile['name'];
         }
-        await graphQLConfig.setToken(token.idToken);
-        getCurrentUser(token, false, null);
+        await graphQLConfig.setToken(token.idToken).then((value) => getCurrentUser(token, false, null));
       }
       return InitStatus.loginCompleted;
     } catch (e, s) {
@@ -112,13 +111,17 @@ class UserService extends UserRx {
           token.email = profile['email'];
           token.name = profile['name'];
         }
-        graphQLConfig.setToken(token.idToken);
-        await getCurrentUser(token, singUp, defaultCurrency)
-            .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
-            .catchError((onError) {
-          logout();
-          displayError(context, onError.message);
-        });
+        await graphQLConfig.setToken(token.idToken).then(
+          (value) {
+            return getCurrentUser(token, singUp, defaultCurrency)
+                .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
+                .catchError((onError) {
+              logout();
+              debugPrint('-------------------------------------------');
+              displayError(context, onError.message);
+            });
+          },
+        );
       }
     } on PlatformException {
       displayError(context, 'User has Cancelled or no Internet');

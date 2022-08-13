@@ -1,3 +1,4 @@
+import 'dart:developer';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
@@ -30,16 +31,24 @@ class Database<T extends ModelCommonInterface> {
     debugPrint('==============');
   }
 
-  Future<Map<String, dynamic>?> request(TypeRequest type, String query, Map<String, dynamic> variable) async {
+  Future<Map<String, dynamic>?> request({
+    required TypeRequest type,
+    required query,
+    required Map<String, dynamic> variable,
+    bool throwError = false,
+  }) async {
     try {
       QueryResult result;
       if (type == TypeRequest.query) {
-        result = await graphQLConfig.client.query(QueryOptions(document: gql(query), variables: variable));
+        result = await graphQLConfig.clientValueNotifier.value
+            .query(QueryOptions(document: gql(query), variables: variable));
       } else {
-        result = await graphQLConfig.client.mutate(MutationOptions(document: gql(query), variables: variable));
+        result = await graphQLConfig.clientValueNotifier.value
+            .mutate(MutationOptions(document: gql(query), variables: variable));
       }
       if (result.hasException) {
-        _printError('$type | hasException', result.exception?.linkException?.originalException);
+        final message = result.exception?.linkException?.originalException?.message;
+        if (message is String) _printError('$type | hasException', message);
         for (var error in result.exception?.graphqlErrors ?? []) {
           debugPrint('Error hasException: $error');
         }
@@ -48,13 +57,14 @@ class Database<T extends ModelCommonInterface> {
       }
     } catch (error) {
       _printError('$type | API_client', 'Error catch: $error');
+      if (throwError) throw 'Error on $type $collectionName';
     }
     return null;
   }
 
   getAll() async {
     printMsg('GET ALL');
-    final value = await request(TypeRequest.query, _queries.getAll, {});
+    final value = await request(type: TypeRequest.query, query: _queries.getAll, variable: {});
     if (value != null && value[collectionName] != null) {
       var t = List<T>.from(value[collectionName].map((t) => constructor(t)).toList());
       behavior.add(t);
@@ -65,7 +75,7 @@ class Database<T extends ModelCommonInterface> {
     printMsg('CREATE');
     final variable = data.toJson();
     variable.remove('id');
-    final value = await request(TypeRequest.mutation, _queries.create, variable);
+    final value = await request(type: TypeRequest.mutation, query: _queries.create, variable: variable);
     if (value != null && value['action']['returning'] != null) {
       T elementAdded = constructor(value['action']['returning'][0]);
       if (behavior.valueOrNull != null) behavior.add([...List.from(behavior.value), elementAdded]);
@@ -76,7 +86,7 @@ class Database<T extends ModelCommonInterface> {
 
   update(T data) async {
     printMsg('UPDATE');
-    final value = await request(TypeRequest.mutation, _queries.update, data.toJson());
+    final value = await request(type: TypeRequest.mutation, query: _queries.update, variable: data.toJson());
     if (value != null && value['action']['returning'] != null) {
       T elementUpdated = constructor(value['action']['returning'][0]);
       var data = behavior.hasValue ? behavior.value : List<T>.from([]);
@@ -86,7 +96,7 @@ class Database<T extends ModelCommonInterface> {
 
   Future<void> delete(String id) async {
     printMsg('DELETE');
-    final value = await request(TypeRequest.mutation, _queries.delete, {'id': id});
+    final value = await request(type: TypeRequest.mutation, query: _queries.delete, variable: {'id': id});
     if (value != null) {
       var data = behavior.hasValue ? behavior.value : List<T>.from([]);
       behavior.add(data.where((v) => v.id != id).toList());

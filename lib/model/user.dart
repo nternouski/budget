@@ -1,7 +1,7 @@
 import 'package:budget/model/currency.dart';
 
 import '../common/classes.dart';
-import '../common/transform.dart';
+import '../common/convert.dart';
 
 class Token {
   String idToken;

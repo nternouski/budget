@@ -1,4 +1,6 @@
+import 'package:budget/common/convert.dart';
 import 'package:budget/common/styles.dart';
+import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
 import 'package:budget/model/budget.dart';
 import 'package:budget/routes.dart';
@@ -122,8 +124,8 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
-                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
-                      child: const Text('Delete', style: TextStyle(fontSize: 17)),
+                      style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                      child: const Text('Delete'),
                       onPressed: () {
                         budgetRx.delete(budget.id);
                         Navigator.of(context).pop();
@@ -143,32 +145,35 @@ class BudgetsScreenState extends State<BudgetsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${budget.name}    \$${budget.balance.toString()}',
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+            Text(Convert.capitalize(budget.name), style: themeData.textTheme.titleMedium),
             heightPadding,
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('TOTAL: \$ ${budget.amount.round()}', style: themeData.textTheme.bodyMedium),
-                Text('$porcentaje %', style: themeData.textTheme.bodyMedium),
+                Text(
+                  'BALANCE: \$${budget.balance}',
+                  style: themeData.textTheme.bodyMedium,
+                ),
+                Text('$porcentaje %', style: themeData.textTheme.titleMedium),
               ],
             ),
+            heightPadding,
             heightPadding,
             Stack(
               children: [
                 Container(
                   width: sizeBar,
-                  height: 5,
+                  height: 10,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(3),
                     color: Colors.grey.withOpacity(0.3),
                   ),
                 ),
                 Container(
                   width: sizeBar * (porcentaje / 100),
-                  height: 5,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), color: budget.color),
+                  height: 10,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
                 ),
               ],
             )

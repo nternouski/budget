@@ -1,3 +1,4 @@
+import 'package:budget/common/convert.dart';
 import 'package:budget/components/create_or_update_label.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/model/wallet.dart';
@@ -41,16 +42,16 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   late Action action;
   late TextEditingController dateController;
   late TextEditingController timeController;
-  late List<SelectedType> types;
+  late List<PopupMenuItem<TransactionType>> types;
 
   CreateOrUpdateTransactionState(Transaction? t) {
     if (t != null) {
       action = Action.update;
-      title = 'Update transaction';
+      title = 'Update Transaction';
       transaction = t;
     } else {
       action = Action.create;
-      title = 'Create transaction';
+      title = 'Create Transaction';
       transaction = Transaction(
         id: '',
         name: '',
@@ -68,7 +69,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     walletRx.getAll();
     dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(transaction.date));
     timeController = TextEditingController(text: DateFormat('hh:mm').format(transaction.date));
-    types = TransactionType.values.map((t) => SelectedType(t, transaction.type == t)).toList();
+    types = TransactionType.values
+        .map(
+          (t) => PopupMenuItem(
+            value: t,
+            child: Center(child: Text(Convert.capitalize(t.toShortString()))),
+          ),
+        )
+        .toList();
   }
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -97,7 +105,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     return Column(
       children: [
         Row(children: [
-          const Text('Choose wallet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Choose Wallet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
@@ -149,7 +157,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Row(
           children: [
-            const Text('Choose category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Choose Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
@@ -185,7 +193,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                             borderRadius: categoryBorderRadius,
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(5),
+                            padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 15),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -342,21 +350,37 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
           child: Column(children: <Widget>[
-            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Expanded(child: buildAmount()),
-              Expanded(
-                child: ToggleButtons(
-                  onPressed: (int index) => setState(() {
-                    for (int i = 0; i < types.length; i++) {
-                      types[i].isSelected = i == index;
-                    }
-                    transaction.type = types[index].type;
-                  }),
-                  isSelected: types.map((t) => t.isSelected).toList(),
-                  children: types.map((t) => Text(t.type.toShortString())).toList(),
-                ),
-              ),
-            ]),
+            Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(flex: 7, child: buildAmount()),
+                  Flexible(
+                    flex: 3,
+                    child: PopupMenuButton<TransactionType>(
+                      onSelected: (TransactionType item) => setState(() => transaction.type = item),
+                      itemBuilder: (BuildContext context) => types,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: borderRadiusApp,
+                          color: colorsTypeTransaction[transaction.type]?.withOpacity(0.2),
+                        ),
+                        child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Center(
+                              child: Text(
+                                Convert.capitalize(transaction.type.toShortString()),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: colorsTypeTransaction[transaction.type],
+                                ),
+                              ),
+                            )),
+                      ),
+                    ),
+                  ),
+                ]),
             buildWallet(theme.disabledColor),
             buildCategory(),
             CreateOrUpdateLabel(
@@ -393,7 +417,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 }
                 Navigator.of(context).pop();
               },
-              child: Text(title, style: const TextStyle(fontSize: 17)),
+              child: Text(title),
             ),
             sizedBoxHeight,
           ]),

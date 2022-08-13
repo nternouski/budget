@@ -37,7 +37,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final action = wallet.id == '' ? Action.create : Action.update;
-    final title = wallet.id == '' ? 'Create wallet' : 'Update wallet';
+    final title = wallet.id == '' ? 'Create Wallet' : 'Update Wallet';
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: CustomScrollView(

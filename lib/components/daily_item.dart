@@ -32,13 +32,13 @@ class DailyItemState extends State<DailyItem> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text(widget.transaction.name, style: Theme.of(context).textTheme.titleLarge),
+                  title: Text(widget.transaction.name, style: theme.textTheme.titleLarge),
                   content: const Text('Are you sure you want to delete ?'),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                      child: const Text('Delete', style: TextStyle(fontSize: 17)),
+                      child: const Text('Delete'),
                       onPressed: () {
                         transactionRx.delete(widget.transaction.id);
                         Navigator.of(context).pop();
@@ -53,7 +53,9 @@ class DailyItemState extends State<DailyItem> {
         }
         return null;
       },
-      child: Padding(padding: const EdgeInsets.only(left: 20, right: 20), child: getItem(widget.transaction)),
+      child: Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 20),
+          child: getItem(theme, widget.transaction)),
     );
   }
 
@@ -92,51 +94,39 @@ class DailyItemState extends State<DailyItem> {
     );
   }
 
-  Widget getItem(Transaction transaction) {
-    var size = MediaQuery.of(context).size;
-    return Column(
+  Widget getItem(ThemeData theme, Transaction transaction) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        IconCircle(icon: transaction.category.icon, color: transaction.category.color),
+        paddingSlide,
+        Flexible(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(transaction.name, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 7),
+                  Text(transaction.getDateFormat(), style: theme.textTheme.bodyMedium),
+                ],
+              )
+            ],
+          ),
+        ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            SizedBox(
-              width: (size.width - 40) * 0.7,
-              child: Row(
-                children: [
-                  IconCircle(icon: transaction.category.icon, color: transaction.category.color),
-                  paddingSlide,
-                  SizedBox(
-                    width: (size.width - 90) * 0.5,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(transaction.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
-                        const SizedBox(height: 5),
-                        Text(transaction.getDateFormat(), style: const TextStyle(fontSize: 14)),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(
-              width: (size.width - 40) * 0.3,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    '\$ ${transaction.amount}',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15, color: colorsTypeTransaction[transaction.type]),
-                  ),
-                ],
-              ),
+            Text(
+              '\$ ${transaction.amount}',
+              style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
             )
           ],
-        ),
-        const Padding(padding: EdgeInsets.only(left: 65, top: 10))
+        )
       ],
     );
   }

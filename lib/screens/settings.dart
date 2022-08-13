@@ -7,7 +7,6 @@ import 'package:settings_ui/settings_ui.dart';
 import '../server/user_service.dart';
 import '../model/user.dart';
 import '../components/update_user.dart';
-import '../components/user_login.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -95,10 +94,7 @@ class SettingsScreenState extends State<SettingsScreen> {
         titleTextStyle: theme.textTheme.titleLarge,
         pinned: true,
         leading: getLadingButton(context),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [Text('Settings'), UserLogin()],
-        ),
+        title: const Text('Settings'),
       ),
       SliverToBoxAdapter(
         child: SettingsList(
@@ -136,8 +132,8 @@ class DangerZone extends AbstractSettingsSection {
           actions: <Widget>[
             buttonCancelContext(context),
             ElevatedButton(
-              style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.red)),
-              child: const Text('Delete', style: TextStyle(fontSize: 17)),
+              style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+              child: const Text('Delete'),
               onPressed: () {
                 if (confirmController.text == _checkValue) {
                   confirmController.text = '';
@@ -168,7 +164,7 @@ class DangerZone extends AbstractSettingsSection {
               userService.logout();
             }
           },
-          child: const Text('DELETE USER', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: const Text('DELETE USER'),
         ),
         spacing,
       ],

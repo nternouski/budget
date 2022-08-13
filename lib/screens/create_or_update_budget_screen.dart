@@ -21,11 +21,11 @@ class CreateOrUpdateBudgetScreen extends StatefulWidget {
   CreateOrUpdateBudgetScreen({Budget? budget, Key? key}) : super(key: key) {
     if (budget != null) {
       action = Action.update;
-      title = 'Update budget';
+      title = 'Update Budget';
       _budget = budget;
     } else {
       action = Action.create;
-      title = 'Create budget';
+      title = 'Create Budget';
       _budget = Budget(
         id: '',
         createdAt: DateTime.now(),
@@ -109,7 +109,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
         Row(
           children: [
             const Text(
-              'Choose category',
+              'Choose Category',
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
             ),
             IconButton(
@@ -154,7 +154,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                             borderRadius: categoryBorderRadius,
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(5),
+                            padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 15),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

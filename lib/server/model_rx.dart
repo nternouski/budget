@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../common/transform.dart';
+import '../common/convert.dart';
 import '../model/budget.dart';
 import '../model/label.dart';
 import '../model/user.dart';
@@ -18,7 +17,8 @@ class TransactionRx extends Database<Transaction> {
 
   Future<double> getBalanceAt(DateTime until) async {
     printMsg('GET - BALANCE');
-    final value = await super.request(TypeRequest.query, _queries.getBalanceAt, {'until': until.toString()});
+    final value = await super
+        .request(type: TypeRequest.query, query: _queries.getBalanceAt, variable: {'until': until.toString()});
     if (value != null) {
       String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
       return Convert.currencyToDouble(balance, value);
@@ -28,11 +28,13 @@ class TransactionRx extends Database<Transaction> {
   }
 
   _updateLabels(String id, List<Label> toUpdate) async {
-    await request(TypeRequest.mutation, _queries.deleteLabels, {'transactionId': id});
+    await request(type: TypeRequest.mutation, query: _queries.deleteLabels, variable: {'transactionId': id});
     List<Label> labels = [];
     for (var label in toUpdate) {
-      final value =
-          await request(TypeRequest.mutation, _queries.insertLabels, {'transactionId': id, 'labelId': label.id});
+      final value = await request(
+          type: TypeRequest.mutation,
+          query: _queries.insertLabels,
+          variable: {'transactionId': id, 'labelId': label.id});
       if (value != null && value['action']['returning'] != null) {
         labels.add(Label.fromJson(value['action']['returning'][0]['label']));
       }
@@ -59,7 +61,7 @@ class TransactionRx extends Database<Transaction> {
 
   @override
   delete(String id) async {
-    await request(TypeRequest.mutation, _queries.deleteLabels, {'transactionId': id});
+    await request(type: TypeRequest.mutation, query: _queries.deleteLabels, variable: {'transactionId': id});
     super.delete(id);
   }
 }
@@ -70,11 +72,13 @@ class BudgetRx extends Database<Budget> {
   BudgetRx() : super(_queries, 'budgets', Budget.fromJson);
 
   _updateCategories(String id, List<Category> toUpdate) async {
-    await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
+    await request(type: TypeRequest.mutation, query: _queries.deleteCategories, variable: {'budgetId': id});
     List<Category> categories = [];
     for (var category in toUpdate) {
-      final value =
-          await request(TypeRequest.mutation, _queries.insertCategories, {'budgetId': id, 'categoryId': category.id});
+      final value = await request(
+          type: TypeRequest.mutation,
+          query: _queries.insertCategories,
+          variable: {'budgetId': id, 'categoryId': category.id});
       if (value != null && value['action']['returning'] != null) {
         categories.add(Category.fromJson(value['action']['returning'][0]['category']));
       }
@@ -104,7 +108,7 @@ class BudgetRx extends Database<Budget> {
 
   @override
   delete(String id) async {
-    await request(TypeRequest.mutation, _queries.deleteCategories, {'budgetId': id});
+    await request(type: TypeRequest.mutation, query: _queries.deleteCategories, variable: {'budgetId': id});
     super.delete(id);
   }
 }
@@ -128,17 +132,15 @@ class UserRx extends Database<User> {
         defaultCurrency: defaultCurrency,
       );
       printMsg('CREATE USER');
-      final value = await request(TypeRequest.mutation, _queries.create, user.toJson());
-      if (value != null && value['action']['returning'] != null) updateData(user);
+      final value = await request(type: TypeRequest.mutation, query: _queries.create, variable: user.toJson());
+      if (value != null && value['action']['returning'] != null) await updateData(user);
     } else {
       printMsg('GET USER BY ID');
-      final value = await request(TypeRequest.query, _queries.getAll, {});
+      final value = await request(type: TypeRequest.query, query: _queries.getAll, variable: {}, throwError: true);
       if (value != null && value[collectionName] != null) {
         var users = List<User>.from(value[collectionName].map((t) => constructor(t)).toList());
-        debugPrint('_______________________________________________________');
-        debugPrint(users.isNotEmpty.toString());
         if (users.isNotEmpty) {
-          updateData(users[0]);
+          await updateData(users[0]);
         } else {
           throw Exception('User not created');
         }
@@ -146,7 +148,7 @@ class UserRx extends Database<User> {
     }
   }
 
-  updateData(User user) {
+  Future<void> updateData(User user) async {
     user$.add(user);
     transactionRx.getAll();
     labelRx.getAll();
@@ -154,7 +156,7 @@ class UserRx extends Database<User> {
 
   Future<User?> getUser(String id) async {
     printMsg('GET USER BY ID: $id');
-    final value = await request(TypeRequest.query, _queries.getUser, {'id': id});
+    final value = await request(type: TypeRequest.query, query: _queries.getUser, variable: {'id': id});
     if (value != null && value[collectionName] != null) {
       var users = List<User>.from(value[collectionName].map((t) => constructor(t)).toList());
       if (users.isNotEmpty) return users.length == 1 ? users[0] : throw 'More than 1 user';

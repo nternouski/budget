@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../server/model_rx.dart';
 import '../common/styles.dart';
-import '../components/user_login.dart';
 import '../components/daily_item.dart';
 import '../components/spend_graphic.dart';
 import '../model/transaction.dart';
@@ -21,7 +20,6 @@ class DailyScreenState extends State<DailyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // FIXME: Hacerlo mas eficiente.
     transactionRx.getAll();
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
@@ -34,17 +32,18 @@ class DailyScreenState extends State<DailyScreen> {
                 titleTextStyle: textTheme.titleLarge,
                 pinned: true,
                 leading: getLadingButton(context),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [Text('Daily Transaction'), UserLogin()],
-                ),
+                title: const Text('Daily Transaction'),
               ),
               StreamBuilder<List<Transaction>>(
                 stream: transactionRx.fetchRx,
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
-                    final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
-                    return SliverToBoxAdapter(child: SpendGraphic(transactions: daily));
+                    return SliverToBoxAdapter(
+                      child: SpendGraphic(
+                        transactions: List<Transaction>.from(snapshot.data!),
+                        key: Key(Random().nextDouble().toString()),
+                      ),
+                    );
                   } else {
                     return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en daily_screen Graphics'));
                   }

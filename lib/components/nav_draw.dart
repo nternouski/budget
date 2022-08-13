@@ -1,24 +1,29 @@
+import 'package:budget/model/user.dart';
 import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
+  final nameLimit = 20;
+
   final UserService userService = UserService();
 
   NavDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-              image: const DecorationImage(fit: BoxFit.scaleDown, image: AssetImage('assets/images/auto.png')),
+            margin: EdgeInsets.zero,
+            padding: EdgeInsets.zero,
+            child: Consumer<Token>(
+              builder: (context, token, child) => token.isLogged() ? buildProfile(theme, token) : const Text('ERROR!'),
             ),
-            child: const Text('Budget app', style: TextStyle(color: Colors.white, fontSize: 25)),
           ),
           ListTile(
             leading: const Icon(Icons.input),
@@ -70,6 +75,34 @@ class NavDrawer extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildProfile(ThemeData theme, Token token) {
+    var nameExceded = token.name.length > nameLimit;
+    var name = nameExceded ? '${token.name.substring(0, nameLimit)}..' : token.name;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            image: DecorationImage(fit: BoxFit.fill, image: NetworkImage(token.picture)),
+          ),
+        ),
+        const SizedBox(width: 20),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(name, style: theme.textTheme.titleLarge),
+            const SizedBox(height: 5),
+            Text(token.email),
+          ],
+        )
+      ],
     );
   }
 }

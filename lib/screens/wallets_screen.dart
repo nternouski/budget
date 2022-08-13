@@ -94,7 +94,7 @@ class WalletItem extends StatelessWidget {
             buttonCancelContext(context),
             ElevatedButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-              child: const Text('Delete', style: TextStyle(fontSize: 17)),
+              child: const Text('Delete'),
               onPressed: () {
                 walletRx.delete(wallet.id);
                 Navigator.pop(context);
@@ -120,24 +120,20 @@ class WalletItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconCircle(icon: wallet.icon, color: contrastColor),
+            const SizedBox(width: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    IconCircle(icon: wallet.icon, color: contrastColor),
-                    const SizedBox(width: 15),
-                    Text(wallet.name, style: textTheme.titleLarge?.copyWith(color: contrastColor)),
-                  ],
-                ),
+                Text(wallet.name, style: textTheme.titleLarge?.copyWith(color: contrastColor)),
                 if (showBalance) ...[
                   const SizedBox(height: 5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(width: 55),
-                      Text('\$${wallet.balance.floor()}', style: TextStyle(fontSize: 23, color: contrastColor)),
+                      Text('\$${wallet.balance.floor()}',
+                          style: textTheme.headlineSmall?.copyWith(color: contrastColor)),
                       const SizedBox(width: 5),
                       Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor))
                     ],

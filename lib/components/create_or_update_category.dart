@@ -25,7 +25,7 @@ class CreateOrUpdateCategory {
   }
 
   static _bottomSheet(BuildContext context, Category category) {
-    var title = category.id == '' ? 'Create Category' : 'Updating ${category.name} category';
+    var title = category.id == '' ? 'Create Category' : 'Update ${category.name}';
     var actionButton = category.id == '' ? 'Create' : 'Update';
 
     return StatefulBuilder(

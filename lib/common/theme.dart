@@ -1,4 +1,5 @@
 import 'package:budget/common/preference.dart';
+import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -15,11 +16,19 @@ class ThemeProvider extends ChangeNotifier {
     backgroundColor: _primary.withAlpha(20),
     scaffoldBackgroundColor: _white,
     appBarTheme: const AppBarTheme(color: _white, iconTheme: IconThemeData(color: _black)),
+    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+    ),
     colorScheme: const ColorScheme.light().copyWith(
       primary: _primary,
       onPrimary: _white,
       secondary: Colors.pink,
     ),
+    popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
     disabledColor: Colors.grey,
   );
 
@@ -28,6 +37,13 @@ class ThemeProvider extends ChangeNotifier {
     backgroundColor: _primary.withAlpha(25),
     scaffoldBackgroundColor: _darkGrey,
     appBarTheme: AppBarTheme(color: _darkGrey, iconTheme: const IconThemeData(color: _white)),
+    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+    ),
     colorScheme: const ColorScheme.dark().copyWith(
       primary: _primary,
       onPrimary: _white,
@@ -35,6 +51,7 @@ class ThemeProvider extends ChangeNotifier {
       error: Colors.red[400],
       onError: _white,
     ),
+    popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
     disabledColor: Colors.grey[600],
   );
 
