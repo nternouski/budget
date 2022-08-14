@@ -61,7 +61,14 @@ class WalletsScreenState extends State<WalletsScreen> {
           } else if (snapshot.hasError) {
             return Text(snapshot.error.toString());
           } else {
-            return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en wallets_screen'));
+            return SliverToBoxAdapter(
+              child: Container(
+                alignment: Alignment.center,
+                width: 50,
+                height: 50,
+                child: Progress.getLoadingProgress(context),
+              ),
+            );
           }
         },
       ),

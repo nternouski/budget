@@ -98,3 +98,16 @@ class ButtonThemeStyle {
     }
   }
 }
+
+class Progress {
+  static getLoadingProgress(BuildContext context) {
+    return SizedBox(
+      width: 45,
+      height: 45,
+      child: CircularProgressIndicator(
+        strokeWidth: 3,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+}

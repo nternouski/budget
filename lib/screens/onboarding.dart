@@ -1,3 +1,4 @@
+import 'package:budget/common/theme.dart';
 import 'package:budget/components/select_currency.dart';
 import 'package:budget/model/currency.dart';
 import 'package:budget/server/user_service.dart';
@@ -43,7 +44,7 @@ class _OnBoardingState extends State<OnBoarding> {
         children: [
           const Text('Inicializando..', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
           const SizedBox(height: 30),
-          SizedBox(width: 45, height: 45, child: CircularProgressIndicator(strokeWidth: 3, color: primary))
+          Progress.getLoadingProgress(context)
         ],
       ),
     ));

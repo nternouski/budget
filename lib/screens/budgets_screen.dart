@@ -64,7 +64,14 @@ class BudgetsScreenState extends State<BudgetsScreen> {
           } else if (snapshot.hasError) {
             return Text(snapshot.error.toString());
           } else {
-            return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en budgets_screen'));
+            return SliverToBoxAdapter(
+              child: Container(
+                alignment: Alignment.center,
+                width: 50,
+                height: 50,
+                child: Progress.getLoadingProgress(context),
+              ),
+            );
           }
         },
       ),

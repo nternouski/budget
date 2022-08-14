@@ -7,20 +7,14 @@ var GRAPHQL_URL = '192.168.0.7:8080/v1/graphql';
 class GraphQLConfig {
   final _policies = Policies(fetch: FetchPolicy.networkOnly);
 
-  final HttpLink _httpLink = HttpLink('http://$GRAPHQL_URL');
-
-  WebSocketLink _wsLink(String token) {
-    return WebSocketLink(
-      'wss://$GRAPHQL_URL',
-      config: SocketClientConfig(
-        inactivityTimeout: const Duration(seconds: 15),
-        initialPayload: token == '' ? {} : {'Authorization': 'Bearer $token'},
-        autoReconnect: true,
-      ),
-    );
-  }
-
-  Link _splitLink(String token) => Link.split((request) => request.isSubscription, _wsLink(token), _httpLink);
+  Link _splitLink(String token) => Link.split(
+        (request) => request.isSubscription,
+        WebSocketLink(
+          'wss://$GRAPHQL_URL',
+          config: const SocketClientConfig(inactivityTimeout: Duration(seconds: 60), autoReconnect: true),
+        ),
+        HttpLink('http://$GRAPHQL_URL'),
+      );
 
   late ValueNotifier<GraphQLClient> clientValueNotifier;
   late GraphQLClient client;

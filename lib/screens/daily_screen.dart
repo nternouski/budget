@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +22,7 @@ class DailyScreenState extends State<DailyScreen> {
   @override
   Widget build(BuildContext context) {
     transactionRx.getAll();
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
     return Scaffold(
       body: Column(children: [
         SizedBox(
@@ -29,7 +30,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
-                titleTextStyle: textTheme.titleLarge,
+                titleTextStyle: theme.textTheme.titleLarge,
                 pinned: true,
                 leading: getLadingButton(context),
                 title: const Text('Daily Transaction'),
@@ -44,8 +45,17 @@ class DailyScreenState extends State<DailyScreen> {
                         key: Key(Random().nextDouble().toString()),
                       ),
                     );
+                  } else if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
                   } else {
-                    return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en daily_screen Graphics'));
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: 50,
+                        height: 50,
+                        child: Progress.getLoadingProgress(context),
+                      ),
+                    );
                   }
                 },
               ),
@@ -56,7 +66,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: RefreshIndicator(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: getBody(),
+              slivers: getBody(theme),
             ),
             onRefresh: () => transactionRx.getAll(),
           ),
@@ -65,7 +75,7 @@ class DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  List<Widget> getBody() {
+  List<Widget> getBody(ThemeData theme) {
     return [
       StreamBuilder<List<Transaction>>(
         stream: transactionRx.fetchRx,
@@ -89,7 +99,14 @@ class DailyScreenState extends State<DailyScreen> {
           } else if (snapshot.hasError) {
             return Text(snapshot.error.toString());
           } else {
-            return const SliverToBoxAdapter(child: Text('Hubo un error inesperado en daily_screen'));
+            return SliverToBoxAdapter(
+              child: Container(
+                alignment: Alignment.center,
+                width: 50,
+                height: 50,
+                child: Progress.getLoadingProgress(context),
+              ),
+            );
           }
         },
       ),

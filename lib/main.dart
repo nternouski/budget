@@ -47,23 +47,20 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
       ],
       builder: (context, child) {
-        return MaterialApp(
-          title: 'Budget',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeProvider.light,
-          darkTheme: ThemeProvider.dark,
-          themeMode: Provider.of<ThemeProvider>(context).themeMode,
-          home: const AuthWrapper(),
+        return GraphQLProvider(
+          client: graphQLConfig.clientValueNotifier,
+          child: MaterialApp(
+            title: 'Budget',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeProvider.light,
+            darkTheme: ThemeProvider.dark,
+            themeMode: Provider.of<ThemeProvider>(context).themeMode,
+            home: const AuthWrapper(),
+          ),
         );
       },
     );
   }
-
-// FIXME: VEr de correr esto
-  // @override
-  // void dispose() {
-  //   graphQLConfig.clientValueNotifier.dispose();
-  // }
 }
 
 class AuthWrapper extends StatelessWidget {
