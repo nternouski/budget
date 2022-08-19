@@ -14,38 +14,24 @@ enum Action { create, update }
 final now = DateTime.now();
 
 class CreateOrUpdateBudgetScreen extends StatefulWidget {
-  late Budget _budget;
-  late String title;
-  late Action action;
-
-  CreateOrUpdateBudgetScreen({Budget? budget, Key? key}) : super(key: key) {
-    if (budget != null) {
-      action = Action.update;
-      title = 'Update Budget';
-      _budget = budget;
-    } else {
-      action = Action.create;
-      title = 'Create Budget';
-      _budget = Budget(
-        id: '',
-        createdAt: DateTime.now(),
-        name: 'a',
-        color: 'ff00ffff',
-        amount: 2,
-        balance: 0,
-        categories: [],
-      );
-    }
-  }
+  const CreateOrUpdateBudgetScreen({Key? key}) : super(key: key);
 
   @override
-  CreateOrUpdateBudgetState createState() => CreateOrUpdateBudgetState(_budget);
+  CreateOrUpdateBudgetState createState() => CreateOrUpdateBudgetState();
 }
 
 class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
-  final Budget budget;
-
-  CreateOrUpdateBudgetState(this.budget);
+  Budget budget = Budget(
+    id: '',
+    createdAt: DateTime.now(),
+    name: '',
+    color: 'ff00ffff',
+    amount: 2,
+    balance: 0,
+    categories: [],
+  );
+  String title = 'Create Budget';
+  Action action = Action.create;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -53,6 +39,12 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final b = ModalRoute.of(context)!.settings.arguments as Budget?;
+    if (b != null) {
+      action = Action.update;
+      title = 'Update Budget';
+      budget = b;
+    }
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: CustomScrollView(
@@ -61,7 +53,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
             titleTextStyle: textTheme.titleLarge,
             pinned: true,
             leading: getBackButton(context),
-            title: Text('${widget.title} ${budget.name}'),
+            title: Text('$title ${budget.name}'),
           ),
           SliverToBoxAdapter(child: getForm())
         ],
@@ -212,10 +204,10 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
-                widget.action == Action.create ? budgetRx.create(budget) : budgetRx.update(budget);
+                action == Action.create ? budgetRx.create(budget) : budgetRx.update(budget);
                 Navigator.of(context).pop();
               },
-              child: Text(widget.title),
+              child: Text(title),
             )
           ]),
         ));

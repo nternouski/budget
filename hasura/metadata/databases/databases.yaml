@@ -3,7 +3,6 @@
   configuration:
     connection_info:
       use_prepared_statements: false
-      database_url:
-        from_env: DATABASE_URL
+      database_url: postgres://postgres:postgrespassword@postgres:5432/postgres
       isolation_level: read-committed
   tables: "!include default/tables/tables.yaml"

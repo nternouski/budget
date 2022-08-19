@@ -13,22 +13,16 @@ import '../common/styles.dart';
 enum Action { create, update }
 
 class CreateOrUpdateWalletScreen extends StatefulWidget {
-  final Wallet? wallet;
-
-  const CreateOrUpdateWalletScreen({required this.wallet, Key? key}) : super(key: key);
+  const CreateOrUpdateWalletScreen({Key? key}) : super(key: key);
 
   @override
-  CreateOrUpdateWalletState createState() => CreateOrUpdateWalletState(wallet);
+  CreateOrUpdateWalletState createState() => CreateOrUpdateWalletState();
 }
 
 final now = DateTime.now();
 
 class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
-  late Wallet wallet;
-
-  CreateOrUpdateWalletState(Wallet? w) {
-    wallet = w ?? defaultWallet;
-  }
+  Wallet wallet = defaultWallet;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -36,6 +30,9 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final w = ModalRoute.of(context)!.settings.arguments as Wallet?;
+
+    if (w != null) wallet = w;
     final action = wallet.id == '' ? Action.create : Action.update;
     final title = wallet.id == '' ? 'Create Wallet' : 'Update Wallet';
     final textTheme = Theme.of(context).textTheme;

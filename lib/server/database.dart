@@ -84,14 +84,16 @@ class Database<T extends ModelCommonInterface> {
     return null;
   }
 
-  update(T data) async {
+  Future<T?> update(T data) async {
     printMsg('UPDATE');
     final value = await request(type: TypeRequest.mutation, query: _queries.update, variable: data.toJson());
     if (value != null && value['action']['returning'] != null) {
       T elementUpdated = constructor(value['action']['returning'][0]);
       var data = behavior.hasValue ? behavior.value : List<T>.from([]);
       behavior.add(data.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
+      return elementUpdated;
     }
+    return null;
   }
 
   Future<void> delete(String id) async {

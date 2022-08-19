@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:budget/common/styles.dart';
 import 'package:budget/common/theme.dart';
+import 'package:budget/components/update_or_create_integration.dart';
+import 'package:budget/model/integration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -63,6 +67,27 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  SettingsSection getIntegration(List<Integration> integrations, String userId) {
+    Integration wise = integrations.firstWhere(
+      (i) => i.integrationType == IntegrationType.wise,
+      orElse: () => Integration.wise(userId),
+    );
+
+    return SettingsSection(
+      title: const Text('Integrations ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+      tiles: [
+        SettingsTile.navigation(
+          leading: const Icon(Icons.wallet),
+          title: const Text('Wise'),
+          trailing: UpdateOrCreateIntegration(
+            integration: wise,
+            onAction: (i) => setState(() {}),
+          ),
+        ),
+      ],
+    );
+  }
+
   SettingsSection getCommon(ThemeData themeData) {
     final theme = Provider.of<ThemeProvider>(context);
     return SettingsSection(
@@ -89,6 +114,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   List<Widget> getBody(BuildContext context) {
     final theme = Theme.of(context);
     User? user = Provider.of<User>(context);
+
     return [
       SliverAppBar(
         titleTextStyle: theme.textTheme.titleLarge,
@@ -105,7 +131,14 @@ class SettingsScreenState extends State<SettingsScreen> {
             settingsListBackground: theme.scaffoldBackgroundColor,
             titleTextColor: theme.colorScheme.primary,
           ),
-          sections: user == null ? [] : [getProfile(user), getCommon(theme), DangerZone(user: user)],
+          sections: user == null
+              ? []
+              : [
+                  getProfile(user),
+                  getIntegration(user.integrations, user.id),
+                  getCommon(theme),
+                  DangerZone(user: user)
+                ],
         ),
       ),
     ];
@@ -124,22 +157,20 @@ class DangerZone extends AbstractSettingsSection {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Please Write Confirm, to delete permanently your user'),
-          content: TextFormField(
-            controller: confirmController,
-            decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: 'Confirm'),
-          ),
+          title: const Text('Please write \'confirm\'..'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('To delete permanently your user and all the data related to you.'),
+            TextFormField(
+              controller: confirmController,
+              decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: 'confirm'),
+            ),
+          ]),
           actions: <Widget>[
             buttonCancelContext(context),
             ElevatedButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+              onPressed: confirmController.text == _checkValue ? null : () => Navigator.pop(context, true),
               child: const Text('Delete'),
-              onPressed: () {
-                if (confirmController.text == _checkValue) {
-                  confirmController.text = '';
-                  Navigator.pop(context, true);
-                }
-              },
             ),
           ],
         );

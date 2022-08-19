@@ -1,3 +1,6 @@
+import 'package:budget/model/integration.dart';
+import 'package:budget/screens/settings.dart';
+import 'package:budget/server/user_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../common/convert.dart';
@@ -55,8 +58,9 @@ class TransactionRx extends Database<Transaction> {
 
   @override
   update(Transaction data) async {
-    await super.update(data);
+    Transaction? t = await super.update(data);
     _updateLabels(data.id, data.labels);
+    return t;
   }
 
   @override
@@ -102,8 +106,9 @@ class BudgetRx extends Database<Budget> {
 
   @override
   update(Budget data) async {
-    await super.update(data);
+    Budget? b = await super.update(data);
     _updateCategories(data.id, data.categories);
+    return b;
   }
 
   @override
@@ -128,6 +133,7 @@ class UserRx extends Database<User> {
         createdAt: DateTime.now(),
         name: token.name,
         email: token.email,
+        integrations: [],
         defaultCurrencyId: defaultCurrency?.id ?? '',
         defaultCurrency: defaultCurrency,
       );
@@ -136,22 +142,17 @@ class UserRx extends Database<User> {
       if (value != null && value['action']['returning'] != null) await updateData(user);
     } else {
       printMsg('GET USER BY ID');
-      final value = await request(type: TypeRequest.query, query: _queries.getAll, variable: {}, throwError: true);
-      if (value != null && value[collectionName] != null) {
-        var users = List<User>.from(value[collectionName].map((t) => constructor(t)).toList());
-        if (users.isNotEmpty) {
-          await updateData(users[0]);
-        } else {
-          throw Exception('User not created');
-        }
-      }
+      refreshUserData(token.userId);
     }
   }
 
   Future<void> updateData(User user) async {
     user$.add(user);
     transactionRx.getAll();
+    walletRx.getAll();
+    budgetRx.getAll();
     labelRx.getAll();
+    categoryRx.getAll();
   }
 
   Future<User?> getUser(String id) async {
@@ -164,16 +165,47 @@ class UserRx extends Database<User> {
     return null;
   }
 
+  Future<void> refreshUserData(String userId) async {
+    User? user = await getUser(userId);
+    if (user != null) {
+      await updateData(user);
+    } else {
+      throw Exception('User not created');
+    }
+  }
+
   @override
   update(User data) async {
-    super.update(data);
-    user$.add(data);
+    User? u = await super.update(data);
+    if (u != null) user$.add(data);
+    return u;
+  }
+}
+
+class IntegrationRx extends Database<Integration> {
+  static final _queries = IntegrationQueries();
+
+  IntegrationRx() : super(IntegrationQueries(), 'integrations', Integration.fromJson);
+
+  @override
+  create(Integration data) async {
+    Integration? i = await super.create(data);
+    if (i != null) {
+      UserService().refreshUserData(data.userId);
+    }
+    return i;
+  }
+
+  @override
+  update(Integration data) async {
+    return await super.update(data);
   }
 }
 
 var categoryRx = Database(CategoryQueries(), 'categories', Category.fromJson);
 var walletRx = Database(WalletQueries(), 'wallets', Wallet.fromJson);
 var budgetRx = BudgetRx();
+var integrationRx = IntegrationRx();
 var currencyRx = Database(CurrencyQueries(), 'currencies', Currency.fromJson);
 var transactionRx = TransactionRx();
 var labelRx = Database(LabelQueries(), 'labels', Label.fromJson);

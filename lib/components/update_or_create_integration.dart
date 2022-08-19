@@ -1,17 +1,13 @@
 import 'package:budget/common/styles.dart';
-import 'package:budget/components/select_currency.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/server/user_service.dart';
+import 'package:budget/model/integration.dart';
+import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-enum Action { create, update }
+class UpdateOrCreateIntegration extends StatefulWidget {
+  final Integration integration;
+  final Function(Integration) onAction;
 
-class UpdateUser extends StatefulWidget {
-  final User user;
-  final Function(User) onUpdate;
-
-  const UpdateUser({required this.user, required this.onUpdate, Key? key}) : super(key: key);
+  const UpdateOrCreateIntegration({required this.integration, required this.onAction, Key? key}) : super(key: key);
 
   @override
   UpdateUserState createState() => UpdateUserState();
@@ -19,15 +15,13 @@ class UpdateUser extends StatefulWidget {
 
 final now = DateTime.now();
 
-class UpdateUserState extends State<UpdateUser> {
-  UpdateUserState();
-
+class UpdateUserState extends State<UpdateOrCreateIntegration> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.edit),
+      icon: Icon(widget.integration.id == '' ? Icons.add : Icons.edit),
       onPressed: () => showModalBottomSheet(
-        enableDrag: true,
+        enableDrag: false,
         context: context,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
         clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -54,30 +48,19 @@ class UpdateUserState extends State<UpdateUser> {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Update Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('Update Integration', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 sizedBoxHeight,
                 TextFormField(
-                  initialValue: widget.user.name,
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'John Doe'),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp('[a-zA-Z1-9  ]')),
-                    LengthLimitingTextInputFormatter(30)
-                  ],
-                  validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
-                  onChanged: (String name) => widget.user.name = name,
+                  initialValue: widget.integration.apiKey,
+                  decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),
+                  validator: (String? value) => value!.isEmpty ? 'Integration is Required.' : null,
+                  onChanged: (String apiKey) => widget.integration.apiKey = apiKey,
                 ),
                 sizedBoxHeight,
-                TextFormField(
-                  initialValue: widget.user.email,
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
-                  validator: (String? value) => value!.isEmpty ? 'Email is Required.' : null,
-                  onChanged: (String email) => widget.user.email = email,
-                ),
-                sizedBoxHeight,
-                SelectCurrency(
-                  defaultCurrencyId: widget.user.defaultCurrencyId,
-                  onSelect: (c) => setState(() => widget.user.defaultCurrencyId = c.id),
-                ),
+                // SelectCurrency(
+                //   defaultCurrencyId: widget.user.defaultCurrencyId,
+                //   onSelect: (c) => setState(() => widget.user.defaultCurrencyId = c.id),
+                // ),
                 sizedBoxHeight,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -86,8 +69,13 @@ class UpdateUserState extends State<UpdateUser> {
                     ElevatedButton(
                       child: const Text('Update'),
                       onPressed: () {
-                        UserService().update(widget.user);
-                        widget.onUpdate(widget.user);
+                        debugPrint('-----------------> ${widget.integration.id == ''}');
+                        if (widget.integration.id == '') {
+                          integrationRx.create(widget.integration);
+                        } else {
+                          integrationRx.update(widget.integration);
+                        }
+                        widget.onAction(widget.integration);
                         Navigator.pop(context);
                       },
                     ),

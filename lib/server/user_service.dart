@@ -117,7 +117,6 @@ class UserService extends UserRx {
                 .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
                 .catchError((onError) {
               logout();
-              debugPrint('-------------------------------------------');
               displayError(context, onError.message);
             });
           },

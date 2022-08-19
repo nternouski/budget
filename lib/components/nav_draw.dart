@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
-  final nameLimit = 20;
+  final nameLimit = 25;
 
   final UserService userService = UserService();
 
@@ -26,11 +26,6 @@ class NavDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.input),
-            title: const Text('Welcome'),
-            onTap: () => {},
-          ),
-          ListTile(
             leading: const Icon(Icons.phonelink_setup),
             title: const Text('Mobile Calculator'),
             onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
@@ -40,6 +35,12 @@ class NavDrawer extends StatelessWidget {
             title: const Text('Stats'),
             onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
+          ListTile(
+            leading: const Icon(Icons.wallet),
+            title: const Text('Wise Sync'),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.wiseSync),
+          ),
+          const Divider(thickness: 1),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text('Logout'),
@@ -81,27 +82,21 @@ class NavDrawer extends StatelessWidget {
   Widget buildProfile(ThemeData theme, Token token) {
     var nameExceded = token.name.length > nameLimit;
     var name = nameExceded ? '${token.name.substring(0, nameLimit)}..' : token.name;
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          width: 45,
-          height: 45,
+          width: 55,
+          height: 55,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             image: DecorationImage(fit: BoxFit.fill, image: NetworkImage(token.picture)),
           ),
         ),
-        const SizedBox(width: 20),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(name, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 5),
-            Text(token.email),
-          ],
-        )
+        const SizedBox(height: 15),
+        Text(name, style: theme.textTheme.titleLarge),
+        const SizedBox(height: 5),
+        Text(token.email),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../server/model_rx.dart';
 import '../common/styles.dart';
@@ -21,8 +22,9 @@ class DailyScreenState extends State<DailyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    transactionRx.getAll();
     final theme = Theme.of(context);
+    List<Transaction>? transactions = Provider.of<List<Transaction>>(context);
+
     return Scaffold(
       body: Column(children: [
         SizedBox(
@@ -35,30 +37,16 @@ class DailyScreenState extends State<DailyScreen> {
                 leading: getLadingButton(context),
                 title: const Text('Daily Transaction'),
               ),
-              StreamBuilder<List<Transaction>>(
-                stream: transactionRx.fetchRx,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    return SliverToBoxAdapter(
-                      child: SpendGraphic(
-                        transactions: List<Transaction>.from(snapshot.data!),
-                        key: Key(Random().nextDouble().toString()),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text(snapshot.error.toString());
-                  } else {
-                    return SliverToBoxAdapter(
-                      child: Container(
+              SliverToBoxAdapter(
+                child: transactions != null
+                    ? SpendGraphic(transactions: transactions, key: Key(Random().nextDouble().toString()))
+                    : Container(
                         alignment: Alignment.center,
                         width: 50,
                         height: 50,
-                        child: Progress.getLoadingProgress(context),
+                        child: Progress.getLoadingProgress(context: context),
                       ),
-                    );
-                  }
-                },
-              ),
+              )
             ],
           ),
         ),
@@ -66,7 +54,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: RefreshIndicator(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: getBody(theme),
+              slivers: [getBody(theme, transactions)],
             ),
             onRefresh: () => transactionRx.getAll(),
           ),
@@ -75,41 +63,32 @@ class DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  List<Widget> getBody(ThemeData theme) {
-    return [
-      StreamBuilder<List<Transaction>>(
-        stream: transactionRx.fetchRx,
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final List<Transaction> daily = List<Transaction>.from(snapshot.data!);
-            daily.sort((a, b) => b.date.compareTo(a.date));
-            if (daily.isEmpty) {
-              return const SliverToBoxAdapter(
-                  child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'));
-            } else {
-              return SliverToBoxAdapter(
-                child: Column(
-                  children: List.generate(
-                    daily.length,
-                    (index) => DailyItem(transaction: daily[index], key: Key(Random().nextDouble().toString())),
-                  ),
-                ),
-              );
-            }
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          } else {
-            return SliverToBoxAdapter(
-              child: Container(
-                alignment: Alignment.center,
-                width: 50,
-                height: 50,
-                child: Progress.getLoadingProgress(context),
-              ),
-            );
-          }
-        },
-      ),
-    ];
+  Widget getBody(ThemeData theme, List<Transaction>? transactions) {
+    if (transactions != null) {
+      transactions.sort((a, b) => b.date.compareTo(a.date));
+      if (transactions.isEmpty) {
+        return const SliverToBoxAdapter(
+          child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'),
+        );
+      } else {
+        return SliverToBoxAdapter(
+          child: Column(
+            children: List.generate(
+              transactions.length,
+              (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
+            ),
+          ),
+        );
+      }
+    } else {
+      return SliverToBoxAdapter(
+        child: Container(
+          alignment: Alignment.center,
+          width: 50,
+          height: 50,
+          child: Progress.getLoadingProgress(context: context),
+        ),
+      );
+    }
   }
 }

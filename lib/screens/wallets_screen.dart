@@ -1,6 +1,7 @@
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../routes.dart';
 import '../common/styles.dart';
 import '../components/icon_circle.dart';
@@ -17,62 +18,43 @@ class WalletsScreen extends StatefulWidget {
 class WalletsScreenState extends State<WalletsScreen> {
   @override
   Widget build(BuildContext context) {
-    walletRx.getAll();
+    final textTheme = Theme.of(context).textTheme;
+    List<Wallet> wallets = Provider.of<List<Wallet>>(context);
+
+    Widget? component;
+    if (wallets.isEmpty) {
+      component = const SliverToBoxAdapter(
+        child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'),
+      );
+    } else {
+      component = SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, idx) => Padding(
+            padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+            child: WalletItem(wallet: wallets[idx], showBalance: true, showActions: true, selected: true),
+          ),
+          childCount: wallets.length,
+        ),
+      );
+    }
+
     return Scaffold(
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          slivers: getBody(context),
+          slivers: [
+            SliverAppBar(
+              titleTextStyle: textTheme.titleLarge,
+              pinned: true,
+              leading: getLadingButton(context),
+              title: const Text('Wallets'),
+            ),
+            component
+          ],
         ),
         onRefresh: () => walletRx.getAll(),
       ),
     );
-  }
-
-  List<Widget> getBody(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return [
-      SliverAppBar(
-        titleTextStyle: textTheme.titleLarge,
-        pinned: true,
-        leading: getLadingButton(context),
-        title: const Text('Wallets'),
-      ),
-      StreamBuilder<List<Wallet>>(
-        stream: walletRx.fetchRx,
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final wallets = List<Wallet>.from(snapshot.data!);
-            if (wallets.isEmpty) {
-              return const SliverToBoxAdapter(
-                child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'),
-              );
-            } else {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (_, idx) => Padding(
-                    padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
-                    child: WalletItem(wallet: wallets[idx], showBalance: true, showActions: true, selected: true),
-                  ),
-                  childCount: wallets.length,
-                ),
-              );
-            }
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          } else {
-            return SliverToBoxAdapter(
-              child: Container(
-                alignment: Alignment.center,
-                width: 50,
-                height: 50,
-                child: Progress.getLoadingProgress(context),
-              ),
-            );
-          }
-        },
-      ),
-    ];
   }
 }
 

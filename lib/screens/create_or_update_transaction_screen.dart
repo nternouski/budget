@@ -2,7 +2,6 @@ import 'package:budget/common/convert.dart';
 import 'package:budget/components/create_or_update_label.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/model/wallet.dart';
-import 'package:budget/routes.dart';
 import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,7 @@ import '../model/category.dart';
 import '../model/transaction.dart';
 import '../server/model_rx.dart';
 import '../common/styles.dart';
+import '../routes.dart';
 
 // ignore: constant_identifier_names
 const MAX_LENGTH_AMOUNT = 5;
@@ -20,12 +20,10 @@ const MAX_LENGTH_AMOUNT = 5;
 enum Action { create, update }
 
 class CreateOrUpdateTransaction extends StatefulWidget {
-  final Transaction? transaction;
-
-  const CreateOrUpdateTransaction({this.transaction, Key? key}) : super(key: key);
+  const CreateOrUpdateTransaction({Key? key}) : super(key: key);
 
   @override
-  CreateOrUpdateTransactionState createState() => CreateOrUpdateTransactionState(transaction);
+  CreateOrUpdateTransactionState createState() => CreateOrUpdateTransactionState();
 }
 
 final now = DateTime.now();
@@ -37,47 +35,26 @@ class SelectedType {
 }
 
 class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
-  late Transaction transaction;
-  late String title;
-  late Action action;
-  late TextEditingController dateController;
-  late TextEditingController timeController;
-  late List<PopupMenuItem<TransactionType>> types;
-
-  CreateOrUpdateTransactionState(Transaction? t) {
-    if (t != null) {
-      action = Action.update;
-      title = 'Update Transaction';
-      transaction = t;
-    } else {
-      action = Action.create;
-      title = 'Create Transaction';
-      transaction = Transaction(
-        id: '',
-        name: '',
-        amount: 0,
-        balance: 0,
-        categoryId: '',
-        date: now,
-        walletId: '',
-        type: TransactionType.expense,
-        description: '',
-        labels: [],
-      );
-    }
-    categoryRx.getAll();
-    walletRx.getAll();
-    dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(transaction.date));
-    timeController = TextEditingController(text: DateFormat('hh:mm').format(transaction.date));
-    types = TransactionType.values
-        .map(
-          (t) => PopupMenuItem(
-            value: t,
-            child: Center(child: Text(Convert.capitalize(t.toShortString()))),
-          ),
-        )
-        .toList();
-  }
+  Transaction transaction = Transaction(
+    id: '',
+    name: '',
+    amount: 0,
+    balance: 0,
+    categoryId: '',
+    date: now,
+    walletId: '',
+    type: TransactionType.expense,
+    description: '',
+    labels: [],
+    externalId: '',
+  );
+  String title = 'Create Transaction';
+  Action action = Action.create;
+  final TextEditingController dateController = TextEditingController(text: '');
+  final TextEditingController timeController = TextEditingController(text: '');
+  late List<PopupMenuItem<TransactionType>> types = TransactionType.values
+      .map((t) => PopupMenuItem(value: t, child: Center(child: Text(Convert.capitalize(t.toShortString())))))
+      .toList();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -86,6 +63,17 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = ModalRoute.of(context)!.settings.arguments as Transaction?;
+
+    if (t != null) {
+      transaction = t;
+      if (t.id != '') {
+        action = Action.update;
+        title = 'Update Transaction';
+      }
+    }
+    dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
+    timeController.text = DateFormat('hh:mm').format(transaction.date);
     return Scaffold(
       body: CustomScrollView(
         slivers: [

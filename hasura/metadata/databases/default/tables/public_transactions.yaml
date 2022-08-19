@@ -28,35 +28,37 @@ insert_permissions:
       set:
         userId: x-hasura-user-id
       columns:
-        - id
-        - createdAt
-        - planedPaymentEach
-        - planedPaymentIteration
-        - name
-        - description
         - amount
         - balance
-        - date
-        - type
-        - walletId
         - categoryId
+        - createdAt
+        - date
+        - description
+        - externalId
+        - id
+        - name
+        - planedPaymentEach
+        - planedPaymentIteration
+        - type
         - userId
+        - walletId
 select_permissions:
   - role: user
     permission:
       columns:
         - amount
         - balance
-        - planedPaymentIteration
-        - description
-        - name
-        - planedPaymentEach
-        - type
-        - userId
+        - categoryId
         - createdAt
         - date
-        - categoryId
+        - description
+        - externalId
         - id
+        - name
+        - planedPaymentEach
+        - planedPaymentIteration
+        - type
+        - userId
         - walletId
       filter:
         userId:
@@ -68,16 +70,17 @@ update_permissions:
       columns:
         - amount
         - balance
-        - planedPaymentIteration
-        - description
-        - name
-        - planedPaymentEach
-        - type
-        - userId
+        - categoryId
         - createdAt
         - date
-        - categoryId
+        - description
+        - externalId
         - id
+        - name
+        - planedPaymentEach
+        - planedPaymentIteration
+        - type
+        - userId
         - walletId
       filter:
         userId:

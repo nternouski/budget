@@ -38,7 +38,7 @@ class GraphQLConfig {
 
     clientValueNotifier.value = client;
     // FIXME: VEr porque pasa esto;
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 2));
   }
 }
 

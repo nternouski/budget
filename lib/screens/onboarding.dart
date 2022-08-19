@@ -44,7 +44,7 @@ class _OnBoardingState extends State<OnBoarding> {
         children: [
           const Text('Inicializando..', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
           const SizedBox(height: 30),
-          Progress.getLoadingProgress(context)
+          Progress.getLoadingProgress(context: context)
         ],
       ),
     ));

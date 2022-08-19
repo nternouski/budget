@@ -1,6 +1,9 @@
 // @dart=2.9
 import 'package:budget/common/preference.dart';
 import 'package:budget/common/theme.dart';
+import 'package:budget/model/transaction.dart';
+import 'package:budget/model/wallet.dart';
+import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +47,8 @@ class MyApp extends StatelessWidget {
         StreamProvider<Token>(create: (context) => userService.tokenRx, initialData: null),
         StreamProvider<List<Currency>>(create: (context) => currencyRx.fetchRx, initialData: const []),
         StreamProvider<User>(create: (context) => userService.userRx, initialData: null),
+        StreamProvider<List<Wallet>>(create: (context) => walletRx.fetchRx, initialData: const []),
+        StreamProvider<List<Transaction>>(create: (context) => transactionRx.fetchRx, initialData: null),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
       ],
       builder: (context, child) {
@@ -56,6 +61,7 @@ class MyApp extends StatelessWidget {
             darkTheme: ThemeProvider.dark,
             themeMode: Provider.of<ThemeProvider>(context).themeMode,
             home: const AuthWrapper(),
+            routes: RouteApp.routes,
           ),
         );
       },

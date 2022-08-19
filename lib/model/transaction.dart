@@ -42,6 +42,8 @@ class Transaction implements ModelCommonInterface {
   String categoryId;
   late Category category;
 
+  String externalId;
+
   Transaction({
     required this.id,
     required this.name,
@@ -54,6 +56,7 @@ class Transaction implements ModelCommonInterface {
     required this.labels,
     required this.categoryId,
     Category? category,
+    required this.externalId,
   }) {
     updateBalance();
     this.category = category ?? defaultCategory;
@@ -68,11 +71,12 @@ class Transaction implements ModelCommonInterface {
       balance: 0,
       date: Convert.parseDate(json['date']),
       type: TransactionType.values.byName(json['type']),
-      description: json['description'],
+      description: json['description'] ?? '',
       labels: labels,
       category: Category.fromJson(json['category']),
       categoryId: json['categoryId'],
       walletId: json['walletId'],
+      externalId: json['externalId'] ?? '',
     );
   }
 
@@ -89,6 +93,7 @@ class Transaction implements ModelCommonInterface {
       'categoryId': categoryId,
       'description': description,
       'walletId': walletId,
+      'externalId': externalId,
     };
     return data;
   }
@@ -134,9 +139,10 @@ class TransactionQueries implements GraphQlQuery {
         name
         amount
         date
-        walletId
         type
         description
+        walletId
+        externalId
 
         categoryId
         category {
@@ -159,8 +165,8 @@ class TransactionQueries implements GraphQlQuery {
 
   @override
   late String create = r'''
-    mutation createTransactions($name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $walletId: uuid!, $categoryId: uuid!) {
-      action: insert_transactions(objects: [{name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, walletId: $walletId, categoryId: $categoryId }]) {
+    mutation createTransactions($name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $externalId: String!, $walletId: uuid!, $categoryId: uuid!) {
+      action: insert_transactions(objects: [{name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, externalId: $externalId, walletId: $walletId, categoryId: $categoryId }]) {
         returning {
           id
           name
@@ -170,6 +176,7 @@ class TransactionQueries implements GraphQlQuery {
           type
           description
           walletId
+          externalId
           
           categoryId
           category {
@@ -193,8 +200,8 @@ class TransactionQueries implements GraphQlQuery {
 
   @override
   late String update = r'''
-    mutation createTransactions($id: uuid!, $name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $walletId: uuid!, $categoryId: uuid!) {
-      action: update_transactions(where: {id: {_eq: $id}}, _set: {name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, walletId: $walletId, categoryId: $categoryId }) {
+    mutation createTransactions($id: uuid!, $name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $externalId: String!, $walletId: uuid!, $categoryId: uuid!) {
+      action: update_transactions(where: {id: {_eq: $id}}, _set: {name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, externalId: $externalId, walletId: $walletId, categoryId: $categoryId }) {
         returning {
           id
           name
@@ -204,6 +211,7 @@ class TransactionQueries implements GraphQlQuery {
           type
           description
           walletId
+          externalId
           
           categoryId
           category {

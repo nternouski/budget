@@ -100,10 +100,10 @@ class ButtonThemeStyle {
 }
 
 class Progress {
-  static getLoadingProgress(BuildContext context) {
+  static getLoadingProgress({required BuildContext context, double size = 45}) {
     return SizedBox(
-      width: 45,
-      height: 45,
+      width: size,
+      height: size,
       child: CircularProgressIndicator(
         strokeWidth: 3,
         color: Theme.of(context).colorScheme.primary,

@@ -1,6 +1,6 @@
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/icon_circle.dart';
-import 'package:budget/routes.dart';
+import '../routes.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 import '../common/styles.dart';
@@ -8,8 +8,10 @@ import '../model/transaction.dart';
 
 class DailyItem extends StatefulWidget {
   final Transaction transaction;
+  final String? action;
+  final IconData? actionIcon;
 
-  const DailyItem({Key? key, required this.transaction}) : super(key: key);
+  const DailyItem({Key? key, required this.transaction, this.action, this.actionIcon}) : super(key: key);
 
   @override
   DailyItemState createState() => DailyItemState();
@@ -68,8 +70,9 @@ class DailyItemState extends State<DailyItem> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             paddingSlide,
-            Icon(Icons.edit, color: primary),
-            Text(' Edit', style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            Icon(widget.actionIcon ?? Icons.edit, color: primary),
+            Text(widget.action ?? ' Edit',
+                style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
           ],
         ),
       ),

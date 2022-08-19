@@ -1,4 +1,5 @@
 import 'package:budget/model/currency.dart';
+import 'package:budget/model/integration.dart';
 
 import '../common/classes.dart';
 import '../common/convert.dart';
@@ -59,6 +60,7 @@ class User implements ModelCommonInterface {
   DateTime createdAt;
   String name;
   String email;
+  List<Integration> integrations;
   String defaultCurrencyId;
   Currency? defaultCurrency;
 
@@ -67,16 +69,19 @@ class User implements ModelCommonInterface {
     required this.createdAt,
     required this.name,
     required this.email,
+    required this.integrations,
     required this.defaultCurrencyId,
     this.defaultCurrency,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    List<Integration> integrations = List.from(json['integrations']).map((i) => Integration.fromJson(i)).toList();
     return User(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       email: json['email'],
+      integrations: integrations,
       defaultCurrencyId: json['defaultCurrencyId'],
       defaultCurrency: json['currency'] != null ? Currency.fromJson(json['currency']) : null,
     );
@@ -111,6 +116,14 @@ class UserQueries implements GraphQlQuery {
           name
           symbol
         }
+
+        integrations {
+          id
+          createdAt
+          apiKey
+          integrationType
+          userId
+        }
       }
     }''';
 
@@ -128,6 +141,14 @@ class UserQueries implements GraphQlQuery {
           createdAt
           name
           symbol
+        }
+
+        integrations {
+          id
+          createdAt
+          apiKey
+          integrationType
+          userId
         }
       }
     }''';
@@ -149,6 +170,14 @@ class UserQueries implements GraphQlQuery {
             name
             symbol
           }
+
+          integrations {
+            id
+            createdAt
+            apiKey
+            integrationType
+            userId
+          }
         }
       }
     }''';
@@ -169,6 +198,14 @@ class UserQueries implements GraphQlQuery {
             createdAt
             name
             symbol
+          }
+
+          integrations {
+            id
+            createdAt
+            apiKey
+            integrationType
+            userId
           }
         }
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 
 import '../routes.dart';
+import '../common/footers.dart';
 import 'nav_draw.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
@@ -15,8 +16,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int pageIndex = 0;
   DateTime? backPressTime;
   final durationBackTime = const Duration(seconds: 2);
-
-  final List<RoutePage> footer = RouteApp.routes.where((f) => f.onFooter).toList();
 
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
@@ -48,8 +47,11 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   @override
   Widget build(BuildContext context) {
     final floatingActionButton = FloatingActionButton(
-      onPressed: () =>
-          RouteApp.redirect(context: context, url: RouteApp.routes[pageIndex].actionIcon!, fromScaffold: false),
+      onPressed: () => RouteApp.redirect(
+        context: context,
+        url: footer[pageIndex].actionIcon!,
+        fromScaffold: false,
+      ),
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Colors.white,
       child: const Icon(Icons.add, size: 25),
@@ -58,9 +60,9 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       onWillPop: () => onWillPop(),
       child: Scaffold(
         drawer: NavDrawer(),
-        body: IndexedStack(index: pageIndex, children: RouteApp.routes.map((f) => f.widget()).toList()),
+        body: IndexedStack(index: pageIndex, children: footer.map((f) => f.widget()).toList()),
         bottomNavigationBar: getFooter(),
-        floatingActionButton: RouteApp.routes[pageIndex].actionIcon != null ? floatingActionButton : null,
+        floatingActionButton: footer[pageIndex].actionIcon != null ? floatingActionButton : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );
@@ -87,16 +89,14 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     );
   }
 
-  selectedTab(URLS? url) {
-    if (url != null) {
-      setState(() {
-        var indexFound = RouteApp.routes.indexWhere((r) => r.url == url);
-        if (indexFound != -1) {
-          pageIndex = indexFound;
-        } else {
-          debugPrint('Route $url Not Found!');
-        }
-      });
-    }
+  selectedTab(URLS url) {
+    setState(() {
+      var indexFound = footer.indexWhere((r) => r.url == url);
+      if (indexFound != -1) {
+        pageIndex = indexFound;
+      } else {
+        debugPrint('Route $url Not Found!');
+      }
+    });
   }
 }

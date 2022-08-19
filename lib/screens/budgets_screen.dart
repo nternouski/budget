@@ -3,7 +3,7 @@ import 'package:budget/common/styles.dart';
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
 import 'package:budget/model/budget.dart';
-import 'package:budget/routes.dart';
+import '../routes.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +21,6 @@ class BudgetsScreenState extends State<BudgetsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    budgetRx.getAll();
     return Scaffold(
       body: RefreshIndicator(
         child: CustomScrollView(
@@ -69,7 +68,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                 alignment: Alignment.center,
                 width: 50,
                 height: 50,
-                child: Progress.getLoadingProgress(context),
+                child: Progress.getLoadingProgress(context: context),
               ),
             );
           }
