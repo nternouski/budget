@@ -1,6 +1,10 @@
-# budget
+# Budget
 
-A Flutter project for tracking budget and more.
+A Flutter project for tracking budget including wise integration to sync transactions/spend and more.
+
+Budget dark             |  Budget Light
+:-------------------------:|:-------------------------:
+![](README/screenshot_dark.png?raw=true "Dark Theme")  |  ![](README/screenshot_light.png?raw=true "Light Theme")
 
 ## Getting Started
 
@@ -13,7 +17,7 @@ A Flutter project for tracking budget and more.
 
 ## DB Structured
 
-(Board UML)[https://miro.com/app/board/uXjVOlCWOFU=/?share_link_id=604302253564]
+[Board UML](https://miro.com/app/board/uXjVOlCWOFU=/?share_link_id=604302253564)
 
 ### First Steps
 
