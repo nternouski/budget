@@ -1,6 +1,9 @@
 import 'dart:math';
+import 'package:budget/common/period_stats.dart';
+import 'package:budget/common/preference.dart';
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
+import 'package:budget/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,12 +21,15 @@ class DailyScreen extends StatefulWidget {
 }
 
 class DailyScreenState extends State<DailyScreen> {
+  Preferences preferences = Preferences();
+
   DailyScreenState();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     List<Transaction>? transactions = Provider.of<List<Transaction>>(context);
+    User? user = Provider.of<User>(context);
 
     return Scaffold(
       body: Column(children: [
@@ -38,14 +44,26 @@ class DailyScreenState extends State<DailyScreen> {
                 title: const Text('Daily Transaction'),
               ),
               SliverToBoxAdapter(
-                child: transactions != null
-                    ? SpendGraphic(transactions: transactions, key: Key(Random().nextDouble().toString()))
-                    : Container(
+                child: ValueListenableBuilder<PeriodStats>(
+                  valueListenable: periods.selected,
+                  builder: (context, periodStats, child) {
+                    if (transactions != null && user != null) {
+                      return SpendGraphic(
+                        frameRange: periodStats.days,
+                        transactions: transactions,
+                        user: user,
+                        key: Key(Random().nextDouble().toString()),
+                      );
+                    } else {
+                      return Container(
                         alignment: Alignment.center,
                         width: 50,
                         height: 50,
                         child: Progress.getLoadingProgress(context: context),
-                      ),
+                      );
+                    }
+                  },
+                ),
               )
             ],
           ),
@@ -54,7 +72,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: RefreshIndicator(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: [getBody(theme, transactions)],
+              slivers: [getBody(theme, transactions, user)],
             ),
             onRefresh: () => transactionRx.getAll(),
           ),
@@ -63,7 +81,7 @@ class DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  Widget getBody(ThemeData theme, List<Transaction>? transactions) {
+  Widget getBody(ThemeData theme, List<Transaction>? transactions, User user) {
     if (transactions != null) {
       transactions.sort((a, b) => b.date.compareTo(a.date));
       if (transactions.isEmpty) {
@@ -72,10 +90,19 @@ class DailyScreenState extends State<DailyScreen> {
         );
       } else {
         return SliverToBoxAdapter(
-          child: Column(
-            children: List.generate(
-              transactions.length,
-              (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 15, bottom: 80, left: 20, right: 20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [Text('Currency ${user.defaultCurrency?.symbol}')],
+                ),
+                ...List.generate(
+                  transactions.length,
+                  (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
+                )
+              ],
             ),
           ),
         );

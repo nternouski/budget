@@ -69,8 +69,8 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
           decoration: InputStyle.inputDecoration(
-            labelTextStr: 'Initial Amount',
-            hintTextStr: '1300',
+            labelTextStr: 'Budget Amount',
+            hintTextStr: '0',
             prefix: const Text('\$ '),
           ),
           validator: (String? value) {
@@ -87,6 +87,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     return TextFormField(
       initialValue: budget.name,
       decoration: InputStyle.inputDecoration(labelTextStr: 'Budget Name', hintTextStr: 'Bank'),
+      inputFormatters: [LengthLimitingTextInputFormatter(Budget.MAX_LENGTH_NAME)],
       validator: (String? value) {
         if (value!.isEmpty) return 'Name is Required.';
         return null;
@@ -208,7 +209,9 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                 Navigator.of(context).pop();
               },
               child: Text(title),
-            )
+            ),
+            sizedBoxHeight,
+            sizedBoxHeight
           ]),
         ));
   }

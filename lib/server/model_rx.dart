@@ -1,9 +1,8 @@
-import 'package:budget/model/integration.dart';
-import 'package:budget/screens/settings.dart';
-import 'package:budget/server/user_service.dart';
+import 'package:budget/common/error_handler.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../common/convert.dart';
+import '../model/integration.dart';
+import '../server/user_service.dart';
 import '../model/budget.dart';
 import '../model/label.dart';
 import '../model/user.dart';
@@ -18,16 +17,33 @@ class TransactionRx extends Database<Transaction> {
 
   TransactionRx() : super(_queries, 'transactions', Transaction.fromJson);
 
-  Future<double> getBalanceAt(DateTime until) async {
-    printMsg('GET - BALANCE');
-    final value = await super
-        .request(type: TypeRequest.query, query: _queries.getBalanceAt, variable: {'until': until.toString()});
-    if (value != null) {
-      String balance = value['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0';
-      return Convert.currencyToDouble(balance, value);
-    } else {
-      return 0;
-    }
+  List<Transaction> updateTransactions(
+    List<Transaction> transactions,
+    List<Wallet> wallets,
+    List<CurrencyRate> currencyRates,
+    Currency? defaultCurrency,
+  ) {
+    return transactions.map((t) {
+      Wallet wallet = wallets.firstWhere((w) => w.id == t.walletId);
+      var defaultCurrencyId = defaultCurrency?.id ?? '';
+      if (defaultCurrencyId != '' && defaultCurrencyId != wallet.currencyId) {
+        int rateIndex = currencyRates.lastIndexWhere((r) =>
+            ((defaultCurrencyId == r.currencyFrom.id && wallet.currencyId == r.currencyTo.id) ||
+                (defaultCurrencyId == r.currencyTo.id && wallet.currencyId == r.currencyFrom.id)));
+        if (rateIndex != -1) {
+          CurrencyRate cr = currencyRates.elementAt(rateIndex);
+          bool fromTo = defaultCurrencyId == cr.currencyFrom.id && wallet.currencyId == cr.currencyTo.id;
+          t.balanceFixed = double.parse(
+            (fromTo ? t.balance * cr.rate : t.balance / cr.rate).toStringAsFixed(2),
+          );
+        } else {
+          String defaultSymbol = defaultCurrency?.symbol ?? '';
+          String tSymbol = wallet.currency?.symbol ?? '';
+          HandlerError().setError('No currency rate por $defaultSymbol-$tSymbol or $tSymbol-$defaultSymbol');
+        }
+      }
+      return t;
+    }).toList();
   }
 
   _updateLabels(String id, List<Label> toUpdate) async {
@@ -35,9 +51,10 @@ class TransactionRx extends Database<Transaction> {
     List<Label> labels = [];
     for (var label in toUpdate) {
       final value = await request(
-          type: TypeRequest.mutation,
-          query: _queries.insertLabels,
-          variable: {'transactionId': id, 'labelId': label.id});
+        type: TypeRequest.mutation,
+        query: _queries.insertLabels,
+        variable: {'transactionId': id, 'labelId': label.id},
+      );
       if (value != null && value['action']['returning'] != null) {
         labels.add(Label.fromJson(value['action']['returning'][0]['label']));
       }
@@ -74,6 +91,20 @@ class BudgetRx extends Database<Budget> {
   static final _queries = BudgetQueries();
 
   BudgetRx() : super(_queries, 'budgets', Budget.fromJson);
+
+  List<Budget> updateBudgets(List<Budget> budgets, List<Transaction> transactions) {
+    return budgets.map((budget) {
+      budget.balance = transactions.fold(0.0, (prev, transaction) {
+        if (budget.categories.where((c) => c.id == transaction.categoryId).isNotEmpty) {
+          return prev + transaction.balance;
+        } else {
+          return prev;
+        }
+      });
+
+      return budget;
+    }).toList();
+  }
 
   _updateCategories(String id, List<Category> toUpdate) async {
     await request(type: TypeRequest.mutation, query: _queries.deleteCategories, variable: {'budgetId': id});
@@ -148,11 +179,12 @@ class UserRx extends Database<User> {
 
   Future<void> updateData(User user) async {
     user$.add(user);
-    transactionRx.getAll();
+    currencyRateRx.getAll();
     walletRx.getAll();
-    budgetRx.getAll();
     labelRx.getAll();
     categoryRx.getAll();
+    transactionRx.getAll();
+    budgetRx.getAll();
   }
 
   Future<User?> getUser(String id) async {
@@ -185,7 +217,7 @@ class UserRx extends Database<User> {
 class IntegrationRx extends Database<Integration> {
   static final _queries = IntegrationQueries();
 
-  IntegrationRx() : super(IntegrationQueries(), 'integrations', Integration.fromJson);
+  IntegrationRx() : super(_queries, 'integrations', Integration.fromJson);
 
   @override
   create(Integration data) async {
@@ -207,5 +239,6 @@ var walletRx = Database(WalletQueries(), 'wallets', Wallet.fromJson);
 var budgetRx = BudgetRx();
 var integrationRx = IntegrationRx();
 var currencyRx = Database(CurrencyQueries(), 'currencies', Currency.fromJson);
+var currencyRateRx = Database(CurrencyRateQueries(), 'currency_rates', CurrencyRate.fromJson);
 var transactionRx = TransactionRx();
 var labelRx = Database(LabelQueries(), 'labels', Label.fromJson);

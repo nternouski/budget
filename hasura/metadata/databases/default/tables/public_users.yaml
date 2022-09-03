@@ -46,19 +46,21 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - email
-        - id
-        - name
         - createdAt
         - defaultCurrencyId
+        - email
+        - id
+        - initialAmount
+        - name
 select_permissions:
   - role: user
     permission:
       columns:
-        - id
-        - createdAt
-        - name
+        - initialAmount
         - email
+        - id
+        - name
+        - createdAt
         - defaultCurrencyId
       filter:
         id:
@@ -70,6 +72,7 @@ update_permissions:
         - createdAt
         - defaultCurrencyId
         - email
+        - initialAmount
         - name
       filter:
         id:

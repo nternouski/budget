@@ -1,4 +1,5 @@
 import 'package:budget/common/convert.dart';
+import 'package:budget/common/error_handler.dart';
 import 'package:budget/components/create_or_update_label.dart';
 import 'package:budget/components/icon_circle.dart';
 import 'package:budget/model/wallet.dart';
@@ -6,6 +7,7 @@ import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../components/create_or_update_category.dart';
 import '../model/category.dart';
@@ -35,6 +37,7 @@ class SelectedType {
 }
 
 class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
+  HandlerError handlerError = HandlerError();
   Transaction transaction = Transaction(
     id: '',
     name: '',
@@ -83,7 +86,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             leading: getBackButton(context),
             title: Text('$title ${transaction.name}'),
           ),
-          SliverToBoxAdapter(child: getForm(theme))
+          SliverToBoxAdapter(child: getForm(context, theme))
         ],
       ),
     );
@@ -140,7 +143,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildCategory() {
+  Widget buildCategory(BuildContext context) {
+    List<Category> categories = Provider.of<List<Category>>(context);
     return Column(
       children: [
         Row(
@@ -152,56 +156,45 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             ),
           ],
         ),
-        StreamBuilder<List<Category>>(
-          stream: categoryRx.fetchRx,
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data != null) {
-              final categories = List<Category>.from(snapshot.data!);
-              if (categories.isEmpty) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [SizedBox(height: 60), Text('No categories by the moment.')],
-                );
-              } else {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: List.generate(categories.length, (index) {
-                      var colorItem =
-                          transaction.categoryId == categories[index].id ? categories[index].color : Colors.transparent;
-                      return GestureDetector(
-                        onLongPress: () => CreateOrUpdateCategory.showButtonSheet(context, categories[index]),
-                        onTap: () => setState(() => transaction.categoryId = categories[index].id),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(width: 2, color: colorItem),
-                            borderRadius: categoryBorderRadius,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 15),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconCircle(icon: categories[index].icon, color: categories[index].color),
-                                Text(categories[index].name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17))
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
+        if (categories.isEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [SizedBox(height: 60), Text('No categories by the moment.')],
+          ),
+        if (categories.isNotEmpty)
+          Align(
+            alignment: Alignment.topLeft,
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: List.generate(categories.length, (index) {
+                var colorItem =
+                    transaction.categoryId == categories[index].id ? categories[index].color : Colors.transparent;
+                return GestureDetector(
+                  onLongPress: () => CreateOrUpdateCategory.showButtonSheet(context, categories[index]),
+                  onTap: () => setState(() => transaction.categoryId = categories[index].id),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 2, color: colorItem),
+                      borderRadius: categoryBorderRadius,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 15),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconCircle(icon: categories[index].icon, color: categories[index].color),
+                          Text(categories[index].name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17))
+                        ],
+                      ),
+                    ),
                   ),
                 );
-              }
-            } else {
-              return Text('Error on Categories: ${snapshot.error.toString()}');
-            }
-          },
-        ),
+              }),
+            ),
+          ),
         const SizedBox(height: 10),
         const Text('Long press for edit category.'),
         sizedBoxHeight,
@@ -332,7 +325,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget getForm(ThemeData theme) {
+  Widget getForm(BuildContext context, ThemeData theme) {
     return Form(
         key: _formKey,
         child: Padding(
@@ -370,7 +363,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                   ),
                 ]),
             buildWallet(theme.disabledColor),
-            buildCategory(),
+            buildCategory(context),
             CreateOrUpdateLabel(
               labels: transaction.labels,
               onSelect: (selection) => setState(() => transaction.labels.add(selection)),
@@ -387,14 +380,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
                 if (transaction.walletId == '') {
-                  return displayError(context, 'You must choice a wallet first');
+                  return handlerError.setError('You must choice a wallet first');
                 }
                 if (transaction.categoryId == '') {
-                  return displayError(context, 'You must choice a category first');
+                  return handlerError.setError('You must choice a category first');
                 }
                 _formKey.currentState!.save();
                 if (transaction.amount <= 0.0) {
-                  return displayError(context, 'Amount is Required and must be grater than 0.');
+                  return handlerError.setError('Amount is Required and must be grater than 0.');
                 }
                 if (action == Action.create) {
                   transaction.updateBalance();
@@ -407,6 +400,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               },
               child: Text(title),
             ),
+            sizedBoxHeight,
             sizedBoxHeight,
           ]),
         ));

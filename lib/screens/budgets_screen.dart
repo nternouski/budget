@@ -1,11 +1,13 @@
-import 'package:budget/common/convert.dart';
-import 'package:budget/common/styles.dart';
-import 'package:budget/common/theme.dart';
-import 'package:budget/components/empty_list.dart';
-import 'package:budget/model/budget.dart';
-import '../routes.dart';
-import 'package:budget/server/model_rx.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+
+import '../common/convert.dart';
+import '../common/styles.dart';
+import '../common/theme.dart';
+import '../components/empty_list.dart';
+import '../server/model_rx.dart';
+import '../model/budget.dart';
+import '../routes.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({Key? key}) : super(key: key);
@@ -21,60 +23,40 @@ class BudgetsScreenState extends State<BudgetsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List<Budget> budgets = Provider.of<List<Budget>>(context);
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          slivers: getBody(),
+          slivers: [
+            SliverAppBar(
+              titleTextStyle: theme.textTheme.titleLarge,
+              actionsIconTheme: Theme.of(context).iconTheme,
+              actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
+              pinned: true,
+              leading: getLadingButton(context),
+              title: const Text('Budgets'),
+            ),
+            if (budgets.isEmpty)
+              const SliverToBoxAdapter(
+                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'),
+              ),
+            if (budgets.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: Column(
+                    children: List.generate(budgets.length, (index) => getBudget(budgets[index], theme)),
+                  ),
+                ),
+              ),
+          ],
         ),
         onRefresh: () => budgetRx.getAll(),
       ),
     );
-  }
-
-  List<Widget> getBody() {
-    final theme = Theme.of(context);
-    return [
-      SliverAppBar(
-        titleTextStyle: theme.textTheme.titleLarge,
-        actionsIconTheme: Theme.of(context).iconTheme,
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
-        pinned: true,
-        leading: getLadingButton(context),
-        title: const Text('Budgets'),
-      ),
-      StreamBuilder<List<Budget>>(
-        stream: budgetRx.fetchRx,
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            final budgets = List<Budget>.from(snapshot.data!);
-            if (budgets.isEmpty) {
-              return const SliverToBoxAdapter(
-                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'),
-              );
-            } else {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (_, idx) => getBudget(budgets[idx], theme),
-                  childCount: budgets.length,
-                ),
-              );
-            }
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          } else {
-            return SliverToBoxAdapter(
-              child: Container(
-                alignment: Alignment.center,
-                width: 50,
-                height: 50,
-                child: Progress.getLoadingProgress(context: context),
-              ),
-            );
-          }
-        },
-      ),
-    ];
   }
 
   Widget slideRightBackground(Color primary) {
@@ -114,7 +96,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
 
   getBudget(Budget budget, ThemeData themeData) {
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
-    int porcentaje = ((budget.balance * 100) / budget.amount).round();
+    int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
     return Dismissible(
       key: Key(budget.id),
       background: slideRightBackground(themeData.colorScheme.primary),
@@ -158,7 +140,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'BALANCE: \$${budget.balance}',
+                  'BALANCE: \$${Convert.roundDouble(budget.balance, 2)}',
                   style: themeData.textTheme.bodyMedium,
                 ),
                 Text('$porcentaje %', style: themeData.textTheme.titleMedium),
@@ -177,7 +159,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                   ),
                 ),
                 Container(
-                  width: sizeBar * (porcentaje / 100),
+                  width: porcentaje > 0 ? sizeBar * (porcentaje / 100) : 0,
                   height: 10,
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
                 ),

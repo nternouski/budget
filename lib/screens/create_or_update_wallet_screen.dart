@@ -5,7 +5,6 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import '../common/icon_helper.dart';
 import '../components/select_currency.dart';
 import '../components/icon_picker.dart';
-import '../routes.dart';
 import '../model/wallet.dart';
 import '../server/model_rx.dart';
 import '../common/styles.dart';
@@ -51,7 +50,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     );
   }
 
-  Widget buildAmount() {
+  Widget buildAmount(Action action) {
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Expanded(
         child: TextFormField(
@@ -63,10 +62,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             hintTextStr: '1300',
             prefix: const Text('\$ '),
           ),
-          validator: (String? value) {
-            if (value!.isEmpty) return 'Amount is Required.';
-            return null;
-          },
+          validator: (String? value) => value!.isEmpty ? 'Amount is Required.' : null,
           onSaved: (String? value) => wallet.initialAmount = double.parse(value!),
         ),
       ),
@@ -74,6 +70,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
         child: SelectCurrency(
           defaultCurrencyId: wallet.currencyId,
           onSelect: (c) => setState(() => wallet.currencyId = c.id),
+          disabled: action == Action.update,
         ),
       ),
     ]);
@@ -83,61 +80,60 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     return TextFormField(
       initialValue: wallet.name,
       decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name', hintTextStr: 'Bank'),
-      validator: (String? value) {
-        if (value!.isEmpty) return 'Name is Required.';
-        return null;
-      },
+      inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
+      validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
       onSaved: (String? value) => wallet.name = value!,
     );
   }
 
   Widget getForm(Action action, String title) {
     return Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: Column(children: <Widget>[
-            buildAmount(),
-            sizedBoxHeight,
-            buildName(),
-            ColorPicker(
-              color: wallet.color,
-              width: 40,
-              height: 40,
-              padding: const EdgeInsets.only(top: 16, bottom: 0),
-              borderRadius: 25,
-              enableShadesSelection: false,
-              onColorChanged: (Color color) => setState(() => wallet.color = color),
-              pickersEnabled: const {
-                ColorPickerType.both: true,
-                ColorPickerType.primary: false,
-                ColorPickerType.accent: false,
-              },
-            ),
-            IconPicker.picker(
-              IconMap(wallet.iconName, wallet.icon),
-              (iconM) => setState(() {
-                wallet.iconName = iconM.name;
-                wallet.icon = iconM.icon;
-              }),
-            ),
-            sizedBoxHeight,
-            ElevatedButton(
-              onPressed: () {
-                if (!_formKey.currentState!.validate()) {
-                  return;
-                }
-                _formKey.currentState!.save();
-                if (action == Action.create) {
-                  walletRx.create(wallet);
-                } else {
-                  walletRx.update(wallet);
-                }
-                RouteApp.redirect(context: context, url: URLS.wallets, fromScaffold: false);
-              },
-              child: Text(title),
-            )
-          ]),
-        ));
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Column(children: <Widget>[
+          buildAmount(action),
+          sizedBoxHeight,
+          buildName(),
+          ColorPicker(
+            color: wallet.color,
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.only(top: 16, bottom: 0),
+            borderRadius: 25,
+            enableShadesSelection: false,
+            onColorChanged: (Color color) => setState(() => wallet.color = color),
+            pickersEnabled: const {
+              ColorPickerType.both: true,
+              ColorPickerType.primary: false,
+              ColorPickerType.accent: false,
+            },
+          ),
+          IconPicker.picker(
+            IconMap(wallet.iconName, wallet.icon),
+            (iconM) => setState(() {
+              wallet.iconName = iconM.name;
+              wallet.icon = iconM.icon;
+            }),
+          ),
+          sizedBoxHeight,
+          ElevatedButton(
+            onPressed: () {
+              if (!_formKey.currentState!.validate()) {
+                return;
+              }
+              _formKey.currentState!.save();
+              if (action == Action.create) {
+                walletRx.create(wallet);
+              } else {
+                walletRx.update(wallet);
+              }
+              Navigator.of(context).pop();
+            },
+            child: Text(title),
+          )
+        ]),
+      ),
+    );
   }
 }

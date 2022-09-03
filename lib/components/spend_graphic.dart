@@ -1,9 +1,9 @@
-import 'package:budget/common/convert.dart';
-import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
+import '../model/user.dart';
+import '../common/convert.dart';
 import '../model/transaction.dart';
 
 DateTime now = DateTime.now();
@@ -18,9 +18,15 @@ class Balance {
 
 class SpendGraphic extends StatefulWidget {
   final List<Transaction> transactions;
-  static const int _frameRange = 30;
+  final User user;
+  final int frameRange;
 
-  const SpendGraphic({Key? key, required this.transactions}) : super(key: key);
+  const SpendGraphic({
+    Key? key,
+    required this.frameRange,
+    required this.transactions,
+    required this.user,
+  }) : super(key: key);
 
   @override
   State<SpendGraphic> createState() => _SpendGraphicState();
@@ -35,22 +41,20 @@ class _SpendGraphicState extends State<SpendGraphic> {
 
   final _formatKey = DateFormat('y/M/d');
 
-  final DateTime _frameDate = now.subtract(const Duration(days: SpendGraphic._frameRange));
-
-  List<Balance> calcFrame(List<Transaction> transaction, double initialBalance) {
-    var balancedDay = transaction.fold<Map<String, Balance>>({}, (acc, t) {
-      if (t.date.isBefore(_frameDate)) return acc;
+  List<Balance> calcFrame(List<Transaction> transactions, double initialBalance, DateTime frameDate) {
+    var balancedDay = transactions.fold<Map<String, Balance>>({}, (acc, t) {
+      if (t.date.isBefore(frameDate)) return acc;
 
       var key = _formatKey.format(t.date);
       if (acc.containsKey(key)) {
-        acc[key]?.balance += t.balance;
+        acc[key]?.balance += t.balanceFixed;
       } else {
-        acc.addAll({key: Balance(t.date, t.balance, key)});
+        acc.addAll({key: Balance(t.date, t.balanceFixed, key)});
       }
       return acc;
     });
 
-    for (var pivote = SpendGraphic._frameRange; pivote > 0; pivote--) {
+    for (var pivote = widget.frameRange; pivote > 0; pivote--) {
       var date = now.subtract(Duration(days: pivote));
       var key = _formatKey.format(date);
       var lastFrame = frame.isEmpty ? Balance(date, initialBalance, key) : frame.last;
@@ -60,6 +64,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
         if (balance.balance > maxBalance) maxBalance = balance.balance;
         frame.add(balance);
       } else {
+        if (lastFrame.balance > maxBalance) maxBalance = lastFrame.balance;
         frame.add(Balance(date, lastFrame.balance, key));
       }
     }
@@ -69,8 +74,13 @@ class _SpendGraphicState extends State<SpendGraphic> {
   getBottomTitles() {
     return SideTitles(
       showTitles: true,
-      interval: 5,
-      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(frame[axis.toInt()].date.day.toString()),
+      interval: widget.frameRange / 5,
+      getTitlesWidget: (double axis, TitleMeta titleMeta) {
+        DateTime date = frame[axis.toInt()].date;
+        var format = now.month != date.month ? DateFormat.ABBR_MONTH_DAY : 'd';
+        return Text(DateFormat(format).format(date), style: const TextStyle(height: 2));
+      },
+      reservedSize: 25,
     );
   }
 
@@ -83,11 +93,14 @@ class _SpendGraphicState extends State<SpendGraphic> {
     );
   }
 
-  void updateFirstBalanceFrame() async {
+  void updateFirstBalanceFrame(BuildContext context, DateTime frameDate, List<Transaction> transactions) async {
     if (firstBalanceOfFrame == null) {
-      double balance = await transactionRx.getBalanceAt(_frameDate);
+      double balanceFixed = widget.user.initialAmount;
+      balanceFixed = transactions
+          .where((t) => t.date.isBefore(frameDate))
+          .fold<double>(balanceFixed, (prev, element) => prev + element.balanceFixed);
       setState(() {
-        firstBalanceOfFrame = balance;
+        firstBalanceOfFrame = balanceFixed;
         frame = [];
       });
     }
@@ -95,10 +108,13 @@ class _SpendGraphicState extends State<SpendGraphic> {
 
   @override
   Widget build(BuildContext context) {
-    updateFirstBalanceFrame();
+    final DateTime frameDate = now.subtract(Duration(days: widget.frameRange));
+
+    updateFirstBalanceFrame(context, frameDate, widget.transactions);
+
     widget.transactions.sort((a, b) => b.date.compareTo(a.date));
-    frame = calcFrame(widget.transactions, firstBalanceOfFrame ?? 0);
-    spots = List.generate(SpendGraphic._frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
+    frame = calcFrame(widget.transactions, firstBalanceOfFrame ?? 0, frameDate);
+    spots = List.generate(widget.frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
 
     final color = Theme.of(context).colorScheme.primary;
     final gradient = LinearGradient(
@@ -116,10 +132,18 @@ class _SpendGraphicState extends State<SpendGraphic> {
           minY: 0,
           gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 2 + 1),
           titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(axisNameWidget: const Text('Dias'), sideTitles: getBottomTitles()),
+            bottomTitles: AxisTitles(sideTitles: getBottomTitles()),
             topTitles: AxisTitles(axisNameWidget: const Text(''), sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(axisNameWidget: const Text(''), sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(axisNameWidget: const Text(''), sideTitles: getLeftTitles()),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: getLeftTitles()),
+          ),
+          lineTouchData: LineTouchData(
+            touchTooltipData: LineTouchTooltipData(
+              getTooltipItems: (value) => value.map((e) {
+                return LineTooltipItem('Balance: \$ ${e.y.toInt()}', TextStyle());
+              }).toList(),
+              tooltipBgColor: color,
+            ),
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [

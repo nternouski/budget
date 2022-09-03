@@ -34,7 +34,6 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
   Widget build(BuildContext context) {
     User? user = Provider.of<User>(context);
     if (user == null) return const Text('Not User');
-    debugPrint('-----------------------------');
     var wise = user.integrations.firstWhere(
       (i) => i.integrationType == IntegrationType.wise,
       orElse: () => Integration.wise(user.id),
@@ -199,13 +198,16 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
   }
 
   Widget getBody(BuildContext context, List<WiseTransactions> wt) {
-    List<Transaction> list = Provider.of<List<Transaction>>(context);
+    List<Transaction>? list = Provider.of<List<Transaction>>(context);
     List<WiseTransactions> transactions =
         wt.where((t) => list.where((l) => l.externalId == t.externalId).isEmpty).toList();
-    return Column(
-      children: List.generate(
-        transactions.length,
-        (index) => DailyItem(transaction: transactions[index], action: ' Create', actionIcon: Icons.wallet_rounded),
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20),
+      child: Column(
+        children: List.generate(
+          transactions.length,
+          (index) => DailyItem(transaction: transactions[index], action: ' Create', actionIcon: Icons.wallet_rounded),
+        ),
       ),
     );
   }

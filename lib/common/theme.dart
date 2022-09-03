@@ -13,7 +13,7 @@ class ThemeProvider extends ChangeNotifier {
 
   static final light = ThemeData(
     primaryColor: _primary,
-    backgroundColor: _primary.withAlpha(20),
+    backgroundColor: _primary,
     scaffoldBackgroundColor: _white,
     appBarTheme: const AppBarTheme(color: _white, iconTheme: IconThemeData(color: _black)),
     textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
@@ -34,7 +34,7 @@ class ThemeProvider extends ChangeNotifier {
 
   static final dark = ThemeData(
     primaryColor: _primary,
-    backgroundColor: _primary.withAlpha(25),
+    backgroundColor: _primary,
     scaffoldBackgroundColor: _darkGrey,
     appBarTheme: AppBarTheme(color: _darkGrey, iconTheme: const IconThemeData(color: _white)),
     textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),

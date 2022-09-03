@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:rxdart/rxdart.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -62,13 +60,15 @@ class Database<T extends ModelCommonInterface> {
     return null;
   }
 
-  getAll() async {
+  Future<List<T>> getAll() async {
     printMsg('GET ALL');
     final value = await request(type: TypeRequest.query, query: _queries.getAll, variable: {});
     if (value != null && value[collectionName] != null) {
       var t = List<T>.from(value[collectionName].map((t) => constructor(t)).toList());
       behavior.add(t);
+      return t;
     }
+    return [];
   }
 
   Future<T?> create(T data) async {

@@ -8,26 +8,38 @@ object_relationships:
   - name: currency_to
     using:
       foreign_key_constraint_on: currencyIdTo
+  - name: user
+    using:
+      foreign_key_constraint_on: userId
 insert_permissions:
   - role: user
     permission:
-      check: {}
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-User-Id
       columns:
-        - rate
         - createdAt
         - currencyIdFrom
         - currencyIdTo
         - id
+        - rate
+        - userId
 select_permissions:
   - role: user
     permission:
       columns:
-        - rate
         - createdAt
         - currencyIdFrom
         - currencyIdTo
         - id
-      filter: {}
+        - rate
+        - userId
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
 update_permissions:
   - role: user
     permission:
@@ -35,10 +47,18 @@ update_permissions:
         - currencyIdFrom
         - currencyIdTo
         - rate
-      filter: {}
-      check: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id
+      check:
+        userId:
+          _eq: X-Hasura-User-Id
+      set:
+        userId: x-hasura-User-Id
 delete_permissions:
   - role: user
     permission:
       backend_only: false
-      filter: {}
+      filter:
+        userId:
+          _eq: X-Hasura-User-Id

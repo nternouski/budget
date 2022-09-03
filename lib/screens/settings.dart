@@ -1,16 +1,15 @@
-import 'dart:developer';
-
-import 'package:budget/common/styles.dart';
-import 'package:budget/common/theme.dart';
-import 'package:budget/components/update_or_create_integration.dart';
-import 'package:budget/model/integration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+import '../components/profile_settings.dart';
+import '../components/current_rates_settings.dart';
+import '../common/period_stats.dart';
+import '../common/styles.dart';
+import '../common/theme.dart';
+import '../components/update_or_create_integration.dart';
 import '../server/user_service.dart';
 import '../model/user.dart';
-import '../components/update_user.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -23,9 +22,6 @@ const SizedBox spacing = SizedBox(height: 20);
 UserService userService = UserService();
 
 class SettingsScreenState extends State<SettingsScreen> {
-  final int textLimit = 22;
-  SizedBox heightSeparation = const SizedBox(height: 12);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,71 +32,59 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  SettingsSection getProfile(User user) {
-    var emailExceded = user.email.length > textLimit;
-    var nameExceded = user.name.length > textLimit;
-    var email = emailExceded ? '${user.email.substring(0, textLimit)}..' : user.email;
-    var name = nameExceded ? '${user.name.substring(0, textLimit)}..' : user.name;
-
-    return SettingsSection(
-      title: const Text('Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-      tiles: [
-        SettingsTile.navigation(
-          leading: const Icon(Icons.person),
-          title: const Text('Name'),
-          value: Text(name),
-          trailing: UpdateUser(user: user, onUpdate: (user) => setState(() {})),
+  _bottomSheetPeriodStats(PeriodStats periodStats) {
+    return SingleChildScrollView(
+        child: Container(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Period of time', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ...Periods.options.map(
+              (option) => CheckboxListTile(
+                title: Text(option.humanize),
+                value: option.days == periodStats.days,
+                onChanged: (check) {
+                  periods.update(option.days);
+                  Navigator.pop(context);
+                },
+                selected: false,
+              ),
+            ),
+          ],
         ),
-        SettingsTile.navigation(
-          leading: const Icon(Icons.email),
-          title: const Text('Email'),
-          value: Text(email),
-          trailing: UpdateUser(user: user, onUpdate: (user) => setState(() {})),
-        ),
-        SettingsTile.navigation(
-          leading: const Icon(Icons.currency_exchange),
-          title: const Text('Default Currency'),
-          value: Text(user.defaultCurrency != null ? user.defaultCurrency!.symbol : 'No set yet'),
-          trailing: UpdateUser(user: user, onUpdate: (user) => setState(() {})),
-        ),
-      ],
-    );
+      ),
+    ));
   }
 
-  SettingsSection getIntegration(List<Integration> integrations, String userId) {
-    Integration wise = integrations.firstWhere(
-      (i) => i.integrationType == IntegrationType.wise,
-      orElse: () => Integration.wise(userId),
-    );
-
-    return SettingsSection(
-      title: const Text('Integrations ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-      tiles: [
-        SettingsTile.navigation(
-          leading: const Icon(Icons.wallet),
-          title: const Text('Wise'),
-          trailing: UpdateOrCreateIntegration(
-            integration: wise,
-            onAction: (i) => setState(() {}),
-          ),
-        ),
-      ],
-    );
-  }
-
-  SettingsSection getCommon(ThemeData themeData) {
+  SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
     final theme = Provider.of<ThemeProvider>(context);
+
     return SettingsSection(
         title: const Text('Common', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
         tiles: [
           SettingsTile.navigation(
               leading: const Icon(Icons.language), title: const Text('Language'), value: const Text('English')),
           SettingsTile.navigation(
-              leading: const Icon(Icons.language), title: const Text('Language'), value: const Text('English')),
-          SettingsTile.navigation(
-              leading: const Icon(Icons.query_stats),
-              title: const Text('Period of Stats'),
-              value: const Text('1 Month')),
+            leading: const Icon(Icons.query_stats),
+            title: const Text('Period of Stats'),
+            value: Text(periodStats.humanize),
+            onPressed: (context) => showModalBottomSheet(
+              enableDrag: true,
+              context: context,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              builder: (BuildContext context) => BottomSheet(
+                enableDrag: false,
+                onClosing: () {},
+                builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats),
+              ),
+            ),
+          ),
           SettingsTile.switchTile(
             onToggle: (value) => theme.swapTheme(),
             initialValue: theme.themeMode == ThemeMode.dark,
@@ -109,6 +93,19 @@ class SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Dark Theme'),
           )
         ]);
+  }
+
+  SettingsSection getIntegration() {
+    return SettingsSection(
+      title: const Text('Integrations ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+      tiles: [
+        SettingsTile.navigation(
+          leading: const Icon(Icons.wallet),
+          title: const Text('Wise'),
+          trailing: const UpdateOrCreateIntegration(),
+        ),
+      ],
+    );
   }
 
   List<Widget> getBody(BuildContext context) {
@@ -123,24 +120,37 @@ class SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings'),
       ),
       SliverToBoxAdapter(
-        child: SettingsList(
-          shrinkWrap: true,
-          contentPadding: const EdgeInsets.only(left: 20, right: 20),
-          physics: const BouncingScrollPhysics(),
-          lightTheme: SettingsThemeData(
-            settingsListBackground: theme.scaffoldBackgroundColor,
-            titleTextColor: theme.colorScheme.primary,
-          ),
-          sections: user == null
-              ? []
-              : [
-                  getProfile(user),
-                  getIntegration(user.integrations, user.id),
-                  getCommon(theme),
-                  DangerZone(user: user)
-                ],
+        child: ValueListenableBuilder<PeriodStats>(
+          valueListenable: periods.selected,
+          builder: (context, periodStats, child) {
+            List<AbstractSettingsSection> sections = [];
+            if (user != null) {
+              sections = [
+                ProfileSettings(user: user),
+                getCommon(theme, periodStats),
+                getIntegration(),
+                CurrentRatesSettings(user: user),
+                DangerZone(user: user),
+              ];
+            }
+            return SettingsList(
+              shrinkWrap: true,
+              contentPadding: const EdgeInsets.only(left: 20, right: 20),
+              physics: const BouncingScrollPhysics(),
+              lightTheme: SettingsThemeData(
+                settingsListBackground: theme.scaffoldBackgroundColor,
+                titleTextColor: theme.colorScheme.primary,
+              ),
+              darkTheme: SettingsThemeData(
+                settingsListBackground: theme.scaffoldBackgroundColor,
+                titleTextColor: theme.colorScheme.primary,
+              ),
+              sections: sections,
+            );
+          },
         ),
       ),
+      const SliverToBoxAdapter(child: SizedBox(height: 80))
     ];
   }
 }
@@ -183,7 +193,7 @@ class DangerZone extends AbstractSettingsSection {
     final theme = Theme.of(context);
     return Column(
       children: [
-        const Divider(),
+        const Divider(thickness: 1.5),
         spacing,
         Text('Danger Zone', style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.error)),
         spacing,

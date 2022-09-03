@@ -4,8 +4,8 @@ import '../common/icon_helper.dart';
 import '../common/styles.dart';
 
 class IconPicker {
+  static var icons = <IconMap>[];
   static picker(IconMap iconMap, Function(IconMap) onIconSelected) {
-    var icons = <IconMap>[];
     const sizedBoxHeight = SizedBox(height: 10);
 
     return StatefulBuilder(

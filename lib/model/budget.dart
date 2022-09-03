@@ -4,6 +4,8 @@ import '../common/classes.dart';
 import '../common/convert.dart';
 
 class Budget implements ModelCommonInterface {
+  // ignore: non_constant_identifier_names
+  static int MAX_LENGTH_NAME = 25;
   @override
   String id;
   DateTime createdAt;
@@ -26,22 +28,16 @@ class Budget implements ModelCommonInterface {
   }
 
   factory Budget.fromJson(Map<String, dynamic> json) {
-    double amount = Convert.currencyToDouble(json['amount'], json);
-    double balance = 0;
-    List<Category> categories = List.from(json['budget_categories']).map((c) {
-      balance += Convert.currencyToDouble(
-        c['category']['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0',
-        c,
-      );
-      return Category.fromJson(c['category']);
-    }).toList();
+    List<Category> categories =
+        List.from(json['budget_categories']).map((c) => Category.fromJson(c['category'])).toList();
+
     return Budget(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       color: json['color'],
-      amount: amount,
-      balance: balance.abs(),
+      amount: Convert.currencyToDouble(json['amount'], json),
+      balance: -1,
       categories: categories,
     );
   }
@@ -75,13 +71,6 @@ class BudgetQueries implements GraphQlQuery {
             color
             icon
             name
-            transactions_aggregate {
-              aggregate {
-                sum {
-                  balance
-                }
-              }
-            }
           }
         }
       }
@@ -104,13 +93,6 @@ class BudgetQueries implements GraphQlQuery {
               color
               icon
               name
-              transactions_aggregate {
-                aggregate {
-                  sum {
-                    balance
-                  }
-                }
-              }
             }
           }
         }
@@ -134,13 +116,6 @@ class BudgetQueries implements GraphQlQuery {
               color
               icon
               name
-              transactions_aggregate {
-                aggregate {
-                  sum {
-                    balance
-                  }
-                }
-              }
             }
           }
         }

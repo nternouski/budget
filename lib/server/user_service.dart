@@ -1,13 +1,13 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 import 'dart:convert';
+import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_appauth/flutter_appauth.dart';
 
-import 'package:budget/common/styles.dart';
 import '../model/currency.dart';
 import '../server/model_rx.dart';
 import '../model/user.dart';
@@ -29,6 +29,8 @@ class UserService extends UserRx {
   final preferences = Preferences();
   final token$ = BehaviorSubject<Token>();
   Stream<Token> get tokenRx => token$.stream;
+
+  HandlerError handlerError = HandlerError();
 
   factory UserService() {
     return _singleton;
@@ -81,7 +83,7 @@ class UserService extends UserRx {
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
-      displayError(context, e.toString());
+      handlerError.setError(e.toString());
       return InitStatus.errorOnLogin;
     }
   }
@@ -117,17 +119,17 @@ class UserService extends UserRx {
                 .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
                 .catchError((onError) {
               logout();
-              displayError(context, onError.message);
+              handlerError.setError(onError.message);
             });
           },
         );
       }
     } on PlatformException {
-      displayError(context, 'User has Cancelled or no Internet');
+      handlerError.setError('User has Cancelled or no Internet');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
-      displayError(context, e.toString());
+      handlerError.setError(e.toString());
     }
   }
 

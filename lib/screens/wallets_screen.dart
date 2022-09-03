@@ -49,7 +49,8 @@ class WalletsScreenState extends State<WalletsScreen> {
               leading: getLadingButton(context),
               title: const Text('Wallets'),
             ),
-            component
+            component,
+            const SliverToBoxAdapter(child: SizedBox(height: 80))
           ],
         ),
         onRefresh: () => walletRx.getAll(),

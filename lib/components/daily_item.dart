@@ -56,8 +56,9 @@ class DailyItemState extends State<DailyItem> {
         return null;
       },
       child: Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 20),
-          child: getItem(theme, widget.transaction)),
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: getItem(theme, widget.transaction),
+      ),
     );
   }
 
@@ -71,8 +72,11 @@ class DailyItemState extends State<DailyItem> {
           children: [
             paddingSlide,
             Icon(widget.actionIcon ?? Icons.edit, color: primary),
-            Text(widget.action ?? ' Edit',
-                style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            Text(
+              widget.action ?? ' Edit',
+              style: TextStyle(color: primary, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.left,
+            ),
           ],
         ),
       ),
@@ -108,26 +112,29 @@ class DailyItemState extends State<DailyItem> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(transaction.name, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 7),
-                  Text(transaction.getDateFormat(), style: theme.textTheme.bodyMedium),
-                ],
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(transaction.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 7),
+                    Text(transaction.getDateFormat(), style: theme.textTheme.bodyMedium),
+                  ],
+                ),
               )
             ],
           ),
         ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(
-              '\$ ${transaction.amount}',
+              '\$ ${transaction.balanceFixed.abs()}',
               style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
-            )
+            ),
+            Text('\$ ${transaction.amount}', style: TextStyle(color: theme.disabledColor))
           ],
         )
       ],

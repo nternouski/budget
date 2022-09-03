@@ -63,6 +63,7 @@ class User implements ModelCommonInterface {
   List<Integration> integrations;
   String defaultCurrencyId;
   Currency? defaultCurrency;
+  double initialAmount;
 
   User({
     required this.id,
@@ -72,6 +73,7 @@ class User implements ModelCommonInterface {
     required this.integrations,
     required this.defaultCurrencyId,
     this.defaultCurrency,
+    this.initialAmount = 0.0,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -84,6 +86,7 @@ class User implements ModelCommonInterface {
       integrations: integrations,
       defaultCurrencyId: json['defaultCurrencyId'],
       defaultCurrency: json['currency'] != null ? Currency.fromJson(json['currency']) : null,
+      initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? '\$ 0', json),
     );
   }
 
@@ -94,6 +97,7 @@ class User implements ModelCommonInterface {
       'name': name,
       'email': email,
       'defaultCurrencyId': defaultCurrencyId,
+      'initialAmount': initialAmount,
     };
     return data;
   }
@@ -109,6 +113,7 @@ class UserQueries implements GraphQlQuery {
         name
         email
         defaultCurrencyId
+        initialAmount
 
         currency {
           id
@@ -135,6 +140,7 @@ class UserQueries implements GraphQlQuery {
         name
         email
         defaultCurrencyId
+        initialAmount
 
         currency {
           id
@@ -155,14 +161,15 @@ class UserQueries implements GraphQlQuery {
 
   @override
   String create = r'''
-    mutation addUser($id: String!, $name: String!, $email: String!, $defaultCurrencyId: uuid!) {
-      action: insert_users(objects: [{ id: $id, name: $name, email: $email, defaultCurrencyId: $defaultCurrencyId }]) {
+    mutation addUser($id: String!, $name: String!, $email: String!, $defaultCurrencyId: uuid!, $initialAmount: money!) {
+      action: insert_users(objects: [{ id: $id, name: $name, email: $email, defaultCurrencyId: $defaultCurrencyId, initialAmount: $initialAmount }]) {
         returning {
           id
           createdAt
           name
           email
           defaultCurrencyId
+          initialAmount
 
           currency {
             id
@@ -184,14 +191,15 @@ class UserQueries implements GraphQlQuery {
 
   @override
   String update = r'''
-    mutation updateUser($id: String!, $name: String!, $email: String!, $defaultCurrencyId: uuid!) {
-      action: update_users(where: {id: {_eq: $id}}, _set: { name: $name, email: $email, defaultCurrencyId: $defaultCurrencyId }) {
+    mutation updateUser($id: String!, $name: String!, $email: String!, $defaultCurrencyId: uuid!, $initialAmount: money!) {
+      action: update_users(where: {id: {_eq: $id}}, _set: { name: $name, email: $email, defaultCurrencyId: $defaultCurrencyId, initialAmount: $initialAmount }) {
         returning {
           id
           createdAt
           name
           email
           defaultCurrencyId
+          initialAmount
 
           currency {
             id

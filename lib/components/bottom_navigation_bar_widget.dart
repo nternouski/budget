@@ -1,6 +1,9 @@
+import 'package:budget/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:provider/provider.dart';
 
+import '../common/convert.dart';
 import '../routes.dart';
 import '../common/footers.dart';
 import 'nav_draw.dart';
@@ -20,15 +23,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
   }
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   Future<bool> onWillPop() {
     DateTime now = DateTime.now();
@@ -46,34 +40,41 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final floatingActionButton = FloatingActionButton(
-      onPressed: () => RouteApp.redirect(
-        context: context,
-        url: footer[pageIndex].actionIcon!,
-        fromScaffold: false,
-      ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      onPressed: () => RouteApp.redirect(context: context, url: footer[pageIndex].actionIcon!, fromScaffold: false),
+      backgroundColor: theme.colorScheme.primary,
       foregroundColor: Colors.white,
       child: const Icon(Icons.add, size: 25),
     );
+
     return WillPopScope(
       onWillPop: () => onWillPop(),
       child: Scaffold(
+        extendBody: true,
         drawer: NavDrawer(),
         body: IndexedStack(index: pageIndex, children: footer.map((f) => f.widget()).toList()),
-        bottomNavigationBar: getFooter(),
+        bottomNavigationBar: getFooter(theme),
         floatingActionButton: footer[pageIndex].actionIcon != null ? floatingActionButton : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );
   }
 
-  Widget getFooter() {
-    final theme = Theme.of(context);
+  Widget getFooter(ThemeData theme) {
+    Color backgroundColor;
+    if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
+      var temp = Convert.increaseColorLightness(theme.backgroundColor, 0.55);
+      backgroundColor = Convert.increaseColorSaturation(temp, -0.5);
+    } else {
+      backgroundColor = Convert.increaseColorLightness(theme.backgroundColor, -0.18);
+    }
+
     return AnimatedBottomNavigationBar(
       activeColor: theme.colorScheme.primary,
       splashColor: theme.colorScheme.primary,
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: backgroundColor,
       inactiveColor: theme.disabledColor,
       icons: footer.map((f) => f.icon).toList(),
       activeIndex: pageIndex,
@@ -81,11 +82,9 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       notchSmoothness: NotchSmoothness.softEdge,
       leftCornerRadius: 10,
       iconSize: 25,
-      splashSpeedInMilliseconds: 400,
+      splashSpeedInMilliseconds: 200,
       rightCornerRadius: 10,
-      onTap: (index) {
-        selectedTab(footer[index].url);
-      },
+      onTap: (index) => selectedTab(footer[index].url),
     );
   }
 

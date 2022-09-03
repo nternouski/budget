@@ -32,6 +32,9 @@ class Transaction implements ModelCommonInterface {
   String id;
   String name;
   double amount;
+
+  /// Amount fixed with default currency of user.
+  late double balanceFixed;
   double balance;
   DateTime date;
   String walletId;
@@ -60,6 +63,7 @@ class Transaction implements ModelCommonInterface {
   }) {
     updateBalance();
     this.category = category ?? defaultCategory;
+    balanceFixed = balance;
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -113,7 +117,7 @@ class Transaction implements ModelCommonInterface {
     } else if (date.isBefore(now.subtract(const Duration(days: 30)))) {
       return DateFormat(DateFormat.MONTH_DAY).format(date);
     } else if (date.isBefore(now.subtract(const Duration(days: 1)))) {
-      return DateFormat(DateFormat.MONTH_WEEKDAY_DAY).format(date);
+      return DateFormat(DateFormat.ABBR_MONTH_WEEKDAY_DAY).format(date);
     } else {
       return DateFormat(DateFormat.HOUR24_MINUTE).format(date);
     }
@@ -242,18 +246,6 @@ class TransactionQueries implements GraphQlQuery {
         }
       }
     }''';
-
-  String getBalanceAt = r'''
-    query getBalanceAt($until: timestamptz!) {
-      transactions_aggregate(where: {date: {_lte: $until}}) {
-        aggregate {
-          sum {
-            balance
-          }
-        }
-      }
-    }
-    ''';
 
   String insertLabels = r'''
     mutation insertLabels($transactionId: uuid!, $labelId: uuid!) {

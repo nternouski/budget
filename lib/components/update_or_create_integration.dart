@@ -1,13 +1,12 @@
 import 'package:budget/common/styles.dart';
 import 'package:budget/model/integration.dart';
+import 'package:budget/model/user.dart';
 import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class UpdateOrCreateIntegration extends StatefulWidget {
-  final Integration integration;
-  final Function(Integration) onAction;
-
-  const UpdateOrCreateIntegration({required this.integration, required this.onAction, Key? key}) : super(key: key);
+  const UpdateOrCreateIntegration({Key? key}) : super(key: key);
 
   @override
   UpdateUserState createState() => UpdateUserState();
@@ -18,8 +17,14 @@ final now = DateTime.now();
 class UpdateUserState extends State<UpdateOrCreateIntegration> {
   @override
   Widget build(BuildContext context) {
+    User? user = Provider.of<User>(context);
+    Integration wise = user.integrations.firstWhere(
+      (i) => i.integrationType == IntegrationType.wise,
+      orElse: () => Integration.wise(user.id),
+    );
+
     return IconButton(
-      icon: Icon(widget.integration.id == '' ? Icons.add : Icons.edit),
+      icon: Icon(wise.id == '' ? Icons.add : Icons.edit),
       onPressed: () => showModalBottomSheet(
         enableDrag: false,
         context: context,
@@ -28,15 +33,13 @@ class UpdateUserState extends State<UpdateOrCreateIntegration> {
         builder: (BuildContext context) => BottomSheet(
           enableDrag: false,
           onClosing: () {},
-          builder: (BuildContext context) => _bottomSheet(),
+          builder: (BuildContext context) => _bottomSheet(wise),
         ),
       ),
     );
   }
 
-  _bottomSheet() {
-    const sizedBoxHeight = SizedBox(height: 20);
-
+  _bottomSheet(Integration integration) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         return SingleChildScrollView(
@@ -49,19 +52,13 @@ class UpdateUserState extends State<UpdateOrCreateIntegration> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text('Update Integration', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                sizedBoxHeight,
                 TextFormField(
-                  initialValue: widget.integration.apiKey,
+                  initialValue: integration.apiKey,
                   decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),
                   validator: (String? value) => value!.isEmpty ? 'Integration is Required.' : null,
-                  onChanged: (String apiKey) => widget.integration.apiKey = apiKey,
+                  onChanged: (String apiKey) => integration.apiKey = apiKey,
                 ),
-                sizedBoxHeight,
-                // SelectCurrency(
-                //   defaultCurrencyId: widget.user.defaultCurrencyId,
-                //   onSelect: (c) => setState(() => widget.user.defaultCurrencyId = c.id),
-                // ),
-                sizedBoxHeight,
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -69,13 +66,8 @@ class UpdateUserState extends State<UpdateOrCreateIntegration> {
                     ElevatedButton(
                       child: const Text('Update'),
                       onPressed: () {
-                        debugPrint('-----------------> ${widget.integration.id == ''}');
-                        if (widget.integration.id == '') {
-                          integrationRx.create(widget.integration);
-                        } else {
-                          integrationRx.update(widget.integration);
-                        }
-                        widget.onAction(widget.integration);
+                        integration.id == '' ? integrationRx.create(integration) : integrationRx.update(integration);
+                        setState(() => {});
                         Navigator.pop(context);
                       },
                     ),

@@ -5,7 +5,7 @@ import '../common/convert.dart';
 
 class Wallet implements ModelCommonInterface {
   // ignore: non_constant_identifier_names
-  static int MAX_LENGTH_NAME = 15;
+  static int MAX_LENGTH_NAME = 16;
 
   @override
   String id;

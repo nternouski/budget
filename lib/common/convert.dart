@@ -1,6 +1,7 @@
 import 'dart:developer';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
+
 import './icon_helper.dart';
 
 class Convert {
@@ -41,5 +42,20 @@ class Convert {
 
   static String capitalize(String text) {
     return '${text[0].toUpperCase()}${text.substring(1).toLowerCase()}';
+  }
+
+  static Color increaseColorSaturation(Color color, double increment) {
+    var hslColor = HSLColor.fromColor(color);
+    return hslColor.withSaturation(min(max(hslColor.saturation + increment, 0.0), 1.0)).toColor();
+  }
+
+  static Color increaseColorLightness(Color color, double increment) {
+    var hslColor = HSLColor.fromColor(color);
+    return hslColor.withLightness(min(max(hslColor.lightness + increment, 0.0), 1.0)).toColor();
+  }
+
+  static Color increaseColorHue(Color color, double increment) {
+    var hslColor = HSLColor.fromColor(color);
+    return hslColor.withHue(min(max(hslColor.lightness + increment, 0.0), 360.0)).toColor();
   }
 }

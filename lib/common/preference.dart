@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
-enum PreferenceType { darkTheme, refreshToken }
+enum PreferenceType { darkTheme, refreshToken, periodStats }
 
 extension ParseToString on PreferenceType {
   String toShortString() {
@@ -37,6 +37,14 @@ class Preferences {
 
   Future<bool?> getBool(PreferenceType key) async {
     return (await _preferences).getBool(key.toShortString());
+  }
+
+  Future<bool> setInt(PreferenceType key, int value) async {
+    return (await _preferences).setInt(key.toShortString(), value);
+  }
+
+  Future<int?> getInt(PreferenceType key) async {
+    return (await _preferences).getInt(key.toShortString());
   }
 
   Preferences._internal();

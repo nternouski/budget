@@ -113,7 +113,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }
               },
-              child: Text(isLastPage ? 'SIGN UP' : 'NEXT'),
+              child: Text(isLastPage ? 'SIGN UP' : '  NEXT  '),
             ),
           ],
         ),

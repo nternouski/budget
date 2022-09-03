@@ -1,13 +1,16 @@
 // @dart=2.9
-import 'package:budget/common/preference.dart';
-import 'package:budget/common/theme.dart';
-import 'package:budget/model/transaction.dart';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
 
+import './common/error_handler.dart';
+import './common/preference.dart';
+import './common/theme.dart';
+import './model/category.dart';
+import './model/budget.dart';
+import './model/transaction.dart';
+import './model/wallet.dart';
+import './routes.dart';
 import './model/user.dart';
 import './server/user_service.dart';
 import './server/model_rx.dart';
@@ -46,9 +49,27 @@ class MyApp extends StatelessWidget {
       providers: [
         StreamProvider<Token>(create: (context) => userService.tokenRx, initialData: null),
         StreamProvider<List<Currency>>(create: (context) => currencyRx.fetchRx, initialData: const []),
+        StreamProvider<List<CurrencyRate>>(create: (context) => currencyRateRx.fetchRx, initialData: const []),
         StreamProvider<User>(create: (context) => userService.userRx, initialData: null),
+        StreamProvider<List<Category>>(create: (context) => categoryRx.fetchRx, initialData: const []),
         StreamProvider<List<Wallet>>(create: (context) => walletRx.fetchRx, initialData: const []),
-        StreamProvider<List<Transaction>>(create: (context) => transactionRx.fetchRx, initialData: null),
+        StreamProvider<List<Transaction>>(
+          create: (context) {
+            return transactionRx.fetchRx.asyncMap((transactions) {
+              Currency defaultCurrency = Provider.of<User>(context, listen: false)?.defaultCurrency;
+              List<Wallet> wallets = Provider.of<List<Wallet>>(context, listen: false);
+              List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context, listen: false);
+              return transactionRx.updateTransactions(transactions, wallets, currencyRates, defaultCurrency);
+            });
+          },
+          initialData: null,
+        ),
+        StreamProvider<List<Budget>>(
+          create: (context) => budgetRx.fetchRx.asyncMap(
+            (budgets) => budgetRx.updateBudgets(budgets, Provider.of<List<Transaction>>(context, listen: false) ?? []),
+          ),
+          initialData: const [],
+        ),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
       ],
       builder: (context, child) {
@@ -75,6 +96,10 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Token token = Provider.of<Token>(context);
+    final HandlerError handlerError = HandlerError();
+    handlerError.notifier.addListener(() {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) => handlerError.showError(context));
+    });
     return token != null && token.isLogged() ? const BottomNavigationBarWidget() : const OnBoarding();
   }
 }

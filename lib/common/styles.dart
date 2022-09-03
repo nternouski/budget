@@ -54,15 +54,3 @@ Widget getLadingButton(BuildContext context) {
 Widget getBackButton(BuildContext context) {
   return IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).pop());
 }
-
-void displayError(BuildContext context, String test) {
-  final theme = Theme.of(context);
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: theme.colorScheme.error,
-      content: Text(test, style: TextStyle(color: theme.colorScheme.onError)),
-      duration: const Duration(seconds: 5),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
