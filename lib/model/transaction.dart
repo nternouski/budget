@@ -30,6 +30,7 @@ class Transaction implements ModelCommonInterface {
 
   @override
   String id;
+  late DateTime createdAt;
   String name;
   double amount;
 
@@ -58,26 +59,30 @@ class Transaction implements ModelCommonInterface {
     required this.description,
     required this.labels,
     required this.categoryId,
-    Category? category,
     required this.externalId,
+    DateTime? createdAt,
+    Category? category,
   }) {
     updateBalance();
+    this.createdAt = createdAt ?? DateTime.now();
     this.category = category ?? defaultCategory;
     balanceFixed = balance;
   }
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    List<Label> labels = List.from(json['transaction_labels']).map((c) => Label.fromJson(c['label'])).toList();
+  factory Transaction.fromJson(Map<String, dynamic> json, List<Label> labels) {
     return Transaction(
       id: json['id'],
+      createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       amount: Convert.currencyToDouble(json['amount'], json),
       balance: 0,
       date: Convert.parseDate(json['date']),
       type: TransactionType.values.byName(json['type']),
       description: json['description'] ?? '',
-      labels: labels,
-      category: Category.fromJson(json['category']),
+      labels: List<String>.from(json['labelIds'] ?? [])
+          .map((labelId) => labels.firstWhere((l) => labelId == l.id))
+          .toList(),
+      category: json['category'] != null ? Category.fromJson(json['category']) : null,
       categoryId: json['categoryId'],
       walletId: json['walletId'],
       externalId: json['externalId'] ?? '',
@@ -89,15 +94,17 @@ class Transaction implements ModelCommonInterface {
     updateBalance();
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'name': name,
       'date': date.toString(),
       'type': type.name,
-      'amount': '\$$amount',
-      'balance': '\$$balance',
+      'amount': amount,
+      'balance': balance,
       'categoryId': categoryId,
       'description': description,
       'walletId': walletId,
       'externalId': externalId,
+      'labelIds': labels.map((label) => label.id).toList()
     };
     return data;
   }
@@ -132,139 +139,4 @@ class Transaction implements ModelCommonInterface {
       balance = 0; // Its a TransactionType.transfer
     }
   }
-}
-
-class TransactionQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getTransactions {
-      transactions(where: {}) {
-        id
-        name
-        amount
-        date
-        type
-        description
-        walletId
-        externalId
-
-        categoryId
-        category {
-          color
-          createdAt
-          icon
-          id
-          name
-        }
-        transaction_labels {
-          label {
-            id
-            createdAt
-            color
-            name
-          }
-        }
-      }
-    }''';
-
-  @override
-  late String create = r'''
-    mutation createTransactions($name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $externalId: String!, $walletId: uuid!, $categoryId: uuid!) {
-      action: insert_transactions(objects: [{name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, externalId: $externalId, walletId: $walletId, categoryId: $categoryId }]) {
-        returning {
-          id
-          name
-          amount
-          balance
-          date
-          type
-          description
-          walletId
-          externalId
-          
-          categoryId
-          category {
-            id
-            color
-            createdAt
-            icon
-            name
-          }
-          transaction_labels {
-            label {
-              id
-              createdAt
-              color
-              name
-            }
-          }
-        }
-      }
-    }''';
-
-  @override
-  late String update = r'''
-    mutation createTransactions($id: uuid!, $name: String!, $amount: money!, $balance: money!, $date: timestamptz!, $type: String!, $description: String!, $externalId: String!, $walletId: uuid!, $categoryId: uuid!) {
-      action: update_transactions(where: {id: {_eq: $id}}, _set: {name: $name, amount: $amount, balance: $balance, date: $date, type: $type, description: $description, externalId: $externalId, walletId: $walletId, categoryId: $categoryId }) {
-        returning {
-          id
-          name
-          amount
-          balance
-          date
-          type
-          description
-          walletId
-          externalId
-          
-          categoryId
-          category {
-            id
-            color
-            createdAt
-            icon
-            name
-          }
-          transaction_labels {
-            label {
-              id
-              createdAt
-              color
-              name
-            }
-          }
-        }
-      }
-    }''';
-
-  @override
-  String delete = r'''
-     mutation deleteTransaction($id: uuid!) {
-        action: delete_transactions(where: { id: { _eq: $id } }) {
-          returning {
-            id
-        }
-      }
-    }''';
-
-  String insertLabels = r'''
-    mutation insertLabels($transactionId: uuid!, $labelId: uuid!) {
-      action: insert_transaction_labels(objects: { transactionId: $transactionId, labelId: $labelId }) {
-        returning {
-          label {
-            id
-            createdAt
-            color
-            name
-          }
-        }
-      }
-    }''';
-
-  String deleteLabels = r'''
-    mutation deleteBudget($transactionId: uuid!) {
-      action: delete_transaction_labels(where: { transactionId: {_eq: $transactionId} }) {
-          affected_rows
-      }
-    }''';
 }

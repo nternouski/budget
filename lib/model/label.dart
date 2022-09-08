@@ -8,14 +8,20 @@ class Label implements ModelCommonInterface {
 
   @override
   String id;
+  late DateTime createdAt;
   String name;
   Color color;
 
-  Label({required this.id, required this.name, required this.color});
+  Label({required this.id, required this.name, required this.color, DateTime? createdAt}) {
+    this.createdAt = createdAt ?? DateTime.now();
+  }
 
-  factory Label.fromJson(Map<String, dynamic> json) {
+  factory Label.fromJson(
+    Map<String, dynamic> json,
+  ) {
     return Label(
       id: json['id'],
+      createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       color: Convert.colorFromHex(json['color']),
     );
@@ -25,58 +31,10 @@ class Label implements ModelCommonInterface {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'name': name,
       'color': Convert.colorToHexString(color)
     };
     return data;
   }
-}
-
-class LabelQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getLabels {
-      labels(where: {}) {
-        id
-        name
-        color
-      }
-    }
-    ''';
-
-  @override
-  String create = r'''
-     mutation addLabel($name: String!, $color: String!) {
-        action: insert_labels(objects: [{ name: $name, color: $color }]) {
-          returning {
-            id
-            createdAt
-            color
-            name
-        }
-      }
-    }''';
-
-  @override
-  String update = r'''
-     mutation updateLabel($id: uuid!, $name: String!, $color: String!) {
-        action: update_labels(where: {id: {_eq: $id}}, _set: {name: $name, color: $color}) {
-          returning {
-            id
-            createdAt
-            color
-            name
-        }
-      }
-    }''';
-
-  @override
-  String delete = r'''
-     mutation deleteLabel($id: uuid!) {
-        action: delete_labels(where: {id: {_eq: $id}} ) {
-          returning {
-            id
-        }
-      }
-    }''';
 }

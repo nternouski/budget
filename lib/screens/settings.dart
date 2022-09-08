@@ -157,29 +157,28 @@ class SettingsScreenState extends State<SettingsScreen> {
 
 class DangerZone extends AbstractSettingsSection {
   final User user;
-  static TextEditingController confirmController = TextEditingController(text: '');
-  static const String _checkValue = 'confirm';
 
   const DangerZone({Key? key, required this.user}) : super(key: key);
 
-  Future<bool?> _confirm(BuildContext context) {
+  Future<bool?> _confirm(BuildContext context, String confirmationString) {
+    TextEditingController confirmController = TextEditingController(text: '');
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Please write \'confirm\'..'),
+          title: Text('Please write \'$confirmationString\'..'),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             const Text('To delete permanently your user and all the data related to you.'),
             TextFormField(
               controller: confirmController,
-              decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: 'confirm'),
+              decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: confirmationString),
             ),
           ]),
           actions: <Widget>[
             buttonCancelContext(context),
             ElevatedButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-              onPressed: confirmController.text == _checkValue ? null : () => Navigator.pop(context, true),
+              onPressed: confirmController.text == confirmationString ? null : () => Navigator.pop(context, true),
               child: const Text('Delete'),
             ),
           ],
@@ -200,10 +199,7 @@ class DangerZone extends AbstractSettingsSection {
         ElevatedButton(
           style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
           onPressed: () async {
-            if (await _confirm(context) == true) {
-              await userService.delete(user.id);
-              userService.logout();
-            }
+            if (await _confirm(context, 'delete') == true) await userService.delete(user.id);
           },
           child: const Text('DELETE USER'),
         ),

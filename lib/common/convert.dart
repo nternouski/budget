@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import './icon_helper.dart';
 
 class Convert {
-  static double currencyToDouble(String? currency, dynamic context) {
+  static double currencyToDouble(dynamic currency, dynamic context) {
     if (currency == null) inspect(context);
     currency ??= '\$ -1';
-    return double.parse(currency.replaceAll(RegExp(r'[\$,]'), ''));
+    return double.parse('$currency'.replaceAll(RegExp(r'[\$,]'), ''));
   }
 
-  static DateTime parseDate(String date) {
+  static DateTime parseDate(dynamic date) {
     try {
-      return DateTime.parse(date);
+      return date is String ? DateTime.parse(date) : date;
     } catch (e) {
       return DateTime.now();
     }

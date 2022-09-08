@@ -1,12 +1,14 @@
+import 'package:budget/server/database/wallet_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:provider/provider.dart';
 
 import '../common/icon_helper.dart';
 import '../components/select_currency.dart';
 import '../components/icon_picker.dart';
 import '../model/wallet.dart';
-import '../server/model_rx.dart';
 import '../common/styles.dart';
 
 enum Action { create, update }
@@ -44,7 +46,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             leading: getBackButton(context),
             title: Text('$title ${wallet.name}'),
           ),
-          SliverToBoxAdapter(child: getForm(action, title))
+          SliverToBoxAdapter(child: getForm(action, title, context))
         ],
       ),
     );
@@ -86,7 +88,8 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     );
   }
 
-  Widget getForm(Action action, String title) {
+  Widget getForm(Action action, String title, BuildContext context) {
+    auth.User user = Provider.of<auth.User>(context, listen: false);
     return Form(
       key: _formKey,
       child: Padding(
@@ -124,9 +127,9 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
               }
               _formKey.currentState!.save();
               if (action == Action.create) {
-                walletRx.create(wallet);
+                walletRx.create(wallet, user.uid);
               } else {
-                walletRx.update(wallet);
+                walletRx.update(wallet, user.uid);
               }
               Navigator.of(context).pop();
             },

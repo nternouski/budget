@@ -1,18 +1,20 @@
-import 'package:budget/common/convert.dart';
-import 'package:budget/common/error_handler.dart';
-import 'package:budget/components/create_or_update_label.dart';
-import 'package:budget/components/icon_circle.dart';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/screens/wallets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../common/convert.dart';
+import '../common/error_handler.dart';
+import '../components/create_or_update_label.dart';
+import '../components/icon_circle.dart';
 import '../components/create_or_update_category.dart';
+import '../screens/wallets_screen.dart';
+import '../server/database/transaction_rx.dart';
+import '../server/database/wallet_rx.dart';
+import '../model/wallet.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
-import '../server/model_rx.dart';
 import '../common/styles.dart';
 import '../routes.dart';
 
@@ -56,7 +58,11 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   final TextEditingController dateController = TextEditingController(text: '');
   final TextEditingController timeController = TextEditingController(text: '');
   late List<PopupMenuItem<TransactionType>> types = TransactionType.values
-      .map((t) => PopupMenuItem(value: t, child: Center(child: Text(Convert.capitalize(t.toShortString())))))
+      .map((t) => PopupMenuItem(
+          value: t,
+          child: Center(
+            child: Text(Convert.capitalize(t.toShortString()), style: TextStyle(color: colorsTypeTransaction[t])),
+          )))
       .toList();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -92,7 +98,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildWallet(Color disabledColor) {
+  Widget buildWallet(BuildContext context, Color disabledColor) {
+    auth.User user = Provider.of<auth.User>(context, listen: false);
+
     return Column(
       children: [
         Row(children: [
@@ -103,7 +111,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           ),
         ]),
         StreamBuilder<List<Wallet>>(
-          stream: walletRx.fetchRx,
+          stream: walletRx.getWallets(user.uid),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
               final wallets = List<Wallet>.from(snapshot.data!);
@@ -125,6 +133,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                             padding: const EdgeInsets.only(right: 20),
                             child: WalletItem(
                               wallet: wallets[index],
+                              userId: user.uid,
                               showBalance: false,
                               showActions: false,
                               selected: transaction.walletId == wallets[index].id,
@@ -143,8 +152,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildCategory(BuildContext context) {
-    List<Category> categories = Provider.of<List<Category>>(context);
+  Widget buildCategory(List<Category> categories) {
     return Column(
       children: [
         Row(
@@ -157,10 +165,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           ],
         ),
         if (categories.isEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [SizedBox(height: 60), Text('No categories by the moment.')],
+          SizedBox(
+            height: 60,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [Text('No categories by the moment.')],
+            ),
           ),
         if (categories.isNotEmpty)
           Align(
@@ -326,47 +337,55 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget getForm(BuildContext context, ThemeData theme) {
+    auth.User user = Provider.of<auth.User>(context, listen: false);
+    List<Category> categories = Provider.of<List<Category>>(context);
+
     return Form(
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
           child: Column(children: <Widget>[
             Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(flex: 7, child: buildAmount()),
-                  Flexible(
-                    flex: 3,
-                    child: PopupMenuButton<TransactionType>(
-                      onSelected: (TransactionType item) => setState(() => transaction.type = item),
-                      itemBuilder: (BuildContext context) => types,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: borderRadiusApp,
-                          color: colorsTypeTransaction[transaction.type]?.withOpacity(0.2),
-                        ),
-                        child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Center(
-                              child: Text(
-                                Convert.capitalize(transaction.type.toShortString()),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                  color: colorsTypeTransaction[transaction.type],
-                                ),
-                              ),
-                            )),
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(flex: 7, child: buildAmount()),
+                Flexible(
+                  flex: 3,
+                  child: PopupMenuButton<TransactionType>(
+                    onSelected: (TransactionType item) => setState(() => transaction.type = item),
+                    itemBuilder: (BuildContext context) => types,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: borderRadiusApp,
+                        color: colorsTypeTransaction[transaction.type]?.withOpacity(0.2),
                       ),
+                      child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Center(
+                            child: Text(
+                              Convert.capitalize(transaction.type.toShortString()),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: colorsTypeTransaction[transaction.type],
+                              ),
+                            ),
+                          )),
                     ),
                   ),
-                ]),
-            buildWallet(theme.disabledColor),
-            buildCategory(context),
+                ),
+              ],
+            ),
+            buildWallet(context, theme.disabledColor),
+            buildCategory(categories),
             CreateOrUpdateLabel(
               labels: transaction.labels,
-              onSelect: (selection) => setState(() => transaction.labels.add(selection)),
+              onSelect: (selection) {
+                if (!transaction.labels.any((l) => l.id == selection.id)) {
+                  setState(() => transaction.labels.add(selection));
+                }
+              },
               onDelete: (label) => setState(
                 () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
               ),
@@ -387,14 +406,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 }
                 _formKey.currentState!.save();
                 if (transaction.amount <= 0.0) {
-                  return handlerError.setError('Amount is Required and must be grater than 0.');
+                  return handlerError.setError('Amount is required and must be grater than 0.');
                 }
                 if (action == Action.create) {
                   transaction.updateBalance();
-                  transactionRx.create(transaction);
+                  transactionRx.create(transaction, user.uid);
                 } else {
                   transaction.updateBalance();
-                  transactionRx.update(transaction);
+                  transactionRx.update(transaction, user.uid);
                 }
                 Navigator.of(context).pop();
               },

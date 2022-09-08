@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import '../server/model_rx.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
+import '../server/database/label_rx.dart';
 import '../common/styles.dart';
 import '../model/label.dart';
 
 class CreateOrUpdateLabel extends StatelessWidget {
-  final TextEditingController nameController = TextEditingController(text: '');
+  TextEditingController nameController = TextEditingController(text: '');
   final Function(Label) onSelect;
   final Function(Label) onDelete;
   final List<Label> labels;
@@ -18,11 +21,13 @@ class CreateOrUpdateLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    auth.User user = Provider.of<auth.User>(context);
+
     return StreamBuilder<List<Label>>(
-      stream: labelRx.fetchRx,
+      stream: labelRx.getLabels(user.uid),
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
-          return _buildLabel(labels, List<Label>.from(snapshot.data!));
+          return _buildLabel(labels, List<Label>.from(snapshot.data!), user);
         } else {
           return Text('Error on label input: ${snapshot.error.toString()}');
         }
@@ -30,12 +35,12 @@ class CreateOrUpdateLabel extends StatelessWidget {
     );
   }
 
-  Widget _buildLabel(List<Label> labels, List<Label> labelsDB) {
+  Widget _buildLabel(List<Label> labels, List<Label> labelsDB, auth.User user) {
     return Column(children: [
       Autocomplete<Label>(
         displayStringForOption: (option) => option.name,
         fieldViewBuilder: (BuildContext context, TextEditingController controller, FocusNode focus, VoidCallback _) {
-          nameController.text = controller.text;
+          nameController = controller;
           return TextFormField(
             controller: nameController,
             decoration: InputStyle.inputDecoration(labelTextStr: 'Label search'),
@@ -51,11 +56,13 @@ class CreateOrUpdateLabel extends StatelessWidget {
         },
         onSelected: (selection) async {
           if (selection.id == '') {
-            String name = RegExp('"(.+)"').firstMatch(selection.name)?.group(0) ?? '';
-            Label? label = await labelRx.create(Label(id: '', name: name.replaceAll('"', ''), color: Colors.black));
             nameController.clear();
-            if (label != null) onSelect(label);
+            String name = RegExp('"(.+)"').firstMatch(selection.name)?.group(0) ?? '';
+            Label label = Label(id: '', name: name.replaceAll('"', ''), color: Colors.black);
+            label.id = await labelRx.create(label, user.uid);
+            onSelect(label);
           } else {
+            nameController.clear();
             onSelect(selection);
           }
         },
@@ -66,11 +73,14 @@ class CreateOrUpdateLabel extends StatelessWidget {
         child: Row(
           children: labels
               .map(
-                (label) => Chip(
-                  label: Text(label.name),
-                  onDeleted: () => onDelete(label),
-                  deleteIcon: const Icon(Icons.cancel),
-                  deleteIconColor: Colors.grey,
+                (label) => Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Chip(
+                    label: Text(label.name),
+                    onDeleted: () => onDelete(label),
+                    deleteIcon: const Icon(Icons.cancel),
+                    deleteIconColor: Colors.grey,
+                  ),
                 ),
               )
               .toList(),

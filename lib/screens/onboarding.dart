@@ -1,4 +1,3 @@
-import 'package:budget/common/theme.dart';
 import 'package:budget/components/select_currency.dart';
 import 'package:budget/model/currency.dart';
 import 'package:budget/server/user_service.dart';
@@ -16,7 +15,6 @@ UserService userService = UserService();
 
 class _OnBoardingState extends State<OnBoarding> {
   bool isLastPage = false;
-  bool isBusy = false;
   Currency? defaultCurrency;
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
@@ -24,30 +22,7 @@ class _OnBoardingState extends State<OnBoarding> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return FutureBuilder(
-      future: isBusy ? Future(() => InitStatus.inProgress) : userService.init(context),
-      builder: (BuildContext context, AsyncSnapshot<InitStatus> snap) {
-        final status = snap.data;
-        return status == null || status == InitStatus.inProgress
-            ? screenInit(theme.colorScheme.primary)
-            : buildOnBoarding(context, theme);
-      },
-    );
-  }
-
-  Widget screenInit(Color primary) {
-    return Scaffold(
-        body: Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('Inicializando..', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 30),
-          Progress.getLoadingProgress(context: context)
-        ],
-      ),
-    ));
+    return buildOnBoarding(context, theme);
   }
 
   buildOnBoarding(BuildContext context, ThemeData theme) {
@@ -106,9 +81,7 @@ class _OnBoardingState extends State<OnBoarding> {
             TextButton(
               onPressed: () async {
                 if (isLastPage) {
-                  setState(() => isBusy = true);
                   await userService.singUp(context, defaultCurrency);
-                  setState(() => isBusy = false);
                 } else {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }

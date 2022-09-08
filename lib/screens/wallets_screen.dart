@@ -1,12 +1,13 @@
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
+import 'package:budget/server/database/wallet_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../routes.dart';
 import '../common/styles.dart';
 import '../components/icon_circle.dart';
 import '../model/wallet.dart';
-import '../server/model_rx.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 class WalletsScreen extends StatefulWidget {
   const WalletsScreen({Key? key}) : super(key: key);
@@ -21,6 +22,8 @@ class WalletsScreenState extends State<WalletsScreen> {
     final textTheme = Theme.of(context).textTheme;
     List<Wallet> wallets = Provider.of<List<Wallet>>(context);
 
+    auth.User user = Provider.of<auth.User>(context, listen: false);
+
     Widget? component;
     if (wallets.isEmpty) {
       component = const SliverToBoxAdapter(
@@ -31,7 +34,8 @@ class WalletsScreenState extends State<WalletsScreen> {
         delegate: SliverChildBuilderDelegate(
           (_, idx) => Padding(
             padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
-            child: WalletItem(wallet: wallets[idx], showBalance: true, showActions: true, selected: true),
+            child: WalletItem(
+                wallet: wallets[idx], userId: user.uid, showBalance: true, showActions: true, selected: true),
           ),
           childCount: wallets.length,
         ),
@@ -53,7 +57,7 @@ class WalletsScreenState extends State<WalletsScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 80))
           ],
         ),
-        onRefresh: () => walletRx.getAll(),
+        onRefresh: () async => setState(() {}),
       ),
     );
   }
@@ -61,6 +65,7 @@ class WalletsScreenState extends State<WalletsScreen> {
 
 class WalletItem extends StatelessWidget {
   final Wallet wallet;
+  final String userId;
   final bool showBalance;
   final bool showActions;
   final bool selected;
@@ -68,6 +73,7 @@ class WalletItem extends StatelessWidget {
   const WalletItem({
     Key? key,
     required this.wallet,
+    required this.userId,
     required this.showBalance,
     required this.showActions,
     required this.selected,
@@ -86,7 +92,7 @@ class WalletItem extends StatelessWidget {
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
               child: const Text('Delete'),
               onPressed: () {
-                walletRx.delete(wallet.id);
+                walletRx.delete(wallet.id, userId);
                 Navigator.pop(context);
               },
             ),

@@ -1,107 +1,116 @@
-import 'package:rxdart/rxdart.dart';
+import 'package:budget/common/error_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:rxdart/rxdart.dart';
 
-import '../common/classes.dart';
-import '../server/graphql_config.dart';
-
-enum TypeRequest { query, mutation }
-
-class Database<T extends ModelCommonInterface> {
-  final GraphQlQuery _queries;
-  final String collectionName;
-  T Function(Map<String, dynamic> json) constructor;
-
-  final behavior = BehaviorSubject<List<T>>();
-  Stream<List<T>> get fetchRx => behavior.stream;
-
-  Database(this._queries, this.collectionName, this.constructor);
+class Database {
+  final db = FirebaseFirestore.instance;
+  final HandlerError handlerError = HandlerError();
 
   final verbose = true;
 
-  void printMsg(String msg) {
-    if (verbose) debugPrint('->> | $collectionName | $msg');
+  Database._internal();
+  static final Database _singleton = Database._internal();
+
+  factory Database() {
+    return _singleton;
   }
 
-  void _printError(String from, String message) {
+  void printMsg(String collectionPath, String msg) {
+    if (verbose) debugPrint('---->>>> || $collectionPath | $msg');
+  }
+
+  void _printError(String path, String from, String message) {
     debugPrint('==============');
-    debugPrint('Error on $collectionName | $from: $message');
+    debugPrint('Error on $path | $from: $message');
+    handlerError.setError('Error on $path | $from: $message');
     debugPrint('==============');
   }
 
-  Future<Map<String, dynamic>?> request({
-    required TypeRequest type,
-    required query,
-    required Map<String, dynamic> variable,
-    bool throwError = false,
-  }) async {
+  Future<Map<String, dynamic>> getDocFuture(String collectionPath, String id) {
     try {
-      QueryResult result;
-      if (type == TypeRequest.query) {
-        result = await graphQLConfig.clientValueNotifier.value
-            .query(QueryOptions(document: gql(query), variables: variable));
+      return db.collection(collectionPath).doc(id).get().then((snapshot) {
+        printMsg(collectionPath, 'GET FUTURE id = $id');
+        if (!snapshot.exists) throw Exception('Document Not Exist $collectionPath ID: $id');
+        return {'id': snapshot.id, ...(snapshot.data() ?? {})};
+      });
+    } catch (error) {
+      _printError('getAll | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getAll $collectionPath';
+    }
+  }
+
+  Future<bool> getDocExist(String collectionPath, String id) {
+    return db.collection(collectionPath).doc(id).get().then((snapshot) {
+      printMsg(collectionPath, 'EXIST DOC $collectionPath/$id');
+      return snapshot.exists;
+    });
+  }
+
+  ValueStream<Map<String, dynamic>> getDoc(String collectionPath, String id) {
+    try {
+      return db.collection(collectionPath).doc(id).snapshots().asyncMap((snapshot) {
+        printMsg(collectionPath, 'GET id = $id');
+        if (!snapshot.exists) throw Exception('Document Not Exist $collectionPath ID: $id');
+        return {'id': snapshot.id, ...(snapshot.data() ?? {})};
+      }).shareValue();
+    } catch (error) {
+      _printError('getAll | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getAll $collectionPath';
+    }
+  }
+
+  ValueStream<List<Map<String, dynamic>>> getAll(String collectionPath) {
+    try {
+      return db.collection(collectionPath).snapshots().asyncMap((snapshot) {
+        printMsg(collectionPath, 'GET ALL');
+        return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      }).shareValue();
+    } catch (error) {
+      _printError('getAll | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getAll $collectionPath';
+    }
+  }
+
+  Future<String> createDoc(String collectionPath, Map<String, dynamic> data, {String? id}) async {
+    try {
+      printMsg(collectionPath, 'CREATE');
+      final variable = Map<String, dynamic>.from(data);
+      variable.remove('id');
+      if (id == null || id == '') {
+        final value = await db.collection(collectionPath).add(variable);
+        return value.id;
       } else {
-        result = await graphQLConfig.clientValueNotifier.value
-            .mutate(MutationOptions(document: gql(query), variables: variable));
-      }
-      if (result.hasException) {
-        final message = result.exception?.linkException?.originalException?.message;
-        if (message is String) _printError('$type | hasException', message);
-        for (var error in result.exception?.graphqlErrors ?? []) {
-          debugPrint('Error hasException: $error');
-        }
-      } else if (result.data != null) {
-        return result.data;
+        // Ver que nos e haga over wite
+        await db.collection(collectionPath).doc(id).set(variable);
+        return id;
       }
     } catch (error) {
-      _printError('$type | API_client', 'Error catch: $error');
-      if (throwError) throw 'Error on $type $collectionName';
+      _printError('create | Database', '$collectionPath/$id', 'Error catch: $error');
+      throw 'Error on create $collectionPath/$id';
     }
-    return null;
   }
 
-  Future<List<T>> getAll() async {
-    printMsg('GET ALL');
-    final value = await request(type: TypeRequest.query, query: _queries.getAll, variable: {});
-    if (value != null && value[collectionName] != null) {
-      var t = List<T>.from(value[collectionName].map((t) => constructor(t)).toList());
-      behavior.add(t);
-      return t;
+  Future<Map<String, dynamic>> updateDoc(String collectionPath, Map<String, dynamic> data, String id) async {
+    try {
+      printMsg(collectionPath, 'UPDATE');
+      final variable = Map<String, dynamic>.from(data);
+      variable.remove('id');
+      await db.collection(collectionPath).doc(id).update(variable);
+      return {'id': id, ...variable};
+    } catch (error) {
+      _printError('update | Database', '$collectionPath/$id', 'Error catch: $error');
+      throw 'Error on update $collectionPath/$id';
     }
-    return [];
   }
 
-  Future<T?> create(T data) async {
-    printMsg('CREATE');
-    final variable = data.toJson();
-    variable.remove('id');
-    final value = await request(type: TypeRequest.mutation, query: _queries.create, variable: variable);
-    if (value != null && value['action']['returning'] != null) {
-      T elementAdded = constructor(value['action']['returning'][0]);
-      if (behavior.valueOrNull != null) behavior.add([...List.from(behavior.value), elementAdded]);
-      return elementAdded;
-    }
-    return null;
-  }
-
-  Future<T?> update(T data) async {
-    printMsg('UPDATE');
-    final value = await request(type: TypeRequest.mutation, query: _queries.update, variable: data.toJson());
-    if (value != null && value['action']['returning'] != null) {
-      T elementUpdated = constructor(value['action']['returning'][0]);
-      var data = behavior.hasValue ? behavior.value : List<T>.from([]);
-      behavior.add(data.map((v) => v.id == elementUpdated.id ? elementUpdated : v).toList());
-      return elementUpdated;
-    }
-    return null;
-  }
-
-  Future<void> delete(String id) async {
-    printMsg('DELETE');
-    final value = await request(type: TypeRequest.mutation, query: _queries.delete, variable: {'id': id});
-    if (value != null) {
-      var data = behavior.hasValue ? behavior.value : List<T>.from([]);
-      behavior.add(data.where((v) => v.id != id).toList());
+  Future<void> deleteDoc(String collectionPath, String id) async {
+    try {
+      printMsg(collectionPath, 'DELETE');
+      await db.collection(collectionPath).doc(id).delete();
+    } catch (error) {
+      _printError('delete | Database', '$collectionPath/$id', 'Error catch: $error');
+      throw 'Error on delete $collectionPath/$id';
     }
   }
 }

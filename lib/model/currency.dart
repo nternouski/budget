@@ -1,17 +1,22 @@
+import 'package:collection/collection.dart';
 import '../common/convert.dart';
 import '../common/classes.dart';
 
 class Currency implements ModelCommonInterface {
   @override
   String id;
+  late DateTime createdAt;
   String name;
   String symbol;
 
-  Currency({required this.id, required this.name, required this.symbol});
+  Currency({required this.id, required this.name, required this.symbol, DateTime? createdAt}) {
+    this.createdAt = createdAt ?? DateTime.now();
+  }
 
   factory Currency.fromJson(Map<String, dynamic> json) {
     return Currency(
       id: json['id'],
+      createdAt: Convert.parseDate(json['createdAt']),
       name: json['name'],
       symbol: json['symbol'],
     );
@@ -21,32 +26,12 @@ class Currency implements ModelCommonInterface {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'name': name,
       'symbol': symbol,
     };
     return data;
   }
-}
-
-class CurrencyQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getCurrencies {
-      currencies(where: {}) {
-        id
-        name
-        symbol
-      }
-    }''';
-
-  @override
-  String create = r'';
-
-  @override
-  String update = r'';
-
-  @override
-  String delete = r'';
 }
 
 ///////////////////////////////////////////////
@@ -72,13 +57,19 @@ class CurrencyRate implements ModelCommonInterface {
     required this.currencyTo,
   });
 
-  factory CurrencyRate.fromJson(Map<String, dynamic> json) {
+  factory CurrencyRate.fromJson(Map<String, dynamic> json, List<Currency> currencies) {
+    Currency? currencyFrom = currencies.firstWhereOrNull((c) => c.id == json['currencyIdFrom']);
+    Currency? currencyTo = currencies.firstWhereOrNull((c) => c.id == json['currencyIdTo']);
+
+    if (currencyFrom == null || currencyTo == null) {
+      throw Exception('currencyTo or/and currencyFrom not exist on ${json['id']}');
+    }
     return CurrencyRate(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
       rate: double.parse(json['rate'].toString()),
-      currencyFrom: Currency.fromJson(json['currency_from']),
-      currencyTo: Currency.fromJson(json['currency_to']),
+      currencyFrom: currencyFrom,
+      currencyTo: currencyTo,
     );
   }
 
@@ -96,79 +87,11 @@ class CurrencyRate implements ModelCommonInterface {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'rate': rate,
       'currencyIdFrom': currencyFrom.id,
       'currencyIdTo': currencyTo.id,
     };
     return data;
   }
-}
-
-class CurrencyRateQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getCurrencyRates {
-      currency_rates(where: {}) {
-        id
-        createdAt
-        rate
-        currency_from {
-          id
-          name
-          symbol
-        }
-        currency_to {
-          id
-          name
-          symbol
-        }
-      }
-    }''';
-
-  @override
-  String create = r'''
-    mutation addCurrencyRates($rate: Float!, $currencyIdFrom: uuid!, $currencyIdTo: uuid!) {
-      action: insert_currency_rates(objects: [{ rate: $rate, currencyIdFrom: $currencyIdFrom, currencyIdTo: $currencyIdTo }]) {
-        returning {
-          id
-          createdAt
-          rate
-          currency_from {
-            id
-            name
-            symbol
-          }
-          currency_to {
-            id
-            name
-            symbol
-          }
-        }
-      }
-    }''';
-
-  @override
-  String update = r'''
-    mutation updateCurrencyRates($id: uuid!, $rate: Float!, $currencyIdFrom: uuid!, $currencyIdTo: uuid!) {
-      action: update_currency_rates(where: {id: {_eq: $id}}, _set: { rate: $rate, currencyIdFrom: $currencyIdFrom, currencyIdTo: $currencyIdTo }) {
-        returning {
-          id
-          createdAt
-          rate
-          currency_from {
-            id
-            name
-            symbol
-          }
-          currency_to {
-            id
-            name
-            symbol
-          }
-        }
-      }
-    }''';
-
-  @override
-  String delete = r'';
 }

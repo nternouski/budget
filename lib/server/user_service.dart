@@ -1,141 +1,114 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
-
-import 'dart:convert';
-import 'package:budget/common/error_handler.dart';
+import 'package:budget/model/user.dart';
+import 'package:budget/server/database/user_rx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../common/error_handler.dart';
 import '../model/currency.dart';
-import '../server/model_rx.dart';
-import '../model/user.dart';
-import '../server/graphql_config.dart';
-import '../common/preference.dart';
-
-const FlutterAppAuth appAuth = FlutterAppAuth();
 
 enum InitStatus { noUserStored, loginCompleted, errorOnLogin, inProgress }
 
 class UserService extends UserRx {
-  static const String AUTH0_DOMAIN = 'dev-cxwsnhav.us.auth0.com';
-  static const String AUTH0_CLIENT_ID = '9IbiJ35L10DBCrZtVLPIUyXaDG7LsrmJ';
-  static const String AUTH0_REDIRECT_URI = 'com.example.budget://login-callback';
+  final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+  final HandlerError handlerError = HandlerError();
+
+  bool initStarted = false;
 
   UserService._internal();
   static final UserService _singleton = UserService._internal();
 
-  final preferences = Preferences();
-  final token$ = BehaviorSubject<Token>();
-  Stream<Token> get tokenRx => token$.stream;
-
-  HandlerError handlerError = HandlerError();
+  Stream<auth.User?> get userAuth => _auth.authStateChanges();
 
   factory UserService() {
     return _singleton;
   }
 
-  static Token _parseIdToken(String idToken) {
-    final parts = idToken.split(r'.');
-    assert(parts.length == 3);
-    return Token.fromJson(idToken, jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))));
-  }
-
-  static Future<Map<String, dynamic>> _getUserDetails(String accessToken) async {
-    Uri uri = Uri.https(AUTH0_DOMAIN, '/userinfo');
-    final response = await http.get(uri, headers: {'Authorization': 'Bearer $accessToken'});
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to get user details');
-    }
-  }
-
-  Future<InitStatus> init(BuildContext context) async {
+  Future init(String id) async {
     try {
-      String? storedRefreshToken = await preferences.getString(PreferenceType.refreshToken);
-      if (storedRefreshToken == null || storedRefreshToken == '') return InitStatus.noUserStored;
-
-      final response = await appAuth.token(TokenRequest(
-        AUTH0_CLIENT_ID,
-        AUTH0_REDIRECT_URI,
-        issuer: 'https://$AUTH0_DOMAIN',
-        refreshToken: storedRefreshToken,
-      ));
-
-      if (response != null) {
-        if (response.refreshToken != null) {
-          await preferences.setString(PreferenceType.refreshToken, response.refreshToken);
-        }
-        var token = _parseIdToken(response.idToken ?? '');
-        token$.add(_parseIdToken(response.idToken ?? ''));
-        if (token.picture == '' || token.email == '' || token.name == '') {
-          final profile = await _getUserDetails(response.accessToken ?? '');
-          token.picture = profile['picture'];
-          token.email = profile['email'];
-          token.name = profile['name'];
-        }
-        await graphQLConfig.setToken(token.idToken).then((value) => getCurrentUser(token, false, null));
-      }
-      return InitStatus.loginCompleted;
+      if (!initStarted) await refreshUserData(id);
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
       handlerError.setError(e.toString());
-      return InitStatus.errorOnLogin;
+      logout();
     }
   }
 
   Future<void> singUp(BuildContext context, Currency? defaultCurrency) async {
-    await login(context, defaultCurrency: defaultCurrency, singUp: true);
-  }
-
-  Future<void> login(BuildContext context, {Currency? defaultCurrency, bool singUp = false}) async {
     try {
-      var result = await appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(
-          AUTH0_CLIENT_ID,
-          AUTH0_REDIRECT_URI,
-          issuer: 'https://$AUTH0_DOMAIN',
-          scopes: ['openid', 'profile', 'email', 'offline_access', 'api'],
-          promptValues: ['login'],
-        ),
-      );
+      initStarted = true;
 
-      if (result != null) {
-        await preferences.setString(PreferenceType.refreshToken, result.refreshToken);
-        var token = _parseIdToken(result.idToken ?? '');
-        if (token.picture == '' || token.email == '' || token.name == '') {
-          final profile = await _getUserDetails(result.accessToken ?? '');
-          token.picture = profile['picture'];
-          token.email = profile['email'];
-          token.name = profile['name'];
-        }
-        await graphQLConfig.setToken(token.idToken).then(
-          (value) {
-            return getCurrentUser(token, singUp, defaultCurrency)
-                .then((value) => token$.add(_parseIdToken(result.idToken ?? '')))
-                .catchError((onError) {
-              logout();
-              handlerError.setError(onError.message);
-            });
-          },
-        );
+      auth.User? userAuth;
+      try {
+        auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
+        auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+        userAuth = result.user;
+      } catch (e) {
+        throw LoginException(e.toString());
       }
-    } on PlatformException {
+
+      if (userAuth != null) {
+        final user = User(
+          id: userAuth.uid,
+          createdAt: DateTime.now(),
+          name: userAuth.displayName ?? 'Name Not Set',
+          email: userAuth.email ?? '',
+          integrations: {},
+          defaultCurrencyId: defaultCurrency?.id ?? '',
+          defaultCurrency: defaultCurrency,
+        );
+
+        await create(user);
+        user$.add(user);
+      }
+    } on LoginException catch (e) {
       handlerError.setError('User has Cancelled or no Internet');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
       handlerError.setError(e.toString());
+      logout();
     }
   }
 
-  void logout() async {
-    preferences.setString(PreferenceType.refreshToken, '');
-    token$.add(Token.init());
-    graphQLConfig.setToken('');
+  Future<void> login(BuildContext context, {Currency? defaultCurrency}) async {
+    try {
+      initStarted = true;
+      auth.User? user;
+      try {
+        auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
+        auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+        user = result.user;
+      } catch (e) {
+        throw LoginException(e.toString());
+      }
+      if (user != null) await refreshUserData(user.uid);
+    } on LoginException catch (_) {
+      handlerError.setError('User has Cancelled or no Internet');
+    } catch (e, s) {
+      debugPrint(e.toString());
+      debugPrint(s.toString());
+      handlerError.setError(e.toString());
+      logout();
+    }
+  }
+
+  @override
+  Future delete(String id) async {
+    await db.deleteDoc(UserRx.collectionPath, id);
+    auth.User? user = _auth.currentUser;
+    if (user != null) await user.delete();
+    return logout();
+  }
+
+  Future logout() async {
+    try {
+      initStarted = false;
+      return await _auth.signOut();
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
+    }
   }
 }

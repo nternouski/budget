@@ -1,7 +1,8 @@
-import 'package:budget/model/user.dart';
-import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
+import '../server/user_service.dart';
 import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
@@ -21,8 +22,8 @@ class NavDrawer extends StatelessWidget {
           DrawerHeader(
             margin: EdgeInsets.zero,
             padding: EdgeInsets.zero,
-            child: Consumer<Token>(
-              builder: (context, token, child) => token.isLogged() ? buildProfile(theme, token) : const Text('ERROR!'),
+            child: Consumer<auth.User?>(
+              builder: (context, user, child) => user != null ? buildProfile(theme, user) : const Text('ERROR!'),
             ),
           ),
           ListTile(
@@ -79,9 +80,10 @@ class NavDrawer extends StatelessWidget {
     );
   }
 
-  Widget buildProfile(ThemeData theme, Token token) {
-    var nameExceded = token.name.length > nameLimit;
-    var name = nameExceded ? '${token.name.substring(0, nameLimit)}..' : token.name;
+  Widget buildProfile(ThemeData theme, auth.User user) {
+    var nameExceded = '${user.displayName}'.length > nameLimit;
+    var name = nameExceded ? '${'${user.displayName}'.substring(0, nameLimit)}..' : '${user.displayName}';
+    var photoURL = user.photoURL;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -90,13 +92,13 @@ class NavDrawer extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            image: DecorationImage(fit: BoxFit.fill, image: NetworkImage(token.picture)),
+            image: photoURL != null ? DecorationImage(fit: BoxFit.fill, image: NetworkImage(photoURL)) : null,
           ),
         ),
         const SizedBox(height: 15),
         Text(name, style: theme.textTheme.titleLarge),
         const SizedBox(height: 5),
-        Text(token.email),
+        Text(user.email ?? 'No Email'),
       ],
     );
   }

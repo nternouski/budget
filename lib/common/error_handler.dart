@@ -32,3 +32,23 @@ class HandlerError {
     }
   }
 }
+
+class UserException implements Exception {
+  String cause;
+  UserException(this.cause);
+
+  @override
+  String toString() {
+    return 'UserException: $cause';
+  }
+}
+
+class LoginException implements Exception {
+  String cause;
+  LoginException(this.cause);
+
+  @override
+  String toString() {
+    return 'LoginException: $cause';
+  }
+}

@@ -35,8 +35,7 @@ class Wallet implements ModelCommonInterface {
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
     double initialAmount = Convert.currencyToDouble(json['initialAmount'], json);
-    double balance =
-        Convert.currencyToDouble(json['transactions_aggregate']['aggregate']['sum']['balance'] ?? '\$0.0', json);
+    double balance = Convert.currencyToDouble(0, json);
     Wallet wallet = Wallet(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt']),
@@ -47,7 +46,6 @@ class Wallet implements ModelCommonInterface {
       balance: initialAmount + balance,
       currencyId: json['currencyId'],
     );
-    wallet.currency = Currency.fromJson(json['currency']);
     return wallet;
   }
 
@@ -55,109 +53,15 @@ class Wallet implements ModelCommonInterface {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'name': name,
       'color': Convert.colorToHexString(color),
       'icon': iconName,
-      'initialAmount': '\$$initialAmount',
+      'initialAmount': initialAmount,
       'currencyId': currencyId,
     };
     return data;
   }
-}
-
-class WalletQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getWallets {
-      wallets(where: {}) {
-        id
-        createdAt
-        name
-        color
-        icon
-        initialAmount
-        currencyId
-        transactions_aggregate {
-          aggregate {
-            sum {
-              balance
-            }
-          }
-        }
-        currency {
-          id
-          createdAt
-          name
-          symbol
-        }
-      }
-    }''';
-
-  @override
-  String create = r'''
-     mutation addWallet($name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!) {
-      action: insert_wallets(objects: [{ name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId}]) {
-        returning {
-          id
-          createdAt
-          name
-          color
-          icon
-          initialAmount
-          currencyId
-          transactions_aggregate {
-            aggregate {
-              sum {
-                balance
-              }
-            }
-          }
-          currency {
-            id
-            createdAt
-            name
-            symbol
-          }
-        }
-      }
-    }''';
-
-  @override
-  String update = r'''
-     mutation updateWallet($id: uuid!, $name: String!, $icon: String!, $color: String!, $initialAmount: money!, $currencyId: uuid!) {
-      action: update_wallets(where: {id: {_eq: $id}}, _set: { name: $name, icon: $icon, color: $color, initialAmount: $initialAmount, currencyId: $currencyId }) {
-        returning {
-          id
-          createdAt
-          name
-          color
-          icon
-          initialAmount
-          currencyId
-          transactions_aggregate {
-            aggregate {
-              sum {
-                balance
-              }
-            }
-          }
-          currency {
-            id
-            createdAt
-            name
-            symbol
-          }
-        }
-      }
-    }''';
-
-  @override
-  String delete = r'''
-    mutation deleteWallet($id: uuid!) {
-      action: delete_wallets(where: { id: { _eq: $id } }) {
-        affected_rows
-      }
-    }''';
 }
 
 final defaultWallet = Wallet(

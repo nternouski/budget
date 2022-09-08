@@ -1,8 +1,11 @@
 import 'package:budget/components/icon_picker.dart';
+import 'package:budget/server/database/category_rx.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../server/model_rx.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:provider/provider.dart';
+
 import '../common/icon_helper.dart';
 import '../common/styles.dart';
 import '../model/category.dart';
@@ -27,6 +30,8 @@ class CreateOrUpdateCategory {
   static _bottomSheet(BuildContext context, Category category) {
     var title = category.id == '' ? 'Create Category' : 'Update ${category.name}';
     var actionButton = category.id == '' ? 'Create' : 'Update';
+
+    auth.User user = Provider.of<auth.User>(context, listen: false);
 
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
@@ -79,19 +84,25 @@ class CreateOrUpdateCategory {
                       onPressed: () {
                         if (nameController.text.isEmpty) return;
                         if (category.id == '') {
-                          categoryRx.create(Category(
-                            id: '',
-                            name: nameController.text,
-                            iconName: category.iconName,
-                            color: category.color,
-                          ));
+                          categoryRx.create(
+                            Category(
+                              id: '',
+                              name: nameController.text,
+                              iconName: category.iconName,
+                              color: category.color,
+                            ),
+                            user.uid,
+                          );
                         } else {
-                          categoryRx.update(Category(
-                            id: category.id,
-                            name: nameController.text,
-                            iconName: category.iconName,
-                            color: category.color,
-                          ));
+                          categoryRx.update(
+                            Category(
+                              id: category.id,
+                              name: nameController.text,
+                              iconName: category.iconName,
+                              color: category.color,
+                            ),
+                            user.uid,
+                          );
                         }
                         Navigator.pop(context);
                       },

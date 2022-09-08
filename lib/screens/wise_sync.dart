@@ -1,15 +1,14 @@
 import 'dart:developer';
-import 'package:budget/common/theme.dart';
-import 'package:budget/components/daily_item.dart';
-import 'package:budget/model/integration.dart';
-import 'package:budget/model/transaction.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/server/wise_api/helper.dart';
-import 'package:budget/server/wise_api/wise_api.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../common/theme.dart';
+import '../components/daily_item.dart';
+import '../model/transaction.dart';
+import '../model/user.dart';
+import '../model/wallet.dart';
+import '../server/wise_api/helper.dart';
+import '../server/wise_api/wise_api.dart';
 import '../common/styles.dart';
 
 class WiseSyncScreen extends StatefulWidget {
@@ -20,7 +19,6 @@ class WiseSyncScreen extends StatefulWidget {
 }
 
 class StatementsRequest {
-  WiseBalance? balance;
   Wallet? wallet;
   DateTime intervalStart = DateTime.now().subtract(const Duration(days: 30));
 }
@@ -34,16 +32,15 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
   Widget build(BuildContext context) {
     User? user = Provider.of<User>(context);
     if (user == null) return const Text('Not User');
-    var wise = user.integrations.firstWhere(
-      (i) => i.integrationType == IntegrationType.wise,
-      orElse: () => Integration.wise(user.id),
-    );
-    WiseApi wiseApi = WiseApi(wise.apiKey);
+    WiseApi wiseApi = WiseApi(user.integrations[IntegrationType.wise] ?? '');
+
     final theme = Theme.of(context);
+    final List<Wallet> wallets = Provider.of<List<Wallet>>(context);
+
     return Scaffold(
       body: Column(children: [
         SizedBox(
-          height: 280,
+          height: 190,
           child: CustomScrollView(
             slivers: [
               SliverAppBar(
@@ -58,13 +55,7 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
                   ),
                 ],
               ),
-              FutureBuilder(
-                future: wiseApi.fetchBalance(),
-                builder: (BuildContext context, AsyncSnapshot<List<WiseProfileBalance>> snapshot) {
-                  if (snapshot.hasError) inspect(snapshot.error);
-                  return SliverToBoxAdapter(child: getSearch(context, snapshot.data ?? [], !snapshot.hasData));
-                },
-              )
+              SliverToBoxAdapter(child: getSearch(wallets))
             ],
           ),
         ),
@@ -77,20 +68,13 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
                   child: ValueListenableBuilder<StatementsRequest>(
                     valueListenable: selected,
                     builder: (context, value, _) {
-                      final balance = value.balance;
                       final wallet = value.wallet;
-                      if (balance == null || wallet == null) {
-                        return const Center(child: Text('Select Balance and Wallet'));
-                      }
+                      if (wallet == null) return const Center(child: Text('Select Balance and Wallet'));
                       return FutureBuilder(
-                        future: wiseApi.fetchBalanceStatements(
-                          balance: balance,
-                          intervalStart: value.intervalStart,
-                          walletId: wallet.id,
-                        ),
+                        future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
                         builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {
                           if (snapshot.hasError) inspect(snapshot.error);
-                          var data = snapshot.data;
+                          List<WiseTransactions>? data = snapshot.data;
                           if (data == null || !snapshot.hasData) {
                             return Column(children: [Progress.getLoadingProgress(context: context)]);
                           }
@@ -122,8 +106,7 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
     }
   }
 
-  Widget getSearch(BuildContext context, List<WiseProfileBalance> data, bool loading) {
-    List<Wallet> wallets = Provider.of<List<Wallet>>(context);
+  Widget getSearch(List<Wallet> wallets) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20),
       child: Column(children: [
@@ -147,51 +130,6 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
               );
             },
           ),
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: InputDecorator(
-                decoration: const InputDecoration(labelText: 'Select Balance'),
-                child: DropdownButtonHideUnderline(
-                  child: ValueListenableBuilder<StatementsRequest>(
-                    valueListenable: selected,
-                    builder: (context, value, _) {
-                      return DropdownButton<WiseBalance?>(
-                        value: value.balance,
-                        isDense: true,
-                        onChanged: (WiseBalance? b) {
-                          if (b != null) {
-                            selected.value.balance = b;
-                            selected.notifyListeners();
-                          }
-                        },
-                        items: data
-                            .map(
-                              (profileB) {
-                                var options = profileB.balances
-                                    .map((b) => DropdownMenuItem(value: b, child: Text('-     ${b.currency}')))
-                                    .toList();
-                                return [
-                                  DropdownMenuItem(
-                                    value: null,
-                                    enabled: false,
-                                    child: Text(profileB.profile.fullName, style: const TextStyle(color: Colors.grey)),
-                                  ),
-                                  ...options
-                                ];
-                              },
-                            )
-                            .expand((element) => element)
-                            .toList(),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            if (loading) Progress.getLoadingProgress(context: context, size: 30)
-          ],
         ),
       ]),
     );

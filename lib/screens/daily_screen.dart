@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:budget/common/classes.dart';
 import 'package:budget/common/period_stats.dart';
 import 'package:budget/common/preference.dart';
 import 'package:budget/common/theme.dart';
@@ -7,7 +8,6 @@ import 'package:budget/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../server/model_rx.dart';
 import '../common/styles.dart';
 import '../components/daily_item.dart';
 import '../components/spend_graphic.dart';
@@ -31,6 +31,8 @@ class DailyScreenState extends State<DailyScreen> {
     List<Transaction>? transactions = Provider.of<List<Transaction>>(context);
     User? user = Provider.of<User>(context);
 
+    if (user == null) return ScreenInit.getScreenInit(context);
+
     return Scaffold(
       body: Column(children: [
         SizedBox(
@@ -47,7 +49,7 @@ class DailyScreenState extends State<DailyScreen> {
                 child: ValueListenableBuilder<PeriodStats>(
                   valueListenable: periods.selected,
                   builder: (context, periodStats, child) {
-                    if (transactions != null && user != null) {
+                    if (transactions != null) {
                       return SpendGraphic(
                         frameRange: periodStats.days,
                         transactions: transactions,
@@ -74,7 +76,7 @@ class DailyScreenState extends State<DailyScreen> {
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
               slivers: [getBody(theme, transactions, user)],
             ),
-            onRefresh: () => transactionRx.getAll(),
+            onRefresh: () async => setState(() {}),
           ),
         )
       ]),
@@ -89,6 +91,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'),
         );
       } else {
+        String symbol = user.defaultCurrency != null ? user.defaultCurrency!.symbol : '';
         return SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.only(top: 15, bottom: 80, left: 20, right: 20),
@@ -96,7 +99,7 @@ class DailyScreenState extends State<DailyScreen> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [Text('Currency ${user.defaultCurrency?.symbol}')],
+                  children: [Text('Currency $symbol')],
                 ),
                 ...List.generate(
                   transactions.length,

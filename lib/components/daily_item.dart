@@ -1,8 +1,11 @@
-import 'package:budget/common/theme.dart';
-import 'package:budget/components/icon_circle.dart';
-import '../routes.dart';
-import 'package:budget/server/model_rx.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
+import '../common/theme.dart';
+import '../components/icon_circle.dart';
+import '../server/database/transaction_rx.dart';
+import '../routes.dart';
 import '../common/styles.dart';
 import '../model/transaction.dart';
 
@@ -24,6 +27,8 @@ class DailyItemState extends State<DailyItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    auth.User user = Provider.of<auth.User>(context);
+
     return Dismissible(
       key: Key(widget.transaction.id),
       background: slideRightBackground(theme.colorScheme.primary),
@@ -42,7 +47,7 @@ class DailyItemState extends State<DailyItem> {
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                       child: const Text('Delete'),
                       onPressed: () {
-                        transactionRx.delete(widget.transaction.id);
+                        transactionRx.delete(widget.transaction.id, user.uid);
                         Navigator.of(context).pop();
                       },
                     ),

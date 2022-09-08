@@ -4,6 +4,7 @@
 
 import 'package:budget/common/convert.dart';
 import 'package:budget/model/transaction.dart';
+import 'package:budget/model/wallet.dart';
 
 class Money {
   final double value;
@@ -106,6 +107,57 @@ class WiseBalance {
 }
 
 // ---------------------------
+//         WiseStatementTransactions
+// ---------------------------
+
+class WiseStatementTransactions extends Transaction {
+  final String typeWise; //  "DEBIT"
+  final Money amountWise; // VISIBLE
+  final Money totalFeesWise;
+
+  WiseStatementTransactions({
+    required super.id,
+    required super.name,
+    required super.amount,
+    required super.balance,
+    required super.date,
+    required super.walletId,
+    required super.type,
+    required super.description,
+    required super.labels,
+    required super.categoryId,
+    required super.externalId,
+    super.category,
+    required this.typeWise,
+    required this.amountWise,
+    required this.totalFeesWise,
+  });
+
+  factory WiseStatementTransactions.fromJson(Map<String, dynamic> json, String walletId) {
+    var amount = Money.fromJson(json['amount']);
+    var totalFees = Money.fromJson(json['totalFees']);
+    var balance = amount.value > 0 ? amount.value - totalFees.value : amount.value + totalFees.value;
+    return WiseStatementTransactions(
+      id: '',
+      name: json['details']['description'],
+      amount: balance.abs(),
+      balance: balance,
+      date: Convert.parseDate(json['date']),
+      type: amount.value > 0 ? TransactionType.income : TransactionType.expense,
+      description: '${json['details']['type']} - ${json['type']} | ${json['attachment']?['note']}',
+      labels: [],
+      categoryId: '',
+      category: null,
+      walletId: walletId,
+      typeWise: json['type'],
+      amountWise: amount,
+      totalFeesWise: totalFees,
+      externalId: json['referenceNumber'],
+    );
+  }
+}
+
+// ---------------------------
 //         WiseTransactions
 // ---------------------------
 
@@ -132,26 +184,24 @@ class WiseTransactions extends Transaction {
     required this.totalFeesWise,
   });
 
-  factory WiseTransactions.fromJson(Map<String, dynamic> json, String walletId) {
-    var amount = Money.fromJson(json['amount']);
-    var totalFees = Money.fromJson(json['totalFees']);
-    var balance = amount.value > 0 ? amount.value - totalFees.value : amount.value + totalFees.value;
+  factory WiseTransactions.fromJson(Map<String, dynamic> json, Wallet wallet) {
+    var amount = Money(currency: json['sourceCurrency'], value: json['sourceValue']);
     return WiseTransactions(
       id: '',
-      name: json['details']['description'],
-      amount: balance.abs(),
-      balance: balance,
-      date: Convert.parseDate(json['date']),
+      name: json['details']['reference'] ?? '',
+      amount: amount.value.abs(),
+      balance: amount.value,
+      date: Convert.parseDate(json['created']),
       type: amount.value > 0 ? TransactionType.income : TransactionType.expense,
-      description: '${json['details']['type']} - ${json['type']} | ${json['attachment']?['note']}',
+      description: 'customerTransactionId = ${json['customerTransactionId']} - ${json['business']}',
       labels: [],
       categoryId: '',
       category: null,
-      walletId: walletId,
-      typeWise: json['type'],
+      walletId: wallet.id,
+      typeWise: '',
       amountWise: amount,
-      totalFeesWise: totalFees,
-      externalId: json['referenceNumber'],
+      totalFeesWise: Money(currency: json['sourceCurrency'], value: 0),
+      externalId: json['id'].toString(),
     );
   }
 }

@@ -33,7 +33,7 @@ class StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    List<Transaction> transactions = Provider.of<List<Transaction>>(context) ?? [];
+    List<Transaction> transactions = Provider.of<List<Transaction>>(context);
 
     return Scaffold(
       appBar: AppBar(

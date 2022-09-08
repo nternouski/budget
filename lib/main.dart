@@ -1,89 +1,115 @@
 // @dart=2.9
+import 'dart:async';
+import 'package:budget/model/budget.dart';
+import 'package:budget/model/category.dart';
+import 'package:budget/model/currency.dart';
+import 'package:budget/model/transaction.dart';
+import 'package:budget/model/wallet.dart';
+import 'package:budget/server/database/budget_rx.dart';
+import 'package:budget/server/database/category_rx.dart';
+import 'package:budget/server/database/currency_rate_rx.dart';
+import 'package:budget/server/database/currency_rx.dart';
+import 'package:budget/server/database/transaction_rx.dart';
+import 'package:budget/server/database/wallet_rx.dart';
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:provider/provider.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import './common/error_handler.dart';
 import './common/preference.dart';
 import './common/theme.dart';
-import './model/category.dart';
-import './model/budget.dart';
-import './model/transaction.dart';
-import './model/wallet.dart';
 import './routes.dart';
 import './model/user.dart';
 import './server/user_service.dart';
-import './server/model_rx.dart';
-import './server/graphql_config.dart';
-import './model/currency.dart';
 import './components/bottom_navigation_bar_widget.dart';
 import './screens/onboarding.dart';
 
+final UserService userService = UserService();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // We're using HiveStore for persistence, so we need to initialize Hive.
-  await initHiveForFlutter();
+  await Firebase.initializeApp();
 
-  Preferences().getBool(PreferenceType.darkTheme).then(
-        (darkTheme) => runApp(MyApp(
-          themeMode: darkTheme == null
+  runZonedGuarded<Future<void>>(
+    () async {
+      Preferences().getBool(PreferenceType.darkTheme).then(
+        (darkTheme) {
+          ThemeMode themeMode = darkTheme == null
               ? ThemeMode.system
               : darkTheme
                   ? ThemeMode.dark
-                  : ThemeMode.light,
-        )),
+                  : ThemeMode.light;
+
+          return runApp(MyApp(themeMode: themeMode));
+        },
       );
+    },
+    (dynamic error, StackTrace stackTrace) {
+      HandlerError().setError(error.toString());
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
   final ThemeMode themeMode;
-  final UserService userService = UserService();
 
-  MyApp({Key key, this.themeMode}) : super(key: key) {
-    currencyRx.getAll();
-  }
+  const MyApp({Key key, this.themeMode}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        StreamProvider<Token>(create: (context) => userService.tokenRx, initialData: null),
-        StreamProvider<List<Currency>>(create: (context) => currencyRx.fetchRx, initialData: const []),
-        StreamProvider<List<CurrencyRate>>(create: (context) => currencyRateRx.fetchRx, initialData: const []),
+        StreamProvider<auth.User>(create: (context) => userService.userAuth, initialData: null),
         StreamProvider<User>(create: (context) => userService.userRx, initialData: null),
-        StreamProvider<List<Category>>(create: (context) => categoryRx.fetchRx, initialData: const []),
-        StreamProvider<List<Wallet>>(create: (context) => walletRx.fetchRx, initialData: const []),
+        StreamProvider<List<Currency>>(create: (context) => currencyRx.getCurrencies(), initialData: const []),
+        StreamProvider<List<CurrencyRate>>(
+            create: (context) => currencyRateRx.getCurrencyRates(Provider.of<auth.User>(context, listen: false).uid),
+            initialData: const [],
+            catchError: (context, error) {
+              HandlerError().setError(error.toString());
+              return [];
+            }),
+        StreamProvider<List<Category>>(
+            create: (context) => categoryRx.getCategories(Provider.of<auth.User>(context, listen: false).uid),
+            initialData: const []),
+        StreamProvider<List<Wallet>>(
+            create: (context) => walletRx.getWallets(Provider.of<auth.User>(context, listen: false).uid),
+            initialData: const []),
         StreamProvider<List<Transaction>>(
-          create: (context) {
-            return transactionRx.fetchRx.asyncMap((transactions) {
-              Currency defaultCurrency = Provider.of<User>(context, listen: false)?.defaultCurrency;
-              List<Wallet> wallets = Provider.of<List<Wallet>>(context, listen: false);
-              List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context, listen: false);
-              return transactionRx.updateTransactions(transactions, wallets, currencyRates, defaultCurrency);
-            });
-          },
-          initialData: null,
-        ),
+            create: (context) {
+              var userId = Provider.of<auth.User>(context, listen: false).uid;
+              var userDb = Provider.of<User>(context, listen: false);
+              return transactionRx.getTransactions(userId, userDb?.defaultCurrency);
+            },
+            initialData: const [],
+            catchError: (context, error) {
+              HandlerError().setError(error.toString());
+              return [];
+            }),
         StreamProvider<List<Budget>>(
-          create: (context) => budgetRx.fetchRx.asyncMap(
-            (budgets) => budgetRx.updateBudgets(budgets, Provider.of<List<Transaction>>(context, listen: false) ?? []),
-          ),
-          initialData: const [],
-        ),
+            create: (context) {
+              var userId = Provider.of<auth.User>(context, listen: false).uid;
+              var userDb = Provider.of<User>(context, listen: false);
+              return budgetRx.getBudgets(userId, userDb?.defaultCurrency);
+            },
+            initialData: const [],
+            catchError: (context, error) {
+              HandlerError().setError(error.toString());
+              return [];
+            }),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
       ],
       builder: (context, child) {
-        return GraphQLProvider(
-          client: graphQLConfig.clientValueNotifier,
-          child: MaterialApp(
-            title: 'Budget',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeProvider.light,
-            darkTheme: ThemeProvider.dark,
-            themeMode: Provider.of<ThemeProvider>(context).themeMode,
-            home: const AuthWrapper(),
-            routes: RouteApp.routes,
-          ),
+        return MaterialApp(
+          title: 'Budget',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeProvider.light,
+          darkTheme: ThemeProvider.dark,
+          themeMode: Provider.of<ThemeProvider>(context).themeMode,
+          home: const AuthWrapper(),
+          routes: RouteApp.routes,
         );
       },
     );
@@ -95,11 +121,13 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Token token = Provider.of<Token>(context);
+    auth.User user = Provider.of<auth.User>(context);
+
+    if (user != null) userService.init(user.uid);
     final HandlerError handlerError = HandlerError();
     handlerError.notifier.addListener(() {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) => handlerError.showError(context));
     });
-    return token != null && token.isLogged() ? const BottomNavigationBarWidget() : const OnBoarding();
+    return user != null ? const BottomNavigationBarWidget() : const OnBoarding();
   }
 }

@@ -1,3 +1,6 @@
+import 'package:budget/common/classes.dart';
+import 'package:budget/model/user.dart';
+import 'package:budget/server/database/budget_rx.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
@@ -5,7 +8,6 @@ import '../common/convert.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
 import '../components/empty_list.dart';
-import '../server/model_rx.dart';
 import '../model/budget.dart';
 import '../routes.dart';
 
@@ -25,6 +27,10 @@ class BudgetsScreenState extends State<BudgetsScreen> {
   Widget build(BuildContext context) {
     List<Budget> budgets = Provider.of<List<Budget>>(context);
     final theme = Theme.of(context);
+
+    User? user = Provider.of<User>(context);
+
+    if (user == null) return ScreenInit.getScreenInit(context);
 
     return Scaffold(
       body: RefreshIndicator(
@@ -48,13 +54,13 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 80),
                   child: Column(
-                    children: List.generate(budgets.length, (index) => getBudget(budgets[index], theme)),
+                    children: List.generate(budgets.length, (index) => getBudget(budgets[index], theme, user.id)),
                   ),
                 ),
               ),
           ],
         ),
-        onRefresh: () => budgetRx.getAll(),
+        onRefresh: () async => setState(() {}),
       ),
     );
   }
@@ -94,7 +100,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
     );
   }
 
-  getBudget(Budget budget, ThemeData themeData) {
+  getBudget(Budget budget, ThemeData themeData, String userId) {
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
     return Dismissible(
@@ -115,7 +121,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                       child: const Text('Delete'),
                       onPressed: () {
-                        budgetRx.delete(budget.id);
+                        budgetRx.delete(budget.id, userId);
                         Navigator.of(context).pop();
                       },
                     ),

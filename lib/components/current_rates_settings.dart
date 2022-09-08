@@ -1,10 +1,11 @@
+import 'package:budget/server/database/currency_rate_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../model/currency.dart';
-import '../server/model_rx.dart';
 import '../common/styles.dart';
 import '../components/select_currency.dart';
 import '../model/user.dart';
@@ -17,6 +18,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
   @override
   Widget build(BuildContext context) {
     CurrencyRate newCurrencyRate = CurrencyRate.init();
+    auth.User user = Provider.of<auth.User>(context);
 
     return StatefulBuilder(builder: (context, setState) {
       List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
@@ -40,7 +42,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   builder: (BuildContext context) => BottomSheet(
                     enableDrag: false,
                     onClosing: () {},
-                    builder: (BuildContext context) => _bottomSheet(cr, true, currencyRates, setState),
+                    builder: (BuildContext context) => _bottomSheet(cr, true, currencyRates, setState, user.uid),
                   ),
                 ),
               ),
@@ -63,7 +65,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   builder: (BuildContext context) => BottomSheet(
                     enableDrag: false,
                     onClosing: () {},
-                    builder: (BuildContext context) => _bottomSheet(newCurrencyRate, false, currencyRates, setState),
+                    builder: (BuildContext context) =>
+                        _bottomSheet(newCurrencyRate, false, currencyRates, setState, user.uid),
                   ),
                 ),
               )
@@ -73,7 +76,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
     });
   }
 
-  _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, StateSetter setState) {
+  _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, StateSetter setState, String userId) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
         bool notExist = currencyRates
@@ -127,7 +130,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                     ElevatedButton(
                       onPressed: differentCurrency && (update || notExist)
                           ? () {
-                              update ? currencyRateRx.update(rate) : currencyRateRx.create(rate);
+                              update ? currencyRateRx.update(rate, userId) : currencyRateRx.create(rate, userId);
                               setState(() {});
                               Navigator.pop(context);
                             }

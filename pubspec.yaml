@@ -37,12 +37,16 @@ dependencies:
   animated_bottom_navigation_bar: ^1.0.1
   fl_chart: ^0.55.0
   intl: ^0.17.0
-  graphql_flutter: ^5.1.0
+  collection: ^1.16.0
+
+  firebase_auth: ^3.7.0
+  cloud_firestore: ^3.4.6
+  firebase_core: ^1.21.1
+  
   flex_color_picker: ^2.5.0
   stream_transform: ^2.0.0
   rxdart: ^0.27.5
   http: ^0.13.4
-  flutter_appauth: ^4.2.0
   shared_preferences: ^2.0.15
   smooth_page_indicator: ^1.0.0+2
   settings_ui: ^2.0.2

@@ -1,3 +1,4 @@
+import 'package:budget/model/transaction.dart';
 import 'package:flutter/material.dart';
 import '../model/category.dart';
 import '../common/classes.dart';
@@ -6,6 +7,7 @@ import '../common/convert.dart';
 class Budget implements ModelCommonInterface {
   // ignore: non_constant_identifier_names
   static int MAX_LENGTH_NAME = 25;
+
   @override
   String id;
   DateTime createdAt;
@@ -27,9 +29,20 @@ class Budget implements ModelCommonInterface {
     this.color = Convert.colorFromHex(color);
   }
 
-  factory Budget.fromJson(Map<String, dynamic> json) {
-    List<Category> categories =
-        List.from(json['budget_categories']).map((c) => Category.fromJson(c['category'])).toList();
+  factory Budget.fromJson(Map<String, dynamic> json, List<Category> categories, List<Transaction> transactions) {
+    List<String> categoryIds = List.from(json['categoryIds'] ?? []);
+    List<Category> budgetCategories =
+        categories.where((c) => categoryIds.where((id) => c.id == id).isNotEmpty).toList();
+    double balance = transactions.fold(
+      0.0,
+      (prev, transaction) {
+        if (budgetCategories.where((c) => c.id == transaction.categoryId).isNotEmpty) {
+          return prev + transaction.balance;
+        } else {
+          return prev;
+        }
+      },
+    );
 
     return Budget(
       id: json['id'],
@@ -37,8 +50,8 @@ class Budget implements ModelCommonInterface {
       name: json['name'],
       color: json['color'],
       amount: Convert.currencyToDouble(json['amount'], json),
-      balance: -1,
-      categories: categories,
+      balance: balance,
+      categories: budgetCategories,
     );
   }
 
@@ -46,111 +59,12 @@ class Budget implements ModelCommonInterface {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{
       'id': id,
+      'createdAt': createdAt,
       'name': name,
       'color': Convert.colorToHexString(color),
-      'amount': '\$$amount',
+      'amount': amount,
+      'categoryIds': categories.map((c) => c.id).toList()
     };
     return data;
   }
-}
-
-class BudgetQueries implements GraphQlQuery {
-  @override
-  String getAll = '''
-    query getBudgets {
-      budgets {
-        id
-        createdAt
-        amount
-        color
-        name
-        budget_categories {
-          category {
-            id
-            createdAt
-            color
-            icon
-            name
-          }
-        }
-      }
-    }''';
-
-  @override
-  String create = r'''
-    mutation addBudget($name: String!, $color: String!, $amount: money!) {
-      action: insert_budgets(objects: [{ name: $name, color: $color, amount: $amount }]) {
-        returning {
-          id
-          createdAt
-          amount
-          color
-          name
-          budget_categories {
-            category {
-              id
-              createdAt
-              color
-              icon
-              name
-            }
-          }
-        }
-      }
-    }''';
-
-  @override
-  String update = r'''
-    mutation updateBudget($id: uuid!, $name: String!, $color: String!, $amount: money!) {
-      action: update_budgets(where: {id: {_eq: $id}}, _set: { name: $name, color: $color, amount: $amount }) {
-        returning {
-          id
-          createdAt
-          amount
-          color
-          name
-          budget_categories {
-            category {
-              id
-              createdAt
-              color
-              icon
-              name
-            }
-          }
-        }
-      }
-    }''';
-
-  String insertCategories = r'''
-    mutation insertCategories($budgetId: uuid!, $categoryId: uuid!) {
-      action: insert_budget_categories(objects: { budgetId: $budgetId, categoryId: $categoryId }) {
-        returning {
-          category {
-            id
-            createdAt
-            color
-            icon
-            name
-          }
-        }
-      }
-    }''';
-
-  String deleteCategories = r'''
-    mutation deleteBudget($budgetId: uuid!) {
-      action: delete_budget_categories(where: { budgetId: {_eq: $budgetId} }) {
-          affected_rows
-      }
-    }''';
-
-  @override
-  String delete = r'''
-     mutation deleteBudget($id: uuid!) {
-        action: delete_budgets(where: {id: {_eq: $id}} ) {
-          returning {
-            id
-        }
-      }
-    }''';
 }

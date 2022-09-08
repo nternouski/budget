@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
+import 'package:budget/model/wallet.dart';
 import 'package:budget/server/wise_api/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class HttpService {
   final String baseUrl;
@@ -25,7 +26,6 @@ class HttpService {
       return jsonDecode(res.body);
     } else if (res.statusCode >= 400 && res.statusCode <= 500) {
       debugPrint('==> Error ${res.statusCode}');
-      inspect(jsonDecode(res.body));
       return jsonDecode(res.body);
     } else {
       debugPrint('-------------');
@@ -72,7 +72,7 @@ class WiseApi extends HttpService {
     return await _get(endpoint: '/v1/rates', queryParams: {'source': source, 'target': target});
   }
 
-  Future<List<WiseTransactions>> fetchBalanceStatements({
+  Future<List<WiseStatementTransactions>> fetchBalanceStatements({
     required WiseBalance balance,
     required DateTime intervalStart,
     String? walletId,
@@ -86,27 +86,24 @@ class WiseApi extends HttpService {
         'type': 'COMPACT'
       },
     );
-    return List.from(response['transactions']).map((t) => WiseTransactions.fromJson(t, walletId ?? '')).toList();
+    return List.from(response['transactions'])
+        .map((t) => WiseStatementTransactions.fromJson(t, walletId ?? ''))
+        .toList();
   }
 
-  Future<dynamic> fetchTransfers({
+  Future<List<WiseTransactions>> fetchTransfers({
+    required DateTime createdDateStart,
+    required Wallet wallet,
     int? offset = 0,
     int? limit = 100,
-    int? profile = 16550506,
-    String? status = 'funds_refunded',
-    DateTime? createdDateStart,
   }) async {
-    // sourceCurrency=EUR
-    List<dynamic> response = await _get(
-      endpoint: '/v1/transfers',
-      queryParams: {
-        'offset': offset,
-        'limit': limit,
-        'profile': profile,
-        // 'status': status,
-        // 'createdDateStart': '2022-01-01',
-      },
-    );
-    return response;
+    Map<String, dynamic> queryParams = {
+      'offset': offset,
+      'limit': limit,
+      'createdDateStart': DateFormat('yyyy-MM-dd').format(createdDateStart),
+    };
+    if (wallet.currency != null) queryParams['sourceCurrency'] = wallet.currency!.symbol;
+    List<dynamic> response = await _get(endpoint: '/v1/transfers', queryParams: queryParams);
+    return List.from(response).map((t) => WiseTransactions.fromJson(t, wallet)).toList();
   }
 }
