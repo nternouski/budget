@@ -16,6 +16,8 @@ class Budget implements ModelCommonInterface {
   double amount;
   double balance;
   List<Category> categories;
+  DateTime initialDate;
+  int period;
 
   Budget({
     required this.id,
@@ -25,19 +27,22 @@ class Budget implements ModelCommonInterface {
     required this.amount,
     required this.balance,
     required this.categories,
+    required this.initialDate,
+    required this.period,
   }) {
     this.color = Convert.colorFromHex(color);
   }
 
   factory Budget.fromJson(Map<String, dynamic> json, List<Category> categories, List<Transaction> transactions) {
     List<String> categoryIds = List.from(json['categoryIds'] ?? []);
+    DateTime initialDate = Convert.parseDate(json['initialDate'], json);
     List<Category> budgetCategories =
         categories.where((c) => categoryIds.where((id) => c.id == id).isNotEmpty).toList();
     double balance = transactions.fold(
       0.0,
-      (prev, transaction) {
-        if (budgetCategories.where((c) => c.id == transaction.categoryId).isNotEmpty) {
-          return prev + transaction.balance;
+      (prev, t) {
+        if (t.date.isAfter(initialDate) && budgetCategories.where((c) => c.id == t.categoryId).isNotEmpty) {
+          return prev + t.balance;
         } else {
           return prev;
         }
@@ -46,12 +51,14 @@ class Budget implements ModelCommonInterface {
 
     return Budget(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       color: json['color'],
       amount: Convert.currencyToDouble(json['amount'], json),
       balance: balance,
       categories: budgetCategories,
+      initialDate: initialDate,
+      period: json['period'],
     );
   }
 
@@ -63,7 +70,9 @@ class Budget implements ModelCommonInterface {
       'name': name,
       'color': Convert.colorToHexString(color),
       'amount': amount,
-      'categoryIds': categories.map((c) => c.id).toList()
+      'categoryIds': categories.map((c) => c.id).toList(),
+      'initialDate': initialDate,
+      'period': period,
     };
     return data;
   }

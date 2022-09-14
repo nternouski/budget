@@ -70,8 +70,10 @@ class StatsScreenState extends State<StatsScreen> {
         padding: const EdgeInsets.only(top: 15, bottom: 10, left: 20, right: 20),
         child: Column(
           children: [
+            Center(child: Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium)),
+            const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
               child: Wrap(
                 spacing: 10,
                 runSpacing: 10,

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import '../common/theme.dart';
+import '../server/database/transaction_rx.dart';
+import '../model/wallet.dart';
 import '../model/user.dart';
 import '../common/convert.dart';
 import '../model/transaction.dart';
@@ -17,16 +21,10 @@ class Balance {
 }
 
 class SpendGraphic extends StatefulWidget {
-  final List<Transaction> transactions;
   final User user;
   final int frameRange;
 
-  const SpendGraphic({
-    Key? key,
-    required this.frameRange,
-    required this.transactions,
-    required this.user,
-  }) : super(key: key);
+  const SpendGraphic({Key? key, required this.frameRange, required this.user}) : super(key: key);
 
   @override
   State<SpendGraphic> createState() => _SpendGraphicState();
@@ -93,27 +91,41 @@ class _SpendGraphicState extends State<SpendGraphic> {
     );
   }
 
-  void updateFirstBalanceFrame(BuildContext context, DateTime frameDate, List<Transaction> transactions) async {
-    if (firstBalanceOfFrame == null) {
-      double balanceFixed = widget.user.initialAmount;
-      balanceFixed = transactions
-          .where((t) => t.date.isBefore(frameDate))
-          .fold<double>(balanceFixed, (prev, element) => prev + element.balanceFixed);
-      setState(() {
-        firstBalanceOfFrame = balanceFixed;
-        frame = [];
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final DateTime frameDate = now.subtract(Duration(days: widget.frameRange));
 
-    updateFirstBalanceFrame(context, frameDate, widget.transactions);
+    return StreamBuilder<List<Transaction>>(
+      stream: transactionRx.getTransactions(widget.user.id),
+      builder: (BuildContext context, snapshot) {
+        if (snapshot.connectionState.name == 'waiting') {
+          return SizedBox(
+            height: 200,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [Progress.getLoadingProgress(context: context)],
+            ),
+          );
+        }
+        List<Transaction> transactions = List.from(snapshot.data ?? []);
+        List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
 
-    widget.transactions.sort((a, b) => b.date.compareTo(a.date));
-    frame = calcFrame(widget.transactions, firstBalanceOfFrame ?? 0, frameDate);
+        // Calc Initial value of graph
+        double total = wallets.fold<double>(0.0, (acc, w) => acc + w.balanceFixed) + widget.user.initialAmount;
+        firstBalanceOfFrame = transactions
+            .where((t) => t.date.isAfter(frameDate))
+            .fold<double>(total, (prev, element) => prev - element.balanceFixed);
+        frame = [];
+
+        return getGraph(context, frameDate, transactions);
+      },
+    );
+  }
+
+  Widget getGraph(BuildContext context, DateTime frameDate, List<Transaction> transactions) {
+    transactions.sort((a, b) => b.date.compareTo(a.date));
+    frame = calcFrame(transactions, firstBalanceOfFrame ?? 0, frameDate);
     spots = List.generate(widget.frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
 
     final color = Theme.of(context).colorScheme.primary;

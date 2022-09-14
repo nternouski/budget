@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+class Display {
+  static message(BuildContext context, String text, {int seconds = 2}) {
+    return ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        duration: Duration(seconds: seconds),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
 class HandlerError {
   final ValueNotifier<String?> _textError = ValueNotifier<String?>(null);
   get notifier => _textError;

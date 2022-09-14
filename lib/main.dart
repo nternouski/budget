@@ -74,26 +74,18 @@ class MyApp extends StatelessWidget {
         StreamProvider<List<Category>>(
             create: (context) => categoryRx.getCategories(Provider.of<auth.User>(context, listen: false).uid),
             initialData: const []),
-        StreamProvider<List<Wallet>>(
-            create: (context) => walletRx.getWallets(Provider.of<auth.User>(context, listen: false).uid),
-            initialData: const []),
         StreamProvider<List<Transaction>>(
-            create: (context) {
-              var userId = Provider.of<auth.User>(context, listen: false).uid;
-              var userDb = Provider.of<User>(context, listen: false);
-              return transactionRx.getTransactions(userId, userDb?.defaultCurrency);
-            },
+            create: (context) => transactionRx.getTransactions(Provider.of<auth.User>(context, listen: false).uid),
             initialData: const [],
             catchError: (context, error) {
               HandlerError().setError(error.toString());
               return [];
             }),
+        StreamProvider<List<Wallet>>(
+            create: (context) => walletRx.getWallets(Provider.of<auth.User>(context, listen: false).uid),
+            initialData: const []),
         StreamProvider<List<Budget>>(
-            create: (context) {
-              var userId = Provider.of<auth.User>(context, listen: false).uid;
-              var userDb = Provider.of<User>(context, listen: false);
-              return budgetRx.getBudgets(userId, userDb?.defaultCurrency);
-            },
+            create: (context) => budgetRx.getBudgets(Provider.of<auth.User>(context, listen: false).uid),
             initialData: const [],
             catchError: (context, error) {
               HandlerError().setError(error.toString());

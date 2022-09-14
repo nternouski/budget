@@ -21,7 +21,7 @@ class Label implements ModelCommonInterface {
   ) {
     return Label(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       color: Convert.colorFromHex(json['color']),
     );

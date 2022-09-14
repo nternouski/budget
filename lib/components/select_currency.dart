@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:budget/model/currency.dart';
 
 class SelectCurrency extends StatelessWidget {
-  final String defaultCurrencyId;
+  final String initialCurrencyId;
   final bool disabled;
   final String labelText;
   final Function(Currency) onSelect;
@@ -13,7 +13,7 @@ class SelectCurrency extends StatelessWidget {
     Key? key,
     this.disabled = false,
     this.labelText = '',
-    required this.defaultCurrencyId,
+    required this.initialCurrencyId,
     required this.onSelect,
   }) : super(key: key);
 
@@ -29,10 +29,10 @@ class SelectCurrency extends StatelessWidget {
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             isDense: true,
-            value: defaultCurrencyId,
+            value: initialCurrencyId,
             onChanged: disabled
                 ? null
-                : (String? id) => id != null ? onSelect(currencies.firstWhere((c) => c.id == id)) : null,
+                : (String? id) => id != '' && id != null ? onSelect(currencies.firstWhere((c) => c.id == id)) : null,
             items: currencies
                 .map((c) => DropdownMenuItem(
                       value: c.id,

@@ -16,7 +16,7 @@ class Currency implements ModelCommonInterface {
   factory Currency.fromJson(Map<String, dynamic> json) {
     return Currency(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       symbol: json['symbol'],
     );
@@ -66,7 +66,7 @@ class CurrencyRate implements ModelCommonInterface {
     }
     return CurrencyRate(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       rate: double.parse(json['rate'].toString()),
       currencyFrom: currencyFrom,
       currencyTo: currencyTo,

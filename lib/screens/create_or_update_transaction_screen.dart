@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:collection/collection.dart';
 
+import '../model/currency.dart';
+import '../model/user.dart';
 import '../common/convert.dart';
 import '../common/error_handler.dart';
 import '../components/create_or_update_label.dart';
@@ -11,7 +13,6 @@ import '../components/icon_circle.dart';
 import '../components/create_or_update_category.dart';
 import '../screens/wallets_screen.dart';
 import '../server/database/transaction_rx.dart';
-import '../server/database/wallet_rx.dart';
 import '../model/wallet.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
@@ -45,6 +46,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     name: '',
     amount: 0,
     balance: 0,
+    balanceFixed: 0,
     categoryId: '',
     date: now,
     walletId: '',
@@ -55,6 +57,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   );
   String title = 'Create Transaction';
   Action action = Action.create;
+  final ValueNotifier _showDescriptionField = ValueNotifier<bool>(false);
   final TextEditingController dateController = TextEditingController(text: '');
   final TextEditingController timeController = TextEditingController(text: '');
   late List<PopupMenuItem<TransactionType>> types = TransactionType.values
@@ -64,6 +67,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             child: Text(Convert.capitalize(t.toShortString()), style: TextStyle(color: colorsTypeTransaction[t])),
           )))
       .toList();
+  Wallet? walletSelected;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -73,12 +77,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = ModalRoute.of(context)!.settings.arguments as Transaction?;
+    List<Wallet> wallets = Provider.of<List<Wallet>>(context);
 
     if (t != null) {
       transaction = t;
       if (t.id != '') {
+        walletSelected = wallets.firstWhereOrNull((w) => w.id == transaction.walletId);
         action = Action.update;
-        title = 'Update Transaction';
+        title = 'Update';
       }
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
@@ -92,15 +98,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             leading: getBackButton(context),
             title: Text('$title ${transaction.name}'),
           ),
-          SliverToBoxAdapter(child: getForm(context, theme))
+          SliverToBoxAdapter(child: getForm(context, wallets, theme))
         ],
       ),
     );
   }
 
-  Widget buildWallet(BuildContext context, Color disabledColor) {
-    auth.User user = Provider.of<auth.User>(context, listen: false);
-
+  Widget buildWallet(BuildContext context, String userId, List<Wallet> wallets, Color disabledColor) {
     return Column(
       children: [
         Row(children: [
@@ -110,44 +114,37 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
           ),
         ]),
-        StreamBuilder<List<Wallet>>(
-          stream: walletRx.getWallets(user.uid),
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data != null) {
-              final wallets = List<Wallet>.from(snapshot.data!);
-              if (wallets.isEmpty) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [SizedBox(height: 60), Text('No wallets by the moment.')],
-                );
-              } else {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(
-                      wallets.length,
-                      (index) => GestureDetector(
-                          onTap: () => setState(() => transaction.walletId = wallets[index].id),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 20),
-                            child: WalletItem(
-                              wallet: wallets[index],
-                              userId: user.uid,
-                              showBalance: false,
-                              showActions: false,
-                              selected: transaction.walletId == wallets[index].id,
-                            ),
-                          )),
-                    ),
-                  ),
-                );
-              }
-            } else {
-              return Text('Error on Wallets: ${snapshot.error.toString()}');
-            }
-          },
-        ),
+        if (wallets.isEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [SizedBox(height: 60), Text('No wallets by the moment.')],
+          ),
+        if (wallets.isNotEmpty)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(
+                wallets.length,
+                (index) => GestureDetector(
+                    onTap: () => setState(() {
+                          transaction.walletId = wallets[index].id;
+                          walletSelected = wallets[index];
+                        }),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: WalletItem(
+                        wallet: wallets[index],
+                        userId: userId,
+                        showBalance: false,
+                        showActions: false,
+                        selected: transaction.walletId == wallets[index].id,
+                      ),
+                    )),
+              ),
+            ),
+          ),
+        const SizedBox(height: 10),
       ],
     );
   }
@@ -157,6 +154,10 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Row(
           children: [
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
+            ),
             const Text('Choose Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             IconButton(
               icon: const Icon(Icons.add),
@@ -196,6 +197,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconCircle(icon: categories[index].icon, color: categories[index].color),
+                          const SizedBox(width: 10),
                           Text(categories[index].name,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17))
                         ],
@@ -206,9 +208,6 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }),
             ),
           ),
-        const SizedBox(height: 10),
-        const Text('Long press for edit category.'),
-        sizedBoxHeight,
       ],
     );
   }
@@ -255,28 +254,43 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget buildName() {
-    return TextFormField(
-      initialValue: transaction.name,
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Cookies'),
-      validator: (String? value) {
-        if (value!.isEmpty) return 'Name is Required.';
-        return null;
-      },
-      onSaved: (String? value) {
-        transaction.name = value!;
-      },
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: TextFormField(
+            initialValue: transaction.name,
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Cookies'),
+            validator: (String? value) {
+              if (value!.isEmpty) return 'Name is Required.';
+              return null;
+            },
+            onChanged: (String _) => _formKey.currentState!.validate(),
+            onSaved: (String? value) => transaction.name = value!,
+          ),
+        ),
+        const SizedBox(width: 5),
+        InkWell(
+          child: const Icon(Icons.edit_note),
+          onTap: () => setState(() => _showDescriptionField.value = !_showDescriptionField.value),
+        ),
+      ],
     );
   }
 
   Widget buildDescription() {
-    return TextFormField(
-      initialValue: transaction.description,
-      keyboardType: TextInputType.multiline,
-      maxLines: null,
-      inputFormatters: [LengthLimitingTextInputFormatter(Transaction.MAX_LENGTH_DESCRIPTION)],
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Description', hintTextStr: 'Cookies are the best'),
-      onSaved: (String? value) => transaction.description = value!,
-    );
+    return Column(children: [
+      TextFormField(
+        key: const Key('normal'),
+        initialValue: transaction.description,
+        keyboardType: TextInputType.multiline,
+        maxLines: null,
+        inputFormatters: [LengthLimitingTextInputFormatter(Transaction.MAX_LENGTH_DESCRIPTION)],
+        decoration: InputStyle.inputDecoration(labelTextStr: 'Description', hintTextStr: 'Cookies are the best'),
+        onSaved: (String? value) => transaction.description = value!,
+      ),
+      const SizedBox(height: 1)
+    ]);
   }
 
   // DATE PICKER //
@@ -336,9 +350,10 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget getForm(BuildContext context, ThemeData theme) {
-    auth.User user = Provider.of<auth.User>(context, listen: false);
+  Widget getForm(BuildContext context, List<Wallet> wallets, ThemeData theme) {
+    User user = Provider.of<User>(context);
     List<Category> categories = Provider.of<List<Category>>(context);
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     return Form(
         key: _formKey,
@@ -377,7 +392,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 ),
               ],
             ),
-            buildWallet(context, theme.disabledColor),
+            buildWallet(context, user.id, wallets, theme.disabledColor),
             buildCategory(categories),
             CreateOrUpdateLabel(
               labels: transaction.labels,
@@ -391,29 +406,61 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               ),
             ),
             buildName(),
-            buildDescription(),
+            ValueListenableBuilder(
+              valueListenable: _showDescriptionField,
+              builder: (BuildContext context, dynamic show, _) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return SizeTransition(sizeFactor: animation, child: child);
+                  },
+                  child: show ? buildDescription() : const Text(''),
+                );
+              },
+            ),
             buildDateField(),
             sizedBoxHeight,
             sizedBoxHeight,
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
-                if (transaction.walletId == '') {
+                _formKey.currentState!.save();
+                if (transaction.walletId == '' || walletSelected == null) {
                   return handlerError.setError('You must choice a wallet first');
                 }
-                if (transaction.categoryId == '') {
-                  return handlerError.setError('You must choice a category first');
+                if (user.defaultCurrency.id == '') {
+                  return handlerError.setError('You must have a default currency first');
                 }
-                _formKey.currentState!.save();
+                Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletId);
+                transaction.updateBalance();
+                if (user.defaultCurrency.id == wallet.currencyId) {
+                  transaction.balanceFixed = transaction.balance;
+                } else {
+                  CurrencyRate? cr = currencyRates.firstWhereOrNull((r) =>
+                      ((user.defaultCurrency.id == r.currencyFrom.id && wallet.currencyId == r.currencyTo.id) ||
+                          (user.defaultCurrency.id == r.currencyTo.id && wallet.currencyId == r.currencyFrom.id)));
+                  if (cr != null) {
+                    bool fromTo =
+                        user.defaultCurrency.id == cr.currencyFrom.id && wallet.currencyId == cr.currencyTo.id;
+                    transaction.balanceFixed = double.parse(
+                      (fromTo ? transaction.balance * cr.rate : transaction.balance / cr.rate).toStringAsFixed(2),
+                    );
+                  } else {
+                    String defaultSymbol = user.defaultCurrency.symbol;
+                    String tSymbol = wallet.currency?.symbol ?? '';
+                    String message =
+                        'No currency rate of $defaultSymbol-$tSymbol or $tSymbol-$defaultSymbol, please add it before.';
+                    return HandlerError().setError(message);
+                  }
+                }
+                if (transaction.categoryId == '') return handlerError.setError('You must choice a category first');
                 if (transaction.amount <= 0.0) {
                   return handlerError.setError('Amount is required and must be grater than 0.');
                 }
                 if (action == Action.create) {
-                  transaction.updateBalance();
-                  transactionRx.create(transaction, user.uid);
+                  await transactionRx.create(transaction, user.id, walletSelected!);
                 } else {
-                  transaction.updateBalance();
-                  transactionRx.update(transaction, user.uid);
+                  await transactionRx.update(transaction, user.id, walletSelected!);
                 }
                 Navigator.of(context).pop();
               },

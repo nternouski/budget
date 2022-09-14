@@ -1,20 +1,31 @@
 import 'dart:developer';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import './icon_helper.dart';
 
 class Convert {
-  static double currencyToDouble(dynamic currency, dynamic context) {
-    if (currency == null) inspect(context);
-    currency ??= '\$ -1';
+  static double currencyToDouble(dynamic currency, dynamic contextOfConversion) {
+    if (currency == null) {
+      debugPrint('<< ERROR IN currencyToDouble >>');
+      inspect(contextOfConversion);
+      currency = '\$ -1';
+    }
     return double.parse('$currency'.replaceAll(RegExp(r'[\$,]'), ''));
   }
 
-  static DateTime parseDate(dynamic date) {
+  static DateTime parseDate(dynamic date, dynamic contextOfConversion) {
     try {
+      if (date == null) {
+        debugPrint('<< ERROR IN parseDate >>');
+        inspect(contextOfConversion);
+        date = DateTime.now();
+      }
+      if (date is Timestamp) return date.toDate();
       return date is String ? DateTime.parse(date) : date;
     } catch (e) {
+      inspect(e);
       return DateTime.now();
     }
   }

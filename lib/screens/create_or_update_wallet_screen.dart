@@ -1,10 +1,11 @@
-import 'package:budget/server/database/wallet_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:provider/provider.dart';
 
+import '../common/error_handler.dart';
+import '../server/database/wallet_rx.dart';
 import '../common/icon_helper.dart';
 import '../components/select_currency.dart';
 import '../components/icon_picker.dart';
@@ -23,6 +24,8 @@ class CreateOrUpdateWalletScreen extends StatefulWidget {
 final now = DateTime.now();
 
 class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
+  HandlerError handlerError = HandlerError();
+
   Wallet wallet = defaultWallet;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -70,8 +73,11 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
       ),
       Expanded(
         child: SelectCurrency(
-          defaultCurrencyId: wallet.currencyId,
-          onSelect: (c) => setState(() => wallet.currencyId = c.id),
+          initialCurrencyId: wallet.currencyId,
+          onSelect: (c) => setState(() {
+            wallet.currencyId = c.id;
+            wallet.currency = c;
+          }),
           disabled: action == Action.update,
         ),
       ),
@@ -84,6 +90,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
       decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name', hintTextStr: 'Bank'),
       inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
       validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
+      onChanged: (String _) => _formKey.currentState!.validate(),
       onSaved: (String? value) => wallet.name = value!,
     );
   }
@@ -122,10 +129,10 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
           sizedBoxHeight,
           ElevatedButton(
             onPressed: () {
-              if (!_formKey.currentState!.validate()) {
-                return;
-              }
+              if (!_formKey.currentState!.validate()) return;
               _formKey.currentState!.save();
+              if (wallet.currency == null) return handlerError.setError('Currency is required');
+
               if (action == Action.create) {
                 walletRx.create(wallet, user.uid);
               } else {

@@ -16,6 +16,7 @@ class Wallet implements ModelCommonInterface {
   String iconName;
   double initialAmount;
   double balance;
+  double balanceFixed;
   String currencyId;
   Currency? currency;
 
@@ -27,6 +28,7 @@ class Wallet implements ModelCommonInterface {
     required this.iconName,
     required this.initialAmount,
     required this.balance,
+    required this.balanceFixed,
     required this.currencyId,
   }) {
     icon = Convert.toIcon(iconName);
@@ -35,15 +37,15 @@ class Wallet implements ModelCommonInterface {
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
     double initialAmount = Convert.currencyToDouble(json['initialAmount'], json);
-    double balance = Convert.currencyToDouble(0, json);
     Wallet wallet = Wallet(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       color: json['color'],
       iconName: json['icon'],
       initialAmount: initialAmount,
-      balance: initialAmount + balance,
+      balance: Convert.currencyToDouble(json['balance'], json),
+      balanceFixed: Convert.currencyToDouble(json['balanceFixed'], json),
       currencyId: json['currencyId'],
     );
     return wallet;
@@ -57,6 +59,8 @@ class Wallet implements ModelCommonInterface {
       'name': name,
       'color': Convert.colorToHexString(color),
       'icon': iconName,
+      'balance': balance,
+      'balanceFixed': balanceFixed,
       'initialAmount': initialAmount,
       'currencyId': currencyId,
     };
@@ -68,9 +72,10 @@ final defaultWallet = Wallet(
   id: '',
   createdAt: DateTime.now(),
   name: '',
-  color: 'ff00ffff',
+  color: 'ff448aff',
   iconName: 'question_mark',
   initialAmount: 0,
   currencyId: '',
   balance: 0,
+  balanceFixed: 0,
 );

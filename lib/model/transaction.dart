@@ -1,10 +1,12 @@
-import 'package:budget/model/label.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 
-import 'package:budget/common/classes.dart';
-import 'package:budget/common/convert.dart';
-import 'package:budget/model/category.dart';
+import '../model/label.dart';
+import '../model/wallet.dart';
+import '../common/classes.dart';
+import '../common/convert.dart';
+import '../model/category.dart';
 
 enum TransactionType {
   income,
@@ -24,7 +26,28 @@ extension ParseToString on TransactionType {
   }
 }
 
-class Transaction implements ModelCommonInterface {
+class TransactionBalance implements ModelCommonInterface {
+  @override
+  String id;
+
+  /// Amount fixed with default currency of user.
+  double balanceFixed;
+  String walletId;
+  TransactionBalance({required this.id, required this.balanceFixed, required this.walletId});
+
+  @Deprecated('TransactionBalance fromJson desecrated')
+  factory TransactionBalance.fromJson(Map<String, dynamic> json) {
+    throw 'TransactionBalance fromJson desecrated!';
+  }
+
+  @override
+  @Deprecated('TransactionBalance toJson desecrated')
+  Map<String, dynamic> toJson() {
+    throw 'TransactionBalance toJson desecrated!';
+  }
+}
+
+class Transaction implements ModelCommonInterface, TransactionBalance {
   // ignore: non_constant_identifier_names
   static int MAX_LENGTH_DESCRIPTION = 80;
 
@@ -35,10 +58,13 @@ class Transaction implements ModelCommonInterface {
   double amount;
 
   /// Amount fixed with default currency of user.
-  late double balanceFixed;
+  @override
+  double balanceFixed;
   double balance;
   DateTime date;
+  @override
   String walletId;
+  Wallet? wallet;
   TransactionType type;
   String description;
   List<Label> labels;
@@ -53,6 +79,7 @@ class Transaction implements ModelCommonInterface {
     required this.name,
     required this.amount,
     required this.balance,
+    required this.balanceFixed,
     required this.date,
     required this.walletId,
     required this.type,
@@ -66,22 +93,25 @@ class Transaction implements ModelCommonInterface {
     updateBalance();
     this.createdAt = createdAt ?? DateTime.now();
     this.category = category ?? defaultCategory;
-    balanceFixed = balance;
   }
 
-  factory Transaction.fromJson(Map<String, dynamic> json, List<Label> labels) {
+  factory Transaction.fromJson(Map<String, dynamic> json, List<Label> allLabels) {
+    List<Label> labels = List<String>.from(json['labelIds'] ?? []).fold<List<Label>>([], (acc, labelId) {
+      var found = allLabels.firstWhereOrNull((l) => labelId == l.id);
+      if (found != null) acc.add(found);
+      return acc;
+    }).toList();
     return Transaction(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       amount: Convert.currencyToDouble(json['amount'], json),
-      balance: 0,
-      date: Convert.parseDate(json['date']),
+      balance: Convert.currencyToDouble(json['balance'], json),
+      balanceFixed: Convert.currencyToDouble(json['balanceFixed'], json),
+      date: Convert.parseDate(json['date'], json),
       type: TransactionType.values.byName(json['type']),
       description: json['description'] ?? '',
-      labels: List<String>.from(json['labelIds'] ?? [])
-          .map((labelId) => labels.firstWhere((l) => labelId == l.id))
-          .toList(),
+      labels: labels,
       category: json['category'] != null ? Category.fromJson(json['category']) : null,
       categoryId: json['categoryId'],
       walletId: json['walletId'],
@@ -96,10 +126,11 @@ class Transaction implements ModelCommonInterface {
       'id': id,
       'createdAt': createdAt,
       'name': name,
-      'date': date.toString(),
+      'date': date,
       'type': type.name,
       'amount': amount,
       'balance': balance,
+      'balanceFixed': balanceFixed,
       'categoryId': categoryId,
       'description': description,
       'walletId': walletId,
@@ -133,10 +164,13 @@ class Transaction implements ModelCommonInterface {
   void updateBalance() {
     if (type == TransactionType.expense) {
       balance = -amount;
+      balanceFixed = -balanceFixed.abs();
     } else if (type == TransactionType.income) {
       balance = amount;
+      balanceFixed = balanceFixed.abs();
     } else {
       balance = 0; // Its a TransactionType.transfer
+      balanceFixed = 0; // Its a TransactionType.transfer
     }
   }
 }

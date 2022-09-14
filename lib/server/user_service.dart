@@ -35,7 +35,7 @@ class UserService extends UserRx {
     }
   }
 
-  Future<void> singUp(BuildContext context, Currency? defaultCurrency) async {
+  Future<void> singUp(BuildContext context, Currency defaultCurrency) async {
     try {
       initStarted = true;
 
@@ -55,7 +55,6 @@ class UserService extends UserRx {
           name: userAuth.displayName ?? 'Name Not Set',
           email: userAuth.email ?? '',
           integrations: {},
-          defaultCurrencyId: defaultCurrency?.id ?? '',
           defaultCurrency: defaultCurrency,
         );
 

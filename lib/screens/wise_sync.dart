@@ -69,7 +69,7 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
                     valueListenable: selected,
                     builder: (context, value, _) {
                       final wallet = value.wallet;
-                      if (wallet == null) return const Center(child: Text('Select Balance and Wallet'));
+                      if (wallet == null) return const Center(child: Text('Select Balance'));
                       return FutureBuilder(
                         future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
                         builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {

@@ -29,7 +29,7 @@ class ThemeProvider extends ChangeNotifier {
       secondary: Colors.pink,
     ),
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
-    disabledColor: Colors.grey,
+    disabledColor: const Color.fromARGB(255, 145, 145, 145),
   );
 
   static final dark = ThemeData(

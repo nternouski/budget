@@ -7,6 +7,7 @@ import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
   final nameLimit = 25;
+  final emailLimit = 30;
 
   final UserService userService = UserService();
 
@@ -40,6 +41,11 @@ class NavDrawer extends StatelessWidget {
             leading: const Icon(Icons.wallet),
             title: const Text('Wise Sync'),
             onTap: () => RouteApp.redirect(context: context, url: URLS.wiseSync),
+          ),
+          ListTile(
+            leading: const Icon(Icons.quiz),
+            title: const Text('FAQ'),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.faq),
           ),
           const Divider(thickness: 1),
           ListTile(
@@ -81,9 +87,10 @@ class NavDrawer extends StatelessWidget {
   }
 
   Widget buildProfile(ThemeData theme, auth.User user) {
-    var nameExceded = '${user.displayName}'.length > nameLimit;
-    var name = nameExceded ? '${'${user.displayName}'.substring(0, nameLimit)}..' : '${user.displayName}';
+    var name = user.displayName ?? 'Name Not Set';
+    var email = user.email ?? 'No Email';
     var photoURL = user.photoURL;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -96,9 +103,9 @@ class NavDrawer extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        Text(name, style: theme.textTheme.titleLarge),
+        Text(name.length > nameLimit ? '${name.substring(0, nameLimit)}..' : name, style: theme.textTheme.titleLarge),
         const SizedBox(height: 5),
-        Text(user.email ?? 'No Email'),
+        Text(email.length > emailLimit ? '${email.substring(0, emailLimit)}..' : email),
       ],
     );
   }

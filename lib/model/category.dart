@@ -30,7 +30,7 @@ class Category implements ModelCommonInterface {
   ) {
     return Category(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       iconName: json['icon'],
       color: Convert.colorFromHex(json['color']),
@@ -50,4 +50,4 @@ class Category implements ModelCommonInterface {
   }
 }
 
-final defaultCategory = Category.fromJson({'name': '', 'id': '', 'icon': 'question_mark', 'color': 'FF4CAF50'});
+final defaultCategory = Category(id: '', name: '', iconName: 'question_mark', color: Convert.colorFromHex('FF4CAF50'));

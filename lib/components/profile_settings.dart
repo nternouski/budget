@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-import 'package:budget/common/styles.dart';
-import 'package:budget/components/select_currency.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/server/user_service.dart';
+import '../common/error_handler.dart';
+import '../common/styles.dart';
+import '../model/user.dart';
+import '../server/user_service.dart';
 
 class ProfileSettings extends AbstractSettingsSection {
   final int textLimit = 22;
@@ -21,10 +21,7 @@ class ProfileSettings extends AbstractSettingsSection {
       var email = emailExceded ? '${user.email.substring(0, textLimit)}..' : user.email;
       var name = nameExceded ? '${user.name.substring(0, textLimit)}..' : user.name;
 
-      String defaultCurrency = 'No set yet';
-      if (user.defaultCurrency != null) {
-        defaultCurrency = '${user.defaultCurrency!.symbol} - Initial Amount \$ ${user.initialAmount}';
-      }
+      String defaultCurrency = '${user.defaultCurrency.symbol} \$ ${user.initialAmount}';
       return SettingsSection(
         title: const Text('Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
         tiles: [
@@ -62,7 +59,7 @@ class ProfileSettings extends AbstractSettingsSection {
           ),
           SettingsTile.navigation(
             leading: const Icon(Icons.currency_exchange),
-            title: const Text('Default Currency'),
+            title: const Text('Initial Amount'),
             value: Text(defaultCurrency),
             onPressed: (context) => showModalBottomSheet(
               enableDrag: true,
@@ -121,17 +118,10 @@ class ProfileSettings extends AbstractSettingsSection {
                   decoration: InputStyle.inputDecoration(
                     labelTextStr: 'Initial Amount',
                     hintTextStr: '0',
-                    prefix: const Text('\$ '),
+                    prefix: Text('${user.defaultCurrency.symbol} \$ '),
                   ),
                   validator: (String? value) => value!.isEmpty ? 'Amount is Required.' : null,
                   onChanged: (String value) => user.initialAmount = double.parse(value != '' ? value : '0'),
-                ),
-                SelectCurrency(
-                  defaultCurrencyId: user.defaultCurrencyId,
-                  onSelect: (c) => setStateBottomSheet(() {
-                    user.defaultCurrencyId = c.id;
-                    user.defaultCurrency = c;
-                  }),
                 ),
                 sizedBoxHeight,
                 Row(
@@ -141,6 +131,9 @@ class ProfileSettings extends AbstractSettingsSection {
                     ElevatedButton(
                       child: const Text('Update'),
                       onPressed: () {
+                        if (user.defaultCurrency.id == '') {
+                          return HandlerError().setError('The default currency must be set');
+                        }
                         UserService().update(user);
                         setState(() {});
                         Navigator.pop(context);

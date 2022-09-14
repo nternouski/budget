@@ -1,10 +1,11 @@
-import 'package:budget/server/database/currency_rate_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../server/currency_rates_service.dart';
+import '../server/database/currency_rate_rx.dart';
 import '../model/currency.dart';
 import '../common/styles.dart';
 import '../components/select_currency.dart';
@@ -12,71 +13,99 @@ import '../model/user.dart';
 
 class CurrentRatesSettings extends AbstractSettingsSection {
   final User user;
+  final CurrencyRateApi currencyRateApi = CurrencyRateApi();
 
-  const CurrentRatesSettings({Key? key, required this.user}) : super(key: key);
+  CurrentRatesSettings({Key? key, required this.user}) : super(key: key);
+
+  Future<bool?> _confirm(BuildContext context, CurrencyRate cr, double rate) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('We found a new rate.'),
+          content: Text('${cr.currencyFrom.symbol} to ${cr.currencyTo.symbol}: \$$rate'),
+          actions: <Widget>[
+            buttonCancelContext(context),
+            ElevatedButton(
+              child: const Text('Update Currency Rate'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     CurrencyRate newCurrencyRate = CurrencyRate.init();
     auth.User user = Provider.of<auth.User>(context);
 
-    return StatefulBuilder(builder: (context, setState) {
-      List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
-      final List<SettingsTile> tiles = [];
-      if (currencyRates.isEmpty) {
-        tiles.add(
-          SettingsTile.navigation(leading: const Icon(Icons.currency_exchange), title: const Text('No Currency rates')),
-        );
-      } else {
-        tiles.addAll(currencyRates
-            .map(
-              (cr) => SettingsTile.navigation(
-                leading: const Icon(Icons.currency_exchange),
-                title: Text('${cr.currencyFrom.symbol} - ${cr.currencyTo.symbol}'),
-                value: Text('\$ ${cr.rate}'),
-                onPressed: (context) => showModalBottomSheet(
-                  enableDrag: true,
-                  context: context,
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                  builder: (BuildContext context) => BottomSheet(
-                    enableDrag: false,
-                    onClosing: () {},
-                    builder: (BuildContext context) => _bottomSheet(cr, true, currencyRates, setState, user.uid),
-                  ),
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
+    final List<SettingsTile> tiles = [];
+    if (currencyRates.isEmpty) {
+      tiles.add(
+        SettingsTile.navigation(leading: const Icon(Icons.currency_exchange), title: const Text('No Currency rates')),
+      );
+    } else {
+      tiles.addAll(currencyRates
+          .map(
+            (cr) => SettingsTile.navigation(
+              leading: const Icon(Icons.currency_exchange),
+              title: Text('${cr.currencyFrom.symbol} - ${cr.currencyTo.symbol}'),
+              value: Text('\$ ${cr.rate}'),
+              trailing: IconButton(
+                icon: const Icon(Icons.sync_alt),
+                onPressed: () async {
+                  final rate = await currencyRateApi.fetchRate(cr);
+                  final res = await _confirm(context, cr, rate);
+                  if (res == true) {
+                    cr.rate = rate;
+                    await currencyRateRx.update(cr, user.uid);
+                  }
+                },
+              ),
+              onPressed: (context) => showModalBottomSheet(
+                enableDrag: true,
+                context: context,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                builder: (BuildContext context) => BottomSheet(
+                  enableDrag: false,
+                  onClosing: () {},
+                  builder: (BuildContext context) => _bottomSheet(cr, true, currencyRates, user.uid),
+                ),
+              ),
+            ),
+          )
+          .toList());
+    }
+    return SettingsSection(
+      title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Currency Rates', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+            InkWell(
+              child: const Icon(Icons.add),
+              onTap: () => showModalBottomSheet(
+                enableDrag: true,
+                context: context,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                builder: (BuildContext context) => BottomSheet(
+                  enableDrag: false,
+                  onClosing: () {},
+                  builder: (BuildContext context) => _bottomSheet(newCurrencyRate, false, currencyRates, user.uid),
                 ),
               ),
             )
-            .toList());
-      }
-      return SettingsSection(
-        title: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Currency Rates', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-              InkWell(
-                child: const Icon(Icons.add),
-                onTap: () => showModalBottomSheet(
-                  enableDrag: true,
-                  context: context,
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                  builder: (BuildContext context) => BottomSheet(
-                    enableDrag: false,
-                    onClosing: () {},
-                    builder: (BuildContext context) =>
-                        _bottomSheet(newCurrencyRate, false, currencyRates, setState, user.uid),
-                  ),
-                ),
-              )
-            ]),
-        tiles: tiles,
-      );
-    });
+          ]),
+      tiles: tiles,
+    );
   }
 
-  _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, StateSetter setState, String userId) {
+  _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, String userId) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
         bool notExist = currencyRates
@@ -100,14 +129,14 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   children: [
                     Flexible(
                       child: SelectCurrency(
-                        defaultCurrencyId: rate.currencyFrom.id,
+                        initialCurrencyId: rate.currencyFrom.id,
                         onSelect: (c) => setStateBottomSheet(() => rate.currencyFrom = c),
                         labelText: 'From',
                       ),
                     ),
                     Flexible(
                       child: SelectCurrency(
-                        defaultCurrencyId: rate.currencyTo.id,
+                        initialCurrencyId: rate.currencyTo.id,
                         onSelect: (c) => setStateBottomSheet(() => rate.currencyTo = c),
                         labelText: 'To',
                       ),
@@ -131,7 +160,6 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                       onPressed: differentCurrency && (update || notExist)
                           ? () {
                               update ? currencyRateRx.update(rate, userId) : currencyRateRx.create(rate, userId);
-                              setState(() {});
                               Navigator.pop(context);
                             }
                           : null,

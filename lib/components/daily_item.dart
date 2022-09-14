@@ -46,8 +46,8 @@ class DailyItemState extends State<DailyItem> {
                     ElevatedButton(
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                       child: const Text('Delete'),
-                      onPressed: () {
-                        transactionRx.delete(widget.transaction.id, user.uid);
+                      onPressed: () async {
+                        await transactionRx.delete(widget.transaction, user.uid);
                         Navigator.of(context).pop();
                       },
                     ),
@@ -61,7 +61,7 @@ class DailyItemState extends State<DailyItem> {
         return null;
       },
       child: Padding(
-        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 10),
         child: getItem(theme, widget.transaction),
       ),
     );

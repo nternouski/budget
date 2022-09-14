@@ -1,63 +1,22 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/server/wise_api/helper.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-class HttpService {
-  final String baseUrl;
-  final String token;
-
-  HttpService(this.baseUrl, this.token);
-
-  Future<dynamic> _get({
-    required String endpoint,
-    Map<String, dynamic> queryParams = const {},
-    Map<String, String> headers = const {},
-  }) async {
-    var params = queryParams.map((key, value) => MapEntry(key, value.toString()));
-    final res = await http.get(Uri.https(baseUrl, endpoint, params), headers: {
-      ...headers,
-      if (token != '') ...{'Authorization': 'Bearer $token'}
-    });
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    } else if (res.statusCode >= 400 && res.statusCode <= 500) {
-      debugPrint('==> Error ${res.statusCode}');
-      return jsonDecode(res.body);
-    } else {
-      debugPrint('-------------');
-      debugPrint('Failed get: $endpoint');
-      debugPrint('-------------');
-    }
-  }
-
-  Future<dynamic> _post({required String endpoint, Object? body, Map<String, String>? headers}) async {
-    final response = await http.post(Uri.https(baseUrl, endpoint), body: body, headers: headers);
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      debugPrint('-------------');
-      debugPrint('Failed get: $endpoint');
-      debugPrint('-------------');
-    }
-  }
-}
+import 'package:budget/model/wallet.dart';
+import 'package:budget/server/http_service.dart';
+import 'package:budget/server/wise_api/helper.dart';
 
 class WiseApi extends HttpService {
   WiseApi(String token) : super('api.sandbox.transferwise.tech', token);
 
   Future<List<WiseProfile>> _fetchProfiles() async {
-    final response = await _get(endpoint: '/v2/profiles');
+    final response = await get(endpoint: '/v2/profiles');
     return List.from(response).map((p) => WiseProfile.fromJson(p)).toList();
   }
 
   Future<List<WiseProfileBalance>> fetchBalance() async {
     var result = await Future.wait(
       (await _fetchProfiles()).map((profile) {
-        return _get(endpoint: '/v4/profiles/${profile.id}/balances', queryParams: {'types': 'STANDARD'}).then(
+        return get(endpoint: '/v4/profiles/${profile.id}/balances', queryParams: {'types': 'STANDARD'}).then(
           (balancesJson) => WiseProfileBalance(
             profile: profile,
             balances: List.from(balancesJson).map((b) => WiseBalance.fromJson(b, profile.id)).toList(),
@@ -69,7 +28,7 @@ class WiseApi extends HttpService {
   }
 
   Future<dynamic> fetchRates(String source, String target) async {
-    return await _get(endpoint: '/v1/rates', queryParams: {'source': source, 'target': target});
+    return await get(endpoint: '/v1/rates', queryParams: {'source': source, 'target': target});
   }
 
   Future<List<WiseStatementTransactions>> fetchBalanceStatements({
@@ -77,7 +36,7 @@ class WiseApi extends HttpService {
     required DateTime intervalStart,
     String? walletId,
   }) async {
-    final response = await _get(
+    final response = await get(
       endpoint: '/v1/profiles/${balance.profileId}/balance-statements/${balance.id}/statement.json',
       queryParams: {
         'currency': balance.currency,
@@ -103,7 +62,7 @@ class WiseApi extends HttpService {
       'createdDateStart': DateFormat('yyyy-MM-dd').format(createdDateStart),
     };
     if (wallet.currency != null) queryParams['sourceCurrency'] = wallet.currency!.symbol;
-    List<dynamic> response = await _get(endpoint: '/v1/transfers', queryParams: queryParams);
+    List<dynamic> response = await get(endpoint: '/v1/transfers', queryParams: queryParams);
     return List.from(response).map((t) => WiseTransactions.fromJson(t, wallet)).toList();
   }
 }

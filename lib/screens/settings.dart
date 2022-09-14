@@ -42,8 +42,17 @@ class SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Period of time', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
+            const Text('Period of Time', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.info_outline),
+                SizedBox(width: 5),
+                Text('That will affect the budget and stats')
+              ],
+            ),
+            const SizedBox(height: 10),
             ...Periods.options.map(
               (option) => CheckboxListTile(
                 title: Text(option.humanize),
@@ -71,7 +80,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.language), title: const Text('Language'), value: const Text('English')),
           SettingsTile.navigation(
             leading: const Icon(Icons.query_stats),
-            title: const Text('Period of Stats'),
+            title: const Text('Period of Analytics'),
             value: Text(periodStats.humanize),
             onPressed: (context) => showModalBottomSheet(
               enableDrag: true,
@@ -130,7 +139,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 getCommon(theme, periodStats),
                 getIntegration(),
                 CurrentRatesSettings(user: user),
-                DangerZone(user: user),
+                DangerZone(userId: user.id),
               ];
             }
             return SettingsList(
@@ -156,12 +165,13 @@ class SettingsScreenState extends State<SettingsScreen> {
 }
 
 class DangerZone extends AbstractSettingsSection {
-  final User user;
+  final String userId;
 
-  const DangerZone({Key? key, required this.user}) : super(key: key);
+  const DangerZone({Key? key, required this.userId}) : super(key: key);
 
   Future<bool?> _confirm(BuildContext context, String confirmationString) {
     TextEditingController confirmController = TextEditingController(text: '');
+    ValueNotifier<bool> buttonEnabled = ValueNotifier(false);
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -172,15 +182,19 @@ class DangerZone extends AbstractSettingsSection {
             TextFormField(
               controller: confirmController,
               decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: confirmationString),
+              onChanged: (input) => buttonEnabled.value = confirmController.text == confirmationString,
             ),
           ]),
           actions: <Widget>[
             buttonCancelContext(context),
-            ElevatedButton(
-              style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-              onPressed: confirmController.text == confirmationString ? null : () => Navigator.pop(context, true),
-              child: const Text('Delete'),
-            ),
+            ValueListenableBuilder(
+              valueListenable: buttonEnabled,
+              builder: (BuildContext context, bool enabled, _) => ElevatedButton(
+                style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                onPressed: enabled ? () => Navigator.pop(context, true) : null,
+                child: const Text('Delete'),
+              ),
+            )
           ],
         );
       },
@@ -199,7 +213,7 @@ class DangerZone extends AbstractSettingsSection {
         ElevatedButton(
           style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
           onPressed: () async {
-            if (await _confirm(context, 'delete') == true) await userService.delete(user.id);
+            if (await _confirm(context, 'delete') == true) await userService.delete(userId);
           },
           child: const Text('DELETE USER'),
         ),

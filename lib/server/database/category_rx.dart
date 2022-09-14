@@ -7,25 +7,30 @@ import 'package:rxdart/rxdart.dart';
 class CategoryRx {
   @protected
   static String collectionPath = 'categories';
+  static String getCollectionPath(String userId) => '${UserRx.docPath(userId)}/$collectionPath';
   final db = Database();
 
+  ValueStream<List<Category>>? _categories;
+
   ValueStream<List<Category>> getCategories(String userId) {
-    return db
-        .getAll('${UserRx.docPath(userId)}/$collectionPath')
+    if (_categories != null) return _categories!;
+    _categories = db
+        .getAll(getCollectionPath(userId))
         .asyncMap((snapshot) => snapshot.map((data) => Category.fromJson(data)).toList())
         .shareValue();
+    return _categories!;
   }
 
   Future<String> create(Category data, String userId) {
-    return db.createDoc('${UserRx.docPath(userId)}/$collectionPath', data.toJson());
+    return db.createDoc(getCollectionPath(userId), data.toJson());
   }
 
   Future update(Category data, String userId) {
-    return db.updateDoc('${UserRx.docPath(userId)}/$collectionPath', data.toJson(), data.id);
+    return db.updateDoc(getCollectionPath(userId), data.toJson(), data.id);
   }
 
   Future delete(String id, String userId) {
-    return db.deleteDoc('${UserRx.docPath(userId)}/$collectionPath', id);
+    return db.deleteDoc(getCollectionPath(userId), id);
   }
 }
 

@@ -1,8 +1,10 @@
-import 'package:budget/components/select_currency.dart';
-import 'package:budget/model/currency.dart';
-import 'package:budget/server/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+import '../common/error_handler.dart';
+import '../components/select_currency.dart';
+import '../model/currency.dart';
+import '../server/user_service.dart';
 
 class OnBoarding extends StatefulWidget {
   const OnBoarding({Key? key}) : super(key: key);
@@ -41,7 +43,7 @@ class _OnBoardingState extends State<OnBoarding> {
           Padding(
             padding: const EdgeInsets.only(left: 35, right: 35),
             child: SelectCurrency(
-              defaultCurrencyId: defaultCurrency?.id ?? '',
+              initialCurrencyId: defaultCurrency?.id ?? '',
               onSelect: (c) => setState(() => defaultCurrency = c),
             ),
           )
@@ -81,7 +83,10 @@ class _OnBoardingState extends State<OnBoarding> {
             TextButton(
               onPressed: () async {
                 if (isLastPage) {
-                  await userService.singUp(context, defaultCurrency);
+                  if (defaultCurrency == null) {
+                    return HandlerError().setError('First yoy must set a default currency');
+                  }
+                  await userService.singUp(context, defaultCurrency!);
                 } else {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }

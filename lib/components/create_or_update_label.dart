@@ -49,7 +49,8 @@ class CreateOrUpdateLabel extends StatelessWidget {
         },
         optionsBuilder: (TextEditingValue textEditingValue) {
           if (textEditingValue.text == '') return [];
-          var options = labelsDB.where((option) => option.name.contains(textEditingValue.text.toLowerCase()));
+          var options =
+              labelsDB.where((option) => option.name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
           return options.isEmpty
               ? [Label(id: '', name: 'Crear Label "${textEditingValue.text}"?', color: Colors.black)]
               : options;

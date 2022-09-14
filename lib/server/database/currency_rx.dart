@@ -1,12 +1,16 @@
 import 'package:budget/model/currency.dart';
 import 'package:budget/server/database.dart';
+import 'package:rxdart/rxdart.dart';
 
 class CurrencyRx {
   static String collectionPath = 'currencies';
   final db = Database();
 
   Stream<List<Currency>> getCurrencies() {
-    return db.getAll(collectionPath).asyncMap((snapshot) => snapshot.map((data) => Currency.fromJson(data)).toList());
+    return db
+        .getAll(collectionPath)
+        .asyncMap((snapshot) => snapshot.map((data) => Currency.fromJson(data)).toList())
+        .shareValue();
   }
 
   Future<String> create(Currency data) {

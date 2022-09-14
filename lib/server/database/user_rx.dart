@@ -1,4 +1,5 @@
 import 'package:budget/common/error_handler.dart';
+import 'package:budget/model/currency.dart';
 import 'package:budget/model/user.dart';
 import 'package:budget/server/database/currency_rx.dart';
 import 'package:budget/server/database.dart';
@@ -12,10 +13,6 @@ class UserRx {
 
   final user$ = BehaviorSubject<User>();
   Stream<User> get userRx => user$.stream;
-
-  Stream<User> getUser(String id) {
-    return db.getDoc(collectionPath, id).asyncMap((data) => User.fromJson(data));
-  }
 
   Future<String> create(User data) async {
     bool exist = await db.getDocExist(collectionPath, data.id);
@@ -37,15 +34,9 @@ class UserRx {
   Future<void> refreshUserData(String userId) async {
     try {
       final data = await db.getDocFuture(collectionPath, userId);
-      Map<String, dynamic>? currency;
-      String defaultCurrencyId = data['defaultCurrencyId'] ?? '';
-      if (defaultCurrencyId != '') {
-        Map<String, dynamic> raw = await db
-            .getDocFuture(CurrencyRx.collectionPath, defaultCurrencyId)
-            .catchError((e) => Map<String, dynamic>.from({}));
-        if (raw.isNotEmpty) currency = raw;
-      }
-      user$.add(User.fromJson({...data, 'currency': currency}));
+      String defaultCurrencyId = data['defaultCurrencyId'];
+      Currency defaultCurrency = Currency.fromJson(await db.getDocFuture(CurrencyRx.collectionPath, defaultCurrencyId));
+      user$.add(User.fromJson(data, defaultCurrency));
     } catch (e) {
       debugPrint(e.toString());
       throw UserException('User not created');

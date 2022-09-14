@@ -35,8 +35,24 @@ class Database {
         return {'id': snapshot.id, ...(snapshot.data() ?? {})};
       });
     } catch (error) {
-      _printError('getAll | Database', collectionPath, 'Error catch: $error');
-      throw 'Error on getAll $collectionPath';
+      _printError('getDocFuture | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getDocFuture $collectionPath';
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> getCollection(String path) {
+    return db.collection(path);
+  }
+
+  Future<List<String>> getDocIdsOf(String collectionPath, {Query<Map<String, dynamic>>? reference}) {
+    try {
+      return (reference ?? db.collection(collectionPath)).get().then((snapshots) {
+        printMsg(collectionPath, 'GET FUTURE COLLECTION');
+        return snapshots.docs.fold<List<String>>([], (acc, doc) => doc.exists ? [...acc, doc.id] : acc);
+      });
+    } catch (error) {
+      _printError('getDocIdsOf | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getDocIdsOf $collectionPath';
     }
   }
 
@@ -60,9 +76,9 @@ class Database {
     }
   }
 
-  ValueStream<List<Map<String, dynamic>>> getAll(String collectionPath) {
+  ValueStream<List<Map<String, dynamic>>> getAll(String collectionPath, {Query<Map<String, dynamic>>? reference}) {
     try {
-      return db.collection(collectionPath).snapshots().asyncMap((snapshot) {
+      return (reference ?? db.collection(collectionPath)).snapshots().asyncMap((snapshot) {
         printMsg(collectionPath, 'GET ALL');
         return snapshot.docs.map((d) => {'id': d.id, ...d.data()}).toList();
       }).shareValue();

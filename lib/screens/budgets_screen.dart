@@ -19,10 +19,6 @@ class BudgetsScreen extends StatefulWidget {
 }
 
 class BudgetsScreenState extends State<BudgetsScreen> {
-  final SizedBox heightPadding = const SizedBox(height: 7);
-  final double widthPaddingValue = 20;
-  final double opacitySlide = 0.25;
-
   @override
   Widget build(BuildContext context) {
     List<Budget> budgets = Provider.of<List<Budget>>(context);
@@ -54,7 +50,10 @@ class BudgetsScreenState extends State<BudgetsScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 80),
                   child: Column(
-                    children: List.generate(budgets.length, (index) => getBudget(budgets[index], theme, user.id)),
+                    children: List.generate(
+                      budgets.length,
+                      (index) => BudgetItem(budget: budgets[index], userId: user.id),
+                    ),
                   ),
                 ),
               ),
@@ -64,6 +63,17 @@ class BudgetsScreenState extends State<BudgetsScreen> {
       ),
     );
   }
+}
+
+class BudgetItem extends StatelessWidget {
+  final Budget budget;
+  final String userId;
+
+  final SizedBox heightPadding = const SizedBox(height: 7);
+  final double widthPaddingValue = 15;
+  final double opacitySlide = 0.25;
+
+  const BudgetItem({Key? key, required this.budget, required this.userId}) : super(key: key);
 
   Widget slideRightBackground(Color primary) {
     return Container(
@@ -100,13 +110,17 @@ class BudgetsScreenState extends State<BudgetsScreen> {
     );
   }
 
-  getBudget(Budget budget, ThemeData themeData, String userId) {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
+
+    int daysLeft = budget.initialDate.add(Duration(days: budget.period)).difference(DateTime.now()).inDays;
     return Dismissible(
       key: Key(budget.id),
-      background: slideRightBackground(themeData.colorScheme.primary),
-      secondaryBackground: slideLeftBackground(themeData.colorScheme.error),
+      background: slideRightBackground(theme.colorScheme.primary),
+      secondaryBackground: slideLeftBackground(theme.colorScheme.error),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           final bool res = await showDialog(
@@ -139,7 +153,14 @@ class BudgetsScreenState extends State<BudgetsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(Convert.capitalize(budget.name), style: themeData.textTheme.titleMedium),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(Convert.capitalize(budget.name), style: theme.textTheme.titleMedium),
+                Text(daysLeft < 0 ? 'Finished' : '$daysLeft days left', style: theme.textTheme.bodyMedium),
+              ],
+            ),
             heightPadding,
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -147,9 +168,9 @@ class BudgetsScreenState extends State<BudgetsScreen> {
               children: [
                 Text(
                   'BALANCE: \$${Convert.roundDouble(budget.balance, 2)}',
-                  style: themeData.textTheme.bodyMedium,
+                  style: theme.textTheme.bodyMedium,
                 ),
-                Text('$porcentaje %', style: themeData.textTheme.titleMedium),
+                Text('$porcentaje %', style: theme.textTheme.titleMedium),
               ],
             ),
             heightPadding,

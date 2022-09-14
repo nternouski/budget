@@ -16,8 +16,7 @@ class User implements ModelCommonInterface {
   String name;
   String email;
   Map<IntegrationType, String> integrations;
-  String defaultCurrencyId;
-  Currency? defaultCurrency;
+  Currency defaultCurrency;
   double initialAmount;
 
   User({
@@ -26,22 +25,20 @@ class User implements ModelCommonInterface {
     required this.name,
     required this.email,
     required this.integrations,
-    required this.defaultCurrencyId,
-    this.defaultCurrency,
+    required this.defaultCurrency,
     this.initialAmount = 0.0,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(Map<String, dynamic> json, Currency defaultCurrency) {
     Map<IntegrationType, String> integrations = (Map.from(json['integrations'] ?? {}))
         .map((key, value) => MapEntry(IntegrationType.values.firstWhere((t) => t.name == key), value));
     return User(
       id: json['id'],
-      createdAt: Convert.parseDate(json['createdAt']),
+      createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       email: json['email'],
       integrations: integrations,
-      defaultCurrencyId: json['defaultCurrencyId'] ?? '',
-      defaultCurrency: json['currency'] != null ? Currency.fromJson(json['currency']) : null,
+      defaultCurrency: defaultCurrency,
       initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? 0, json),
     );
   }
@@ -53,7 +50,7 @@ class User implements ModelCommonInterface {
       'createdAt': createdAt,
       'name': name,
       'email': email,
-      'defaultCurrencyId': defaultCurrencyId,
+      'defaultCurrencyId': defaultCurrency.id,
       'initialAmount': initialAmount,
       'integrations': integrations.entries.fold<Map<String, String>>({}, (acc, entry) {
         acc.addAll({entry.key.name: entry.value});

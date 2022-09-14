@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-// import 'package:permission_handler/permission_handler.dart';
-// import 'package:sim_data/sim_data.dart';
-// import 'package:ussd_service/ussd_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sim_data/sim_data.dart';
+import 'package:ussd_advanced/ussd_advanced.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../common/error_handler.dart';
 import '../common/styles.dart';
 import '../model/mobile_calculator.dart';
+
+class Panel {
+  Widget body;
+  String title;
+
+  Panel({required this.title, required this.body});
+}
 
 class MobileCalculatorScreen extends StatefulWidget {
   const MobileCalculatorScreen({Key? key}) : super(key: key);
@@ -23,8 +31,8 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   final sizedBoxHeight = const SizedBox(height: 15);
 
   final _formKey = GlobalKey<FormState>();
-  final mobileDataFormFields = MobileDataFormFields(now, plans[0], 0);
-
+  final mobileDataFormFields = MobileDataFormFields(now, plans[0], 0, requests[0]);
+  final panelExpanded = ValueNotifier<int>(-1);
   MobileCalculatorScreenState();
 
   @override
@@ -128,36 +136,52 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     );
   }
 
-  // makeMyRequest({String code = '*999*#' /*'*#21#' */}) async {
-  //   debugPrint('----------------');
-  //   var phone = await Permission.phone.request();
-  //   if (!phone.isGranted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //           content: Text('No permission for phone!'),
-  //           duration: Duration(seconds: 5),
-  //           behavior: SnackBarBehavior.floating,
-  //           backgroundColor: red),
-  //     );
-  //     return;
-  //   }
-  //   try {
-  //     var sims = await SimDataPlugin.getSimData();
-  //     int subscriptionId = sims.cards.firstWhere((c) => c.carrierName == 'Tuenti').subscriptionId;
-  //     debugPrint('--------> subscriptionId = $subscriptionId | code = $code');
-  //     String response = await UssdService.makeRequest(subscriptionId, code, const Duration(seconds: 15));
-  //     debugPrint('--------> success! message: $response');
-  //   } catch (e) {
-  //     debugPrint('--------> error! code: $e');
-  //   }
-  //   debugPrint('----------------');
-  // }
+  sendAdvancedUssd(BuildContext context, RequestUSSD request) async {
+    debugPrint('----------------');
+    var phone = await Permission.phone.request();
+    if (!phone.isGranted) return Display.message(context, 'No permission for phone!');
+    try {
+      var sims = await SimDataPlugin.getSimData();
+      int subscriptionId = sims.cards.firstWhere((c) => c.carrierName.toLowerCase() == 'tuenti').subscriptionId;
+      debugPrint('--------> subscriptionId = $subscriptionId | code = ${request.code}');
+      var responseAdvance = await UssdAdvanced.sendAdvancedUssd(code: request.code, subscriptionId: subscriptionId);
+      debugPrint('--------> success! message ADVANCE: $responseAdvance');
+    } catch (e) {
+      debugPrint('--------> error! code: $e');
+    }
+  }
 
   List<Widget> getBody() {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+
+    var panels = [
+      Panel(
+        title: 'Update Data Used by USSD',
+        body: Column(
+          children: [
+            InputDecorator(
+              decoration: const InputDecoration(labelText: 'Select Plan'),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<RequestUSSD>(
+                  value: mobileDataFormFields.request,
+                  isDense: true,
+                  onChanged: (RequestUSSD? newRequest) =>
+                      newRequest != null ? setState(() => mobileDataFormFields.request = newRequest) : null,
+                  items: requests.map((r) => DropdownMenuItem(value: r, child: Text(r.simName))).toList(),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => sendAdvancedUssd(context, mobileDataFormFields.request),
+              child: const Text('Fetch Data Used'),
+            ),
+          ],
+        ),
+      )
+    ];
     return [
       SliverAppBar(
-        titleTextStyle: textTheme.titleLarge,
+        titleTextStyle: theme.textTheme.titleLarge,
         pinned: true,
         leading: getBackButton(context),
         title: const Text('Mobile Data Calculator'),
@@ -192,6 +216,24 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                         }
                       },
                     ),
+                    ValueListenableBuilder(
+                      valueListenable: panelExpanded,
+                      builder: (context, idxExpanded, _) => ExpansionPanelList(
+                        expansionCallback: (int idx, bool exp) => setState(() => panelExpanded.value = !exp ? idx : -1),
+                        children: panels.asMap().entries.map<ExpansionPanel>((entry) {
+                          var idx = entry.key;
+                          return ExpansionPanel(
+                            backgroundColor: theme.scaffoldBackgroundColor,
+                            headerBuilder: (BuildContext context, _) => InkWell(
+                              onTap: () => setState(() => panelExpanded.value = idxExpanded != idx ? idx : -1),
+                              child: ListTile(title: Text(entry.value.title)),
+                            ),
+                            body: Padding(padding: const EdgeInsets.only(right: 15, left: 15), child: entry.value.body),
+                            isExpanded: idx == idxExpanded,
+                          );
+                        }).toList(),
+                      ),
+                    ),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                       child: ElevatedButton(
@@ -205,12 +247,6 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                         child: const Text('Calculate'),
                       ),
                     ),
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     makeMyRequest();
-                    //   },
-                    //   child: const Text('make'),
-                    // ),
                   ]),
                 ),
               ),

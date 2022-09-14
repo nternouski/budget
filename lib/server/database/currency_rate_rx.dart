@@ -9,11 +9,12 @@ import 'package:rxdart/rxdart.dart';
 class CurrencyRateRx {
   @protected
   static String collectionPath = 'currencyRates';
+  static String getCollectionPath(String userId) => '${UserRx.docPath(userId)}/$collectionPath';
   final db = Database();
 
   ValueStream<List<CurrencyRate>> getCurrencyRates(String userId) {
     return CombineLatestStream.list<List<dynamic>>([
-      db.getAll('${UserRx.docPath(userId)}/$collectionPath').asyncMap((snapshot) => snapshot.toList()),
+      db.getAll(getCollectionPath(userId)).asyncMap((snapshot) => snapshot.toList()),
       currencyRx.getCurrencies(),
     ]).asyncMap((list) {
       var listRaw = list[0] as List<Map<String, dynamic>>;
@@ -31,15 +32,15 @@ class CurrencyRateRx {
   }
 
   Future<String> create(CurrencyRate data, String userId) {
-    return db.createDoc('${UserRx.docPath(userId)}/$collectionPath', data.toJson());
+    return db.createDoc(getCollectionPath(userId), data.toJson());
   }
 
   Future update(CurrencyRate data, String userId) {
-    return db.updateDoc('${UserRx.docPath(userId)}/$collectionPath', data.toJson(), data.id);
+    return db.updateDoc(getCollectionPath(userId), data.toJson(), data.id);
   }
 
   Future delete(String id, String userId) {
-    return db.deleteDoc('${UserRx.docPath(userId)}/$collectionPath', id);
+    return db.deleteDoc(getCollectionPath(userId), id);
   }
 }
 
