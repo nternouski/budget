@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+import '../server/auth.dart';
 import '../components/profile_settings.dart';
 import '../components/current_rates_settings.dart';
 import '../common/period_stats.dart';
@@ -72,6 +73,7 @@ class SettingsScreenState extends State<SettingsScreen> {
 
   SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
     final theme = Provider.of<ThemeProvider>(context);
+    final localAuth = Provider.of<LocalAuthProvider>(context);
 
     return SettingsSection(
         title: const Text('Common', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
@@ -95,12 +97,19 @@ class SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           SettingsTile.switchTile(
+            onToggle: (value) => localAuth.swapState(),
+            initialValue: localAuth.enable,
+            leading: const Icon(Icons.fingerprint),
+            activeSwitchColor: themeData.colorScheme.primary,
+            title: const Text('Auth With Biometric'),
+          ),
+          SettingsTile.switchTile(
             onToggle: (value) => theme.swapTheme(),
             initialValue: theme.themeMode == ThemeMode.dark,
             leading: const Icon(Icons.brightness_auto),
             activeSwitchColor: themeData.colorScheme.primary,
             title: const Text('Dark Theme'),
-          )
+          ),
         ]);
   }
 

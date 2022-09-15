@@ -11,6 +11,7 @@ import 'package:budget/server/database/currency_rate_rx.dart';
 import 'package:budget/server/database/currency_rx.dart';
 import 'package:budget/server/database/transaction_rx.dart';
 import 'package:budget/server/database/wallet_rx.dart';
+import 'package:budget/server/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,26 +24,31 @@ import './common/theme.dart';
 import './routes.dart';
 import './model/user.dart';
 import './server/user_service.dart';
-import './components/bottom_navigation_bar_widget.dart';
-import './screens/onboarding.dart';
 
 final UserService userService = UserService();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  Preferences preferences = Preferences();
 
   runZonedGuarded<Future<void>>(
     () async {
-      Preferences().getBool(PreferenceType.darkTheme).then(
-        (darkTheme) {
+      Future.wait([
+        preferences.getBool(PreferenceType.darkTheme),
+        preferences.getBool(PreferenceType.authLoginEnable),
+      ]).then(
+        (p) {
+          final darkTheme = p[0];
+          final authLoginEnable = p[1] ?? false;
+
           ThemeMode themeMode = darkTheme == null
               ? ThemeMode.system
               : darkTheme
                   ? ThemeMode.dark
                   : ThemeMode.light;
 
-          return runApp(MyApp(themeMode: themeMode));
+          return runApp(MyApp(themeMode: themeMode, authLoginEnable: authLoginEnable));
         },
       );
     },
@@ -54,8 +60,9 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   final ThemeMode themeMode;
+  final bool authLoginEnable;
 
-  const MyApp({Key key, this.themeMode}) : super(key: key);
+  const MyApp({Key key, this.themeMode, this.authLoginEnable}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +99,7 @@ class MyApp extends StatelessWidget {
               return [];
             }),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
+        ChangeNotifierProvider<LocalAuthProvider>(create: (context) => LocalAuthProvider(authLoginEnable)),
       ],
       builder: (context, child) {
         return MaterialApp(
@@ -105,21 +113,5 @@ class MyApp extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    auth.User user = Provider.of<auth.User>(context);
-
-    if (user != null) userService.init(user.uid);
-    final HandlerError handlerError = HandlerError();
-    handlerError.notifier.addListener(() {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) => handlerError.showError(context));
-    });
-    return user != null ? const BottomNavigationBarWidget() : const OnBoarding();
   }
 }

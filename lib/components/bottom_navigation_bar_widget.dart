@@ -1,13 +1,13 @@
-import 'package:budget/common/error_handler.dart';
-import 'package:budget/common/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:provider/provider.dart';
 
+import '../common/error_handler.dart';
+import '../common/theme.dart';
 import '../common/convert.dart';
 import '../routes.dart';
 import '../common/footers.dart';
-import 'nav_draw.dart';
+import './nav_draw.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
   const BottomNavigationBarWidget({Key? key}) : super(key: key);
