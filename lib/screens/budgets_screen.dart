@@ -3,6 +3,7 @@ import 'package:budget/model/user.dart';
 import 'package:budget/server/database/budget_rx.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_animations/animation_builder/custom_animation_builder.dart';
 
 import '../common/convert.dart';
 import '../common/styles.dart';
@@ -115,6 +116,7 @@ class BudgetItem extends StatelessWidget {
     final theme = Theme.of(context);
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
+    Control control = Control.playFromStart;
 
     int daysLeft = budget.initialDate.add(Duration(days: budget.period)).difference(DateTime.now()).inDays;
     return Dismissible(
@@ -185,10 +187,17 @@ class BudgetItem extends StatelessWidget {
                     color: Colors.grey.withOpacity(0.3),
                   ),
                 ),
-                Container(
-                  width: porcentaje > 0 ? sizeBar * (porcentaje / 100) : 0,
-                  height: 10,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
+                CustomAnimationBuilder<double>(
+                  control: control,
+                  tween: Tween<double>(begin: 0.0, end: porcentaje > 0 ? sizeBar * (porcentaje / 100) : 0),
+                  duration: const Duration(microseconds: 1500),
+                  builder: (context, value, child) {
+                    return Container(
+                      width: value,
+                      height: 10,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
+                    );
+                  },
                 ),
               ],
             )

@@ -33,7 +33,8 @@ class SpendGraphic extends StatefulWidget {
 class _SpendGraphicState extends State<SpendGraphic> {
   late List<FlSpot> spots;
 
-  late double maxBalance = 0;
+  double maxBalance = 0;
+  double minBalance = 0.0;
   double? firstBalanceOfFrame;
   List<Balance> frame = [];
 
@@ -52,17 +53,15 @@ class _SpendGraphicState extends State<SpendGraphic> {
       return acc;
     });
 
-    for (var pivote = widget.frameRange; pivote > 0; pivote--) {
+    for (var pivote = widget.frameRange; pivote >= 0; pivote--) {
       var date = now.subtract(Duration(days: pivote));
       var key = _formatKey.format(date);
       var lastFrame = frame.isEmpty ? Balance(date, initialBalance, key) : frame.last;
       var balance = balancedDay[key];
       if (balance != null) {
         balance.balance += lastFrame.balance;
-        if (balance.balance > maxBalance) maxBalance = balance.balance;
         frame.add(balance);
       } else {
-        if (lastFrame.balance > maxBalance) maxBalance = lastFrame.balance;
         frame.add(Balance(date, lastFrame.balance, key));
       }
     }
@@ -87,7 +86,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
       showTitles: true,
       interval: maxBalance / 2 + 1,
       reservedSize: 25,
-      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis)),
+      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis + minBalance)),
     );
   }
 
@@ -112,7 +111,10 @@ class _SpendGraphicState extends State<SpendGraphic> {
         List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
 
         // Calc Initial value of graph
-        double total = wallets.fold<double>(0.0, (acc, w) => acc + w.balanceFixed) + widget.user.initialAmount;
+        double total = wallets.fold<double>(
+          widget.user.initialAmount,
+          (acc, w) => acc + w.initialAmount + w.balanceFixed,
+        );
         firstBalanceOfFrame = transactions
             .where((t) => t.date.isAfter(frameDate))
             .fold<double>(total, (prev, element) => prev - element.balanceFixed);
@@ -126,7 +128,12 @@ class _SpendGraphicState extends State<SpendGraphic> {
   Widget getGraph(BuildContext context, DateTime frameDate, List<Transaction> transactions) {
     transactions.sort((a, b) => b.date.compareTo(a.date));
     frame = calcFrame(transactions, firstBalanceOfFrame ?? 0, frameDate);
-    spots = List.generate(widget.frameRange, (index) => FlSpot(index.toDouble(), frame[index].balance));
+    spots = List.generate(widget.frameRange + 1, (index) {
+      var balance = frame[index].balance;
+      if (balance < minBalance) minBalance = balance;
+      if (balance > maxBalance) maxBalance = balance;
+      return FlSpot(index.toDouble(), balance);
+    });
 
     final color = Theme.of(context).colorScheme.primary;
     final gradient = LinearGradient(
@@ -152,7 +159,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (value) => value.map((e) {
-                return LineTooltipItem('Balance: \$ ${e.y.toInt()}', TextStyle());
+                return LineTooltipItem('Balance: \$ ${e.y.toInt()}', const TextStyle());
               }).toList(),
               tooltipBgColor: color,
             ),

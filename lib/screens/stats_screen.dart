@@ -1,20 +1,32 @@
+import 'dart:developer';
+import 'dart:math';
+
+import 'package:budget/common/convert.dart';
+import 'package:budget/components/bar_chart.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../model/category.dart';
 import '../components/icon_circle.dart';
+import '../components/spend_graphic.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../common/styles.dart';
-import '../components/spend_graphic.dart';
+import '../model/category.dart';
 import '../model/transaction.dart';
 
-class PieCategory {
+class CategorySelected {
   final Category category;
+  late double totalAmount;
+  final bool isSelected;
+
+  CategorySelected(this.category, this.isSelected, {this.totalAmount = 0});
+}
+
+class PieCategory extends CategorySelected {
   final double porcentaje;
 
-  PieCategory(this.category, this.porcentaje);
+  PieCategory(super.category, this.porcentaje, super.isSelected) : super();
 }
 
 class StatsScreen extends StatefulWidget {
@@ -27,6 +39,8 @@ class StatsScreen extends StatefulWidget {
 class StatsScreenState extends State<StatsScreen> {
   Preferences preferences = Preferences();
   int touchedIndex = 0;
+  List<String>? selectedCategories;
+  Map<TransactionType, bool> selectedTypes = TransactionType.values.asMap().map((_, value) => MapEntry(value, true));
 
   StatsScreenState();
 
@@ -36,65 +50,137 @@ class StatsScreenState extends State<StatsScreen> {
     List<Transaction> transactions = Provider.of<List<Transaction>>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        titleTextStyle: theme.textTheme.titleLarge,
-        leading: getBackButton(context),
-        title: const Text('Stats'),
-      ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          ValueListenableBuilder<PeriodStats>(
-            valueListenable: periods.selected,
-            builder: (context, periodStats, child) => getBody(context, theme, transactions, periodStats),
-          )
-        ],
-      ),
-    );
+        appBar: AppBar(
+          titleTextStyle: theme.textTheme.titleLarge,
+          leading: getBackButton(context),
+          title: const Text('Stats'),
+        ),
+        body: ValueListenableBuilder<PeriodStats>(
+          valueListenable: periods.selected,
+          builder: (context, periodStats, child) {
+            final DateTime frameDate = now.subtract(Duration(days: periodStats.days));
+            List<Category> categories = Provider.of<List<Category>>(context);
+            selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
+            double total = 0;
+
+            transactions = transactions
+                .where((t) =>
+                    t.date.isAfter(frameDate) &&
+                    selectedCategories!.contains(t.categoryId) &&
+                    selectedTypes[t.type] == true)
+                .toList();
+
+            List<CategorySelected> categoriesSelected = categories.map((c) {
+              bool isSelected = selectedCategories != null && selectedCategories!.contains(c.id);
+              double acc =
+                  transactions.fold<double>(0.0, (p, t) => t.categoryId == c.id ? p + t.balanceFixed.abs() : p);
+              total += isSelected ? acc : 0;
+              return CategorySelected(c, isSelected, totalAmount: acc);
+            }).toList();
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(children: [
+                      Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: selectedTypes.entries
+                            .map((e) => Padding(
+                                  padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                                  child: GestureDetector(
+                                    onTap: () => setState(() => selectedTypes.update(e.key, (value) => !value)),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border:
+                                            e.value ? Border.all(width: 2, color: colorsTypeTransaction[e.key]!) : null,
+                                        borderRadius: categoryBorderRadius,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Container(
+                                              width: 16,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(e.key.toShortString())
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: categoriesSelected
+                              .map((p) => _Indicator(
+                                    category: p.category,
+                                    isSelected: p.isSelected,
+                                    onTap: (bool isSelected, String id) {
+                                      if (isSelected) {
+                                        selectedCategories = [...(selectedCategories ?? []), id];
+                                      } else {
+                                        selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
+                                      }
+                                      setState(() {});
+                                    },
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+                SliverToBoxAdapter(child: BarChartWidget(transactions: transactions, frameDate: frameDate)),
+                pieChart(context, theme, categoriesSelected, total, periodStats),
+              ],
+            );
+          },
+        ));
   }
 
-  Widget getBody(BuildContext context, ThemeData theme, List<Transaction> transactions, PeriodStats periodStats) {
-    List<Category> categories = Provider.of<List<Category>>(context);
-    final DateTime frameDate = now.subtract(Duration(days: periodStats.days));
-    transactions = transactions.where((t) => t.date.isAfter(frameDate)).toList();
-
-    final double total = transactions.fold<double>(0.0, (prev, t) => prev + t.balanceFixed.abs());
-
-    List<PieCategory> pie = categories.map((c) {
-      double acc = transactions.fold<double>(0.0, (p, t) => t.categoryId == c.id ? p + t.balanceFixed.abs() : p);
-      return PieCategory(c, total == 0 ? 0 : (acc * 100) / total);
+  Widget pieChart(
+    BuildContext context,
+    ThemeData theme,
+    List<CategorySelected> categoriesSelected,
+    double total,
+    PeriodStats periodStats,
+  ) {
+    List<PieCategory> pie = categoriesSelected.fold<List<PieCategory>>([], (acc, item) {
+      if (!item.isSelected) return acc;
+      return [...acc, PieCategory(item.category, total == 0 ? 0 : (item.totalAmount * 100) / total, item.isSelected)];
     }).toList();
-
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.only(top: 15, bottom: 10, left: 20, right: 20),
-        child: Column(
-          children: [
-            Center(child: Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium)),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: pie.map((p) => _Indicator(text: p.category.name, color: p.category.color)).toList(),
-              ),
+        child: AspectRatio(
+          aspectRatio: 1.3,
+          child: PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                setState(() => touchedIndex = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1);
+              }),
+              borderData: FlBorderData(show: false),
+              sectionsSpace: 0,
+              centerSpaceRadius: 30,
+              sections: showingSections(pie),
             ),
-            AspectRatio(
-              aspectRatio: 1.3,
-              child: PieChart(
-                PieChartData(
-                  pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                    setState(() => touchedIndex = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1);
-                  }),
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 30,
-                  sections: showingSections(pie),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -159,21 +245,43 @@ class _Badge extends StatelessWidget {
 }
 
 class _Indicator extends StatelessWidget {
-  final Color color;
-  final String text;
+  final Category category;
   final double size = 16;
+  final bool isSelected;
+  final Function(bool isSelected, String id) onTap;
 
-  const _Indicator({Key? key, required this.color, required this.text}) : super(key: key);
+  const _Indicator({
+    Key? key,
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
-        const SizedBox(width: 4),
-        Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-      ],
+    return GestureDetector(
+      onTap: () => onTap(!isSelected, category.id),
+      child: Container(
+        decoration: BoxDecoration(
+          border: isSelected ? Border.all(width: 2, color: category.color) : null,
+          borderRadius: categoryBorderRadius,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
+              ),
+              const SizedBox(width: 5),
+              Text(category.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

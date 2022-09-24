@@ -15,7 +15,7 @@ enum TransactionType {
 }
 
 Map<TransactionType, Color> colorsTypeTransaction = {
-  TransactionType.income: const Color.fromARGB(255, 0, 203, 112),
+  TransactionType.income: const Color.fromARGB(255, 2, 215, 119),
   TransactionType.expense: Colors.red[700] ?? Colors.red,
   TransactionType.transfer: Colors.grey
 };

@@ -18,6 +18,7 @@ class User implements ModelCommonInterface {
   Map<IntegrationType, String> integrations;
   Currency defaultCurrency;
   double initialAmount;
+  bool superUser;
 
   User({
     required this.id,
@@ -26,12 +27,17 @@ class User implements ModelCommonInterface {
     required this.email,
     required this.integrations,
     required this.defaultCurrency,
+    this.superUser = false,
     this.initialAmount = 0.0,
   });
 
   factory User.fromJson(Map<String, dynamic> json, Currency defaultCurrency) {
     Map<IntegrationType, String> integrations = (Map.from(json['integrations'] ?? {}))
         .map((key, value) => MapEntry(IntegrationType.values.firstWhere((t) => t.name == key), value));
+
+    bool superUser = json['superUserExpiration'] != null &&
+        Convert.parseDate(json['superUserExpiration'], json).isAfter(DateTime.now());
+
     return User(
       id: json['id'],
       createdAt: Convert.parseDate(json['createdAt'], json),
@@ -40,6 +46,7 @@ class User implements ModelCommonInterface {
       integrations: integrations,
       defaultCurrency: defaultCurrency,
       initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? 0, json),
+      superUser: superUser,
     );
   }
 

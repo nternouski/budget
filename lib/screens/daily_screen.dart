@@ -85,7 +85,7 @@ class DailyScreenState extends State<DailyScreen> {
                     transactions.length,
                     (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
                   ),
-                  if (transactions.length > 10 && !fetchAll)
+                  if (!fetchAll)
                     TextButton(onPressed: () => setState(() => fetchAll = true), child: const Text('Get All')),
                 ],
               ),

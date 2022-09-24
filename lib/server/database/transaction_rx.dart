@@ -71,8 +71,8 @@ class TransactionRx {
     double variation = -old.balance + data.balance;
     double variationFixed = -old.balanceFixed + data.balanceFixed;
     if (variation > 0 || variationFixed > 0) {
-      wallet.balance += variation; // Reset previous value of the transaction.
-      wallet.balanceFixed += variationFixed; // Reset previous value of the transaction.
+      wallet.balance = variation; // Reset previous value of the transaction.
+      wallet.balanceFixed = variationFixed; // Reset previous value of the transaction.
       await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), data.walletId);
     }
     return db.updateDoc(getCollectionPath(userId), data.toJson(), data.id);

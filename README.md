@@ -25,26 +25,4 @@ First at all install dependencies and requirements of the project. After that if
 
 1. Run `flutter pub run flutter_launcher_icons:main` to build icons of app 
 
-2. 
-
-### Steps for clear docker image
-
-1. Stop the container(s) using the following command:
-   
-   `docker-compose down`
-
-2. Delete all containers using the following command:
-   
-   `docker rm -f $(docker ps -a -q)`
-
-3. Delete all volumes using the following command:
-   
-   `docker volume rm $(docker volume ls -q)`
-
-4. Restart the containers using the following command:
-   
-   `docker-compose up -d`
-
-5. Create a database with the name `default` and the url as docker-compose.yaml `postgres://postgres:postgrespassword@postgres:5432/postgres` after that delete files changes on hasura folder to prevent errors and then run:
-
-   `hasura migrate apply`
+2. Run `flutter build apk --release`

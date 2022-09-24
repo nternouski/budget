@@ -137,17 +137,15 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   }
 
   sendAdvancedUssd(BuildContext context, RequestUSSD request) async {
-    debugPrint('----------------');
     var phone = await Permission.phone.request();
     if (!phone.isGranted) return Display.message(context, 'No permission for phone!');
     try {
       var sims = await SimDataPlugin.getSimData();
-      int subscriptionId = sims.cards.firstWhere((c) => c.carrierName.toLowerCase() == 'tuenti').subscriptionId;
-      debugPrint('--------> subscriptionId = $subscriptionId | code = ${request.code}');
+      int subscriptionId = sims.cards.firstWhere((c) => c.carrierName.toLowerCase() == request.simName).subscriptionId;
       var responseAdvance = await UssdAdvanced.sendAdvancedUssd(code: request.code, subscriptionId: subscriptionId);
-      debugPrint('--------> success! message ADVANCE: $responseAdvance');
+      Display.message(context, 'message ADVANCE: $responseAdvance');
     } catch (e) {
-      debugPrint('--------> error! code: $e');
+      HandlerError().setError('error! code: $e');
     }
   }
 

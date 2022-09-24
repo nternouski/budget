@@ -40,6 +40,21 @@ class Database {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getDocsFuture(String collectionPath, {Query? ref}) {
+    try {
+      return (ref ?? db.collection(collectionPath)).get().then((snapshots) {
+        printMsg(collectionPath, 'GET DOCS FUTURE');
+        return snapshots.docs.fold<List<Map<String, dynamic>>>([], (acc, snapshot) {
+          if (snapshot.exists) acc.add({'id': snapshot.id, ...(snapshot.data() as dynamic ?? {})});
+          return acc;
+        }).toList();
+      });
+    } catch (error) {
+      _printError('getDocFuture | Database', collectionPath, 'Error catch: $error');
+      throw 'Error on getDocFuture $collectionPath';
+    }
+  }
+
   CollectionReference<Map<String, dynamic>> getCollection(String path) {
     return db.collection(path);
   }

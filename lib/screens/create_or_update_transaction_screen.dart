@@ -437,14 +437,11 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                   transaction.balanceFixed = transaction.balance;
                 } else {
                   CurrencyRate? cr = currencyRates.firstWhereOrNull((r) =>
-                      ((user.defaultCurrency.id == r.currencyFrom.id && wallet.currencyId == r.currencyTo.id) ||
-                          (user.defaultCurrency.id == r.currencyTo.id && wallet.currencyId == r.currencyFrom.id)));
+                      ((r.currencyFrom.id == user.defaultCurrency.id && r.currencyTo.id == wallet.currencyId) ||
+                          (r.currencyTo.id == user.defaultCurrency.id && r.currencyFrom.id == wallet.currencyId)));
                   if (cr != null) {
-                    bool fromTo =
-                        user.defaultCurrency.id == cr.currencyFrom.id && wallet.currencyId == cr.currencyTo.id;
-                    transaction.balanceFixed = double.parse(
-                      (fromTo ? transaction.balance * cr.rate : transaction.balance / cr.rate).toStringAsFixed(2),
-                    );
+                    transaction.balanceFixed =
+                        cr.convert(transaction.balance, wallet.currencyId, user.defaultCurrency.id);
                   } else {
                     String defaultSymbol = user.defaultCurrency.symbol;
                     String tSymbol = wallet.currency?.symbol ?? '';

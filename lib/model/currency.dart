@@ -94,4 +94,12 @@ class CurrencyRate implements ModelCommonInterface {
     };
     return data;
   }
+
+  double convert(double amount, String from, String to) {
+    if (from == to) {
+      return amount;
+    } else {
+      return double.parse((currencyFrom.id == from ? amount / rate : amount * rate).toStringAsFixed(2));
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,7 +33,9 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
   Widget build(BuildContext context) {
     User? user = Provider.of<User>(context);
     if (user == null) return const Text('Not User');
-    WiseApi wiseApi = WiseApi(user.integrations[IntegrationType.wise] ?? '');
+    String token = user.integrations[IntegrationType.wise] ?? '';
+    if (token == '') HandlerError().setError('Api key not set.');
+    WiseApi wiseApi = WiseApi(token);
 
     final theme = Theme.of(context);
     final List<Wallet> wallets = Provider.of<List<Wallet>>(context);

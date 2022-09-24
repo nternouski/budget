@@ -15,13 +15,18 @@ class ThemeProvider extends ChangeNotifier {
     primaryColor: _primary,
     backgroundColor: _primary,
     scaffoldBackgroundColor: _white,
-    appBarTheme: const AppBarTheme(color: _white, iconTheme: IconThemeData(color: _black)),
-    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+    appBarTheme: const AppBarTheme(
+      color: _white,
+      iconTheme: IconThemeData(color: _black),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+    ),
+    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
     ),
     colorScheme: const ColorScheme.light().copyWith(
       primary: _primary,
@@ -36,13 +41,18 @@ class ThemeProvider extends ChangeNotifier {
     primaryColor: _primary,
     backgroundColor: _primary,
     scaffoldBackgroundColor: _darkGrey,
-    appBarTheme: AppBarTheme(color: _darkGrey, iconTheme: const IconThemeData(color: _white)),
-    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+    appBarTheme: AppBarTheme(
+      color: _darkGrey,
+      iconTheme: const IconThemeData(color: _white),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+    ),
+    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 17))),
+      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
     ),
     colorScheme: const ColorScheme.dark().copyWith(
       primary: _primary,

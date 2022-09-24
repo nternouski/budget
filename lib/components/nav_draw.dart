@@ -1,8 +1,10 @@
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../server/user_service.dart';
+import '../model/user.dart';
 import '../routes.dart';
 
 class NavDrawer extends StatelessWidget {
@@ -16,6 +18,8 @@ class NavDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    var dbUser = Provider.of<User>(context) as User?;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -24,7 +28,8 @@ class NavDrawer extends StatelessWidget {
             margin: EdgeInsets.zero,
             padding: EdgeInsets.zero,
             child: Consumer<auth.User?>(
-              builder: (context, user, child) => user != null ? buildProfile(theme, user) : const Text('ERROR!'),
+              builder: (context, user, child) =>
+                  user != null ? buildProfile(theme, user, dbUser) : const Text('ERROR!'),
             ),
           ),
           ListTile(
@@ -59,22 +64,23 @@ class NavDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),
-            onTap: () {
+            onTap: () async {
+              PackageInfo packageInfo = await PackageInfo.fromPlatform();
               Navigator.of(context).pop();
               showAboutDialog(
                 context: context,
                 applicationIcon: const FlutterLogo(),
-                applicationName: 'Budget',
-                applicationVersion: '0.0.1',
-                applicationLegalese: '©2022 budget',
+                applicationName: packageInfo.appName,
+                applicationVersion: packageInfo.version,
+                applicationLegalese: '©2022 ${packageInfo.appName}',
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 15),
-                    child: Column(children: const [
-                      Text('This app is created by Sebastian Nahuel Ternouski'),
-                      SizedBox(height: 20),
-                      Text('Special thanks to "stories" on freepik.'),
-                      Text('https://www.freepik.com/author/stories'),
+                    child: Column(children: [
+                      Text('This app is created by Sebastian Ternouski', style: theme.textTheme.bodyMedium),
+                      const SizedBox(height: 20),
+                      Text('Special thanks to "stories" on freepik.', style: theme.textTheme.bodyMedium),
+                      Text('https://www.freepik.com/author/stories', style: theme.textTheme.bodyMedium),
                     ]),
                   )
                 ],
@@ -86,8 +92,8 @@ class NavDrawer extends StatelessWidget {
     );
   }
 
-  Widget buildProfile(ThemeData theme, auth.User user) {
-    var name = user.displayName ?? 'Name Not Set';
+  Widget buildProfile(ThemeData theme, auth.User user, User? dbUser) {
+    var name = dbUser != null && dbUser.name != '' ? dbUser.name : user.displayName ?? 'Name Not Set';
     var email = user.email ?? 'No Email';
     var photoURL = user.photoURL;
 

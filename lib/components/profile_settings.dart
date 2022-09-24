@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+import '../components/select_currency.dart';
+import '../model/currency.dart';
 import '../common/error_handler.dart';
 import '../common/styles.dart';
 import '../model/user.dart';
@@ -37,7 +40,7 @@ class ProfileSettings extends AbstractSettingsSection {
               builder: (BuildContext context) => BottomSheet(
                 enableDrag: false,
                 onClosing: () {},
-                builder: (BuildContext context) => _bottomSheet(setState),
+                builder: (BuildContext context) => _bottomSheet(context, setState),
               ),
             ),
           ),
@@ -53,7 +56,7 @@ class ProfileSettings extends AbstractSettingsSection {
               builder: (BuildContext context) => BottomSheet(
                 enableDrag: false,
                 onClosing: () {},
-                builder: (BuildContext context) => _bottomSheet(setState),
+                builder: (BuildContext context) => _bottomSheet(context, setState),
               ),
             ),
           ),
@@ -69,7 +72,7 @@ class ProfileSettings extends AbstractSettingsSection {
               builder: (BuildContext context) => BottomSheet(
                 enableDrag: false,
                 onClosing: () {},
-                builder: (BuildContext context) => _bottomSheet(setState),
+                builder: (BuildContext context) => _bottomSheet(context, setState),
               ),
             ),
           ),
@@ -78,8 +81,28 @@ class ProfileSettings extends AbstractSettingsSection {
     });
   }
 
-  _bottomSheet(StateSetter setState) {
+  Future<bool?> _confirm(BuildContext context, String body) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure?'),
+          content: Text(body),
+          actions: <Widget>[
+            buttonCancelContext(context),
+            ElevatedButton(
+              child: const Text('YES'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  _bottomSheet(BuildContext context, StateSetter setState) {
     const sizedBoxHeight = SizedBox(height: 20);
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
@@ -123,6 +146,22 @@ class ProfileSettings extends AbstractSettingsSection {
                   validator: (String? value) => value!.isEmpty ? 'Amount is Required.' : null,
                   onChanged: (String value) => user.initialAmount = double.parse(value != '' ? value : '0'),
                 ),
+                if (user.superUser)
+                  SelectCurrency(
+                    initialCurrencyId: user.defaultCurrency.id,
+                    labelText: 'Change Default Currency',
+                    onSelect: (selected) async {
+                      var confirm = await _confirm(context, 'The new default currency will be ${selected.name}');
+                      if (confirm == true) {
+                        await UserService()
+                            .updateCurrency(user, selected, currencyRates)
+                            .catchError((err) => HandlerError().setError(err.toString()));
+                        setStateBottomSheet(() {});
+                        setState(() {});
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
                 sizedBoxHeight,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

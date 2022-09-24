@@ -17,19 +17,16 @@ class CurrentRatesSettings extends AbstractSettingsSection {
 
   CurrentRatesSettings({Key? key, required this.user}) : super(key: key);
 
-  Future<bool?> _confirm(BuildContext context, CurrencyRate cr, double rate) {
+  Future<bool?> _confirm(BuildContext context, String content) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('We found a new rate.'),
-          content: Text('${cr.currencyFrom.symbol} to ${cr.currencyTo.symbol}: \$$rate'),
+          title: const Text('Confirm?'),
+          content: Text(content),
           actions: <Widget>[
             buttonCancelContext(context),
-            ElevatedButton(
-              child: const Text('Update Currency Rate'),
-              onPressed: () => Navigator.pop(context, true),
-            ),
+            ElevatedButton(child: const Text('YES'), onPressed: () => Navigator.pop(context, true)),
           ],
         );
       },
@@ -54,17 +51,28 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               leading: const Icon(Icons.currency_exchange),
               title: Text('${cr.currencyFrom.symbol} - ${cr.currencyTo.symbol}'),
               value: Text('\$ ${cr.rate}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.sync_alt),
-                onPressed: () async {
-                  final rate = await currencyRateApi.fetchRate(cr);
-                  final res = await _confirm(context, cr, rate);
-                  if (res == true) {
-                    cr.rate = rate;
-                    await currencyRateRx.update(cr, user.uid);
-                  }
-                },
-              ),
+              trailing: Row(children: [
+                IconButton(
+                  icon: const Icon(Icons.sync_alt),
+                  onPressed: () async {
+                    final rate = await currencyRateApi.fetchRate(cr);
+                    String content =
+                        'We found a new rate. ${cr.currencyFrom.symbol} to ${cr.currencyTo.symbol}: \$$rate. Update Currency Rate?';
+                    final res = await _confirm(context, content);
+                    if (res == true) {
+                      cr.rate = rate;
+                      await currencyRateRx.update(cr, user.uid);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final res = await _confirm(context, 'Delete ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol} ?');
+                    if (res == true) await currencyRateRx.delete(cr.id, user.uid);
+                  },
+                )
+              ]),
               onPressed: (context) => showModalBottomSheet(
                 enableDrag: true,
                 context: context,
