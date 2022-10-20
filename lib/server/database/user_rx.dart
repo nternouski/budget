@@ -78,6 +78,19 @@ class UserRx {
     return db.updateDoc(collectionPath, user.toJson(), user.id);
   }
 
+  Future updateWallets(User user, List<Wallet> wallets) async {
+    List<Transaction> transactions = await db
+        .getDocsFuture(TransactionRx.getCollectionPath(user.id))
+        .then((data) => data.map((t) => Transaction.fromJson(t, [])).toList());
+
+    for (var wallet in wallets) {
+      var walletPath = WalletRx.getCollectionPath(user.id);
+      wallet.balance = transactions.fold(0.0, (prev, t) => t.walletId == wallet.id ? prev + t.balance : prev);
+      wallet.balanceFixed = transactions.fold(0.0, (prev, t) => t.walletId == wallet.id ? prev + t.balanceFixed : prev);
+      await db.updateDoc(walletPath, wallet.toJson(), wallet.id);
+    }
+  }
+
   Future delete(String id) {
     return db.deleteDoc(collectionPath, id);
   }

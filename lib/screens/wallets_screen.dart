@@ -1,5 +1,7 @@
 import 'package:budget/common/theme.dart';
 import 'package:budget/components/empty_list.dart';
+import 'package:budget/model/user.dart';
+import 'package:budget/server/database/user_rx.dart';
 import 'package:budget/server/database/wallet_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +24,8 @@ class WalletsScreenState extends State<WalletsScreen> {
     final textTheme = Theme.of(context).textTheme;
     List<Wallet> wallets = Provider.of<List<Wallet>>(context);
 
-    auth.User user = Provider.of<auth.User>(context, listen: false);
+    auth.User authUser = Provider.of<auth.User>(context, listen: false);
+    User? user = Provider.of<User>(context);
 
     Widget? component;
     if (wallets.isEmpty) {
@@ -35,7 +38,7 @@ class WalletsScreenState extends State<WalletsScreen> {
           (_, idx) => Padding(
             padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
             child: WalletItem(
-                wallet: wallets[idx], userId: user.uid, showBalance: true, showActions: true, selected: true),
+                wallet: wallets[idx], userId: authUser.uid, showBalance: true, showActions: true, selected: true),
           ),
           childCount: wallets.length,
         ),
@@ -54,6 +57,16 @@ class WalletsScreenState extends State<WalletsScreen> {
               title: const Text('Wallets'),
             ),
             component,
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+            if (user != null && user.superUser == true)
+              SliverToBoxAdapter(
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  ElevatedButton(
+                    onPressed: () => userRx.updateWallets(user, wallets),
+                    child: const Text('Re calculate Wallets'),
+                  )
+                ]),
+              ),
             const SliverToBoxAdapter(child: SizedBox(height: 80))
           ],
         ),

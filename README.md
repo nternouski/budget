@@ -8,10 +8,10 @@ Budget dark             |  Budget Light
 
 ## Getting Started
 
+I use firebase and firestore as DB
+
 ### Requirement
 
-- Docker & Docker Desktop (For Windows)
-- [Hasura](https://hasura.io/docs/latest/graphql/core/hasura-cli/install-hasura-cli) 
 - [Flutter](https://docs.flutter.dev/get-started/install)
 
 
