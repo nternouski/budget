@@ -67,7 +67,7 @@ class TransactionRx {
 
   Future update(Transaction data, String userId, Wallet wallet) async {
     Transaction old = Transaction.fromJson(await db.getDocFuture(getCollectionPath(userId), data.id), []);
-
+    data.updateBalance();
     if (old.walletId != data.walletId) {
       var oldWallet = Wallet.fromJson(await db.getDocFuture(getCollectionPath(userId), old.walletId));
       oldWallet.balance += -old.balance;
@@ -75,15 +75,11 @@ class TransactionRx {
       await db.updateDoc(WalletRx.getCollectionPath(userId), oldWallet.toJson(), old.walletId);
       wallet.balance += data.balance;
       wallet.balanceFixed += data.balanceFixed;
-      await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), data.walletId);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), wallet.id);
     } else {
-      double variation = -old.balance + data.balance;
-      double variationFixed = -old.balanceFixed + data.balanceFixed;
-      if (variation > 0 || variationFixed > 0) {
-        wallet.balance = variation; // Reset previous value of the transaction.
-        wallet.balanceFixed = variationFixed; // Reset previous value of the transaction.
-        await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), data.walletId);
-      }
+      wallet.balance += -old.balance + data.balance; // Reset previous value of the transaction.
+      wallet.balanceFixed += -old.balanceFixed + data.balanceFixed; // Reset previous value of the transaction.
+      await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), wallet.id);
     }
     return db.updateDoc(getCollectionPath(userId), data.toJson(), data.id);
   }

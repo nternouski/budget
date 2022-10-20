@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:budget/model/wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,7 @@ class DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     User? user = Provider.of<User>(context) as dynamic;
+    List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
     if (user == null) return ScreenInit.getScreenInit(context);
 
     return Scaffold(
@@ -51,7 +53,7 @@ class DailyScreenState extends State<DailyScreen> {
           child: RefreshIndicator(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: [getBody(theme, user)],
+              slivers: [getBody(theme, user, wallets)],
             ),
             onRefresh: () async => setState(() {}),
           ),
@@ -60,7 +62,7 @@ class DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  Widget getBody(ThemeData theme, User user) {
+  Widget getBody(ThemeData theme, User user, List<Wallet> wallets) {
     return StreamBuilder<List<Transaction>>(
       stream: transactionRx.getTransactions(user.id, fetchAll: fetchAll),
       builder: (BuildContext context, snapshot) {
@@ -72,6 +74,7 @@ class DailyScreenState extends State<DailyScreen> {
           );
         } else {
           String symbol = user.defaultCurrency.symbol;
+          int total = wallets.fold(0, (prev, w) => prev + w.balanceFixed.toInt());
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 80),
@@ -79,7 +82,7 @@ class DailyScreenState extends State<DailyScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
-                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [Text('Currency $symbol')]),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [Text('Currency $symbol \$$total')]),
                   ),
                   ...List.generate(
                     transactions.length,
