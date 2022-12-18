@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter/material.dart';
 
+import '../../model/currency.dart';
 import '../../model/wallet.dart';
 import '../../server/database/wallet_rx.dart';
 import '../../model/category.dart';
@@ -29,7 +30,6 @@ class TransactionRx {
     return listRaw.map((raw) {
       Transaction t = Transaction.fromJson(raw, labels);
       t.category = categories.firstWhere((c) => c.id == t.categoryId);
-      t.wallet = wallets.firstWhere((w) => w.id == t.walletId);
       return t;
     }).toList();
   }
@@ -58,38 +58,100 @@ class TransactionRx {
     return _transactions!;
   }
 
-  Future<String> create(Transaction data, String userId, Wallet wallet) async {
-    wallet.balance += data.balance;
-    wallet.balanceFixed += data.balanceFixed;
-    await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), data.walletId);
+  Future<String> create(
+    Transaction data,
+    String userId,
+    Wallet walletFrom,
+    List<CurrencyRate> currencyRates,
+    Wallet? walletTo,
+  ) async {
+    walletFrom.updateBalance(data);
+    await db.updateDoc(WalletRx.getCollectionPath(userId), walletFrom.toJson(), data.walletFromId);
+    if (data.type == TransactionType.transfer && walletTo != null) {
+      CurrencyRate cr = currencyRates.findCurrencyRate(walletFrom.currency!, walletTo.currency!);
+      double balanceConverted = cr.convert(data.balance, walletFrom.currencyId, walletTo.currencyId);
+      data.balanceConverted = balanceConverted;
+      walletTo.updateBalance(data, balanceConverted: balanceConverted);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletTo.toJson(), data.walletToId);
+    }
     return db.createDoc(getCollectionPath(userId), data.toJson());
   }
 
-  Future update(Transaction data, String userId, Wallet wallet) async {
-    Transaction old = Transaction.fromJson(await db.getDocFuture(getCollectionPath(userId), data.id), []);
-    data.updateBalance();
-    if (old.walletId != data.walletId) {
-      var oldWallet = Wallet.fromJson(await db.getDocFuture(getCollectionPath(userId), old.walletId));
-      oldWallet.balance += -old.balance;
-      oldWallet.balanceFixed += -old.balanceFixed;
-      await db.updateDoc(WalletRx.getCollectionPath(userId), oldWallet.toJson(), old.walletId);
-      wallet.balance += data.balance;
-      wallet.balanceFixed += data.balanceFixed;
-      await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), wallet.id);
-    } else {
-      wallet.balance += -old.balance + data.balance; // Reset previous value of the transaction.
-      wallet.balanceFixed += -old.balanceFixed + data.balanceFixed; // Reset previous value of the transaction.
-      await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), wallet.id);
-    }
-    return db.updateDoc(getCollectionPath(userId), data.toJson(), data.id);
+  Future update(
+    Transaction newTrans,
+    String userId,
+    Wallet walletFrom,
+    List<CurrencyRate> currencyRates,
+    Wallet? walletTo,
+  ) async {
+    Transaction oldTransaction =
+        Transaction.fromJson(await db.getDocFuture(getCollectionPath(userId), newTrans.id), []);
+    newTrans.updateBalance();
+
+    await _updateWallets(oldTransaction, newTrans, userId, walletFrom, currencyRates, walletTo);
+
+    return db.updateDoc(getCollectionPath(userId), newTrans.toJson(), newTrans.id);
   }
 
-  Future delete(Transaction transaction, String userId) async {
-    Wallet wallet = await walletRx.getDocFuture(transaction.walletId, userId);
+  Future _updateWallets(
+    Transaction oldTransaction,
+    Transaction newTrans,
+    String userId,
+    Wallet walletFrom,
+    List<CurrencyRate> currencyRates,
+    Wallet? walletTo,
+  ) async {
+    // Update wallet related to "Wallet From"
+    if (oldTransaction.walletFromId != newTrans.walletFromId) {
+      var oldWallet = Wallet.fromJson(
+        await db.getDocFuture(WalletRx.getCollectionPath(userId), oldTransaction.walletFromId),
+      );
+      oldWallet.updateBalance(oldTransaction, fromOld: true);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), oldWallet.toJson(), oldTransaction.walletFromId);
+      walletFrom.updateBalance(newTrans);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletFrom.toJson(), walletFrom.id);
+    } else {
+      // Reset previous value of the transaction.
+      walletFrom.updateBalance(oldTransaction, fromOld: true);
+      walletFrom.updateBalance(newTrans);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletFrom.toJson(), walletFrom.id);
+    }
+
+    // Update wallet related  to transaction type transfer for "Wallet To"
+    if (newTrans.type == TransactionType.transfer &&
+        walletTo != null &&
+        oldTransaction.walletToId != newTrans.walletToId) {
+      var oldWallet = Wallet.fromJson(await db.getDocFuture(getCollectionPath(userId), oldTransaction.walletToId));
+      oldWallet.updateBalance(oldTransaction, fromOld: true);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), oldWallet.toJson(), oldTransaction.walletToId);
+      walletTo.updateBalance(newTrans);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletTo.toJson(), walletTo.id);
+    } else if (newTrans.type == TransactionType.transfer && walletTo != null) {
+      // Reset previous value of the transaction.
+      walletTo.updateBalance(oldTransaction, fromOld: true);
+      walletTo.updateBalance(newTrans);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletTo.toJson(), walletTo.id);
+    }
+  }
+
+  Future delete(
+    Transaction transaction,
+    String userId,
+    List<CurrencyRate> currencyRates,
+    List<Currency> currencies,
+  ) async {
     // Reset previous value of the transaction.
-    wallet.balance += -transaction.balance;
-    wallet.balanceFixed += -transaction.balanceFixed;
-    await db.updateDoc(WalletRx.getCollectionPath(userId), wallet.toJson(), transaction.walletId);
+    Wallet walletFrom = await walletRx.getDocFuture(transaction.walletFromId, userId, currencies: currencies);
+    walletFrom.updateBalance(transaction, fromOld: true);
+    await db.updateDoc(WalletRx.getCollectionPath(userId), walletFrom.toJson(), transaction.walletFromId);
+    if (transaction.type == TransactionType.transfer) {
+      // Reset previous value of the transaction.
+      Wallet walletTo = await walletRx.getDocFuture(transaction.walletToId, userId, currencies: currencies);
+      CurrencyRate cr = currencyRates.findCurrencyRate(walletFrom.currency!, walletTo.currency!);
+      double balanceConverted = cr.convert(transaction.balance, walletFrom.currencyId, walletTo.currencyId);
+      walletTo.updateBalance(transaction, fromOld: true, balanceConverted: balanceConverted);
+      await db.updateDoc(WalletRx.getCollectionPath(userId), walletTo.toJson(), transaction.walletToId);
+    }
     return db.deleteDoc(getCollectionPath(userId), transaction.id);
   }
 

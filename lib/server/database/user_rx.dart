@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:collection/collection.dart';
 
 import 'package:budget/common/error_handler.dart';
 import 'package:budget/model/currency.dart';
@@ -33,44 +32,45 @@ class UserRx {
     return db.updateDoc(collectionPath, data.toJson(), data.id);
   }
 
-  CurrencyRate? findRate(List<CurrencyRate> rates, String fromId, String toId) {
-    return rates.firstWhereOrNull((r) =>
-        (r.currencyFrom.id == fromId && r.currencyTo.id == toId) ||
-        (r.currencyFrom.id == toId && r.currencyTo.id == fromId));
-  }
-
   Future updateCurrency(User user, Currency newCurrency, List<CurrencyRate> rates) async {
-    var cr = findRate(rates, user.defaultCurrency.id, newCurrency.id);
-    if (cr == null) throw Exception('There are not currency rates to swap the default currency.');
-    String walletPath = WalletRx.getCollectionPath(user.id);
-    String transactionPath = TransactionRx.getCollectionPath(user.id);
+    var cr = rates.findCurrencyRate(user.defaultCurrency, newCurrency,
+        errorMessage: 'There are not currency rates to swap the default currency.');
+    String walletCollectionPath = WalletRx.getCollectionPath(user.id);
+    String transactionCollectionPath = TransactionRx.getCollectionPath(user.id);
 
-    List<Wallet> wallets = await db.getDocsFuture(walletPath).then((data) => data.map((w) {
+    List<Wallet> wallets = await db.getDocsFuture(walletCollectionPath).then((data) => data.map((w) {
           Wallet wallet = Wallet.fromJson(w);
-          if (wallet.currencyId != newCurrency.id && findRate(rates, wallet.currencyId, newCurrency.id) == null) {
-            throw Exception('There are not currency rates to swap on wallets.');
+          if (wallet.currencyId != newCurrency.id) {
+            try {
+              rates.findCurrencyRate(wallet.currency!, newCurrency);
+            } catch (e) {
+              throw Exception('There are not currency rates to swap on wallets.');
+            }
           }
           return wallet;
         }).toList());
 
     for (var wallet in wallets) {
       double newWalletBalance = 0;
-      var ref = db.getCollection(transactionPath).where('walletId', isEqualTo: wallet.id);
-      List<Transaction> transactions = await db
-          .getDocsFuture(transactionPath, ref: ref)
+
+      var refFrom = db.getCollection(transactionCollectionPath).where('walletFromId', isEqualTo: wallet.id);
+      List<Transaction> transactionsFrom = await db
+          .getDocsFuture(transactionCollectionPath, ref: refFrom)
           .then((data) => data.map((t) => Transaction.fromJson(t, [])).toList());
-      var currencyRate = findRate(rates, wallet.currencyId, newCurrency.id);
+      var refTo = db.getCollection(transactionCollectionPath).where('walletToId', isEqualTo: wallet.id);
+      List<Transaction> transactionsTo = await db
+          .getDocsFuture(transactionCollectionPath, ref: refTo)
+          .then((data) => data.map((t) => Transaction.fromJson(t, [])).toList());
+
+      List<Transaction> transactions = [...transactionsFrom, ...transactionsTo].toList();
+      var currencyRate = rates.findCurrencyRate(wallet.currency!, newCurrency);
       for (var transaction in transactions) {
-        if (currencyRate == null) {
-          transaction.balanceFixed = transaction.balance;
-        } else {
-          transaction.balanceFixed = currencyRate.convert(transaction.balance, wallet.currencyId, newCurrency.id);
-        }
+        transaction.balanceFixed = currencyRate.convert(transaction.balance, wallet.currencyId, newCurrency.id);
         newWalletBalance += transaction.balanceFixed;
-        await db.updateDoc(transactionPath, transaction.toJson(), transaction.id);
+        await db.updateDoc(transactionCollectionPath, transaction.toJson(), transaction.id);
       }
       wallet.balanceFixed = newWalletBalance;
-      await db.updateDoc(walletPath, wallet.toJson(), wallet.id);
+      await db.updateDoc(walletCollectionPath, wallet.toJson(), wallet.id);
     }
 
     user.initialAmount = cr.convert(user.initialAmount, user.defaultCurrency.id, newCurrency.id);
@@ -78,16 +78,27 @@ class UserRx {
     return db.updateDoc(collectionPath, user.toJson(), user.id);
   }
 
-  Future updateWallets(User user, List<Wallet> wallets) async {
+  Future calcWallets(User user, List<Wallet> wallets, List<CurrencyRate> currencyRates) async {
     List<Transaction> transactions = await db
         .getDocsFuture(TransactionRx.getCollectionPath(user.id))
         .then((data) => data.map((t) => Transaction.fromJson(t, [])).toList());
 
     for (var wallet in wallets) {
-      var walletPath = WalletRx.getCollectionPath(user.id);
-      wallet.balance = transactions.fold(0.0, (prev, t) => t.walletId == wallet.id ? prev + t.balance : prev);
-      wallet.balanceFixed = transactions.fold(0.0, (prev, t) => t.walletId == wallet.id ? prev + t.balanceFixed : prev);
-      await db.updateDoc(walletPath, wallet.toJson(), wallet.id);
+      wallet.balance = 0;
+      wallet.balanceFixed = 0;
+      for (var t in transactions) {
+        debugPrint('${wallet.id == t.walletFromId}');
+        if (wallet.id == t.walletFromId) {
+          wallet.updateBalance(t);
+        } else if (wallet.id == t.walletToId) {
+          Wallet walletFrom = wallets.firstWhere((w) => w.id == t.walletFromId);
+          Wallet walletTo = wallets.firstWhere((w) => w.id == t.walletToId);
+          CurrencyRate cr = currencyRates.findCurrencyRate(walletFrom.currency!, walletTo.currency!);
+          double balanceConverted = cr.convert(t.balance, walletFrom.currencyId, walletTo.currencyId);
+          wallet.updateBalance(t, balanceConverted: balanceConverted);
+        }
+      }
+      await db.updateDoc(WalletRx.getCollectionPath(user.id), wallet.toJson(), wallet.id);
     }
   }
 

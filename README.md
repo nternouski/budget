@@ -25,4 +25,4 @@ First at all install dependencies and requirements of the project. After that if
 
 1. Run `flutter pub run flutter_launcher_icons:main` to build icons of app 
 
-2. Run `flutter build apk --release`
+2. Run `flutter build apk --release` to release apk or `flutter build appbundle --release` to crear .abb

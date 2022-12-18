@@ -1,3 +1,4 @@
+import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -28,6 +29,8 @@ class DailyItemState extends State<DailyItem> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     auth.User user = Provider.of<auth.User>(context);
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
+    List<Currency> currencies = List.from(Provider.of<List<Currency>>(context));
 
     return Dismissible(
       key: Key(widget.transaction.id),
@@ -47,7 +50,7 @@ class DailyItemState extends State<DailyItem> {
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                       child: const Text('Delete'),
                       onPressed: () async {
-                        await transactionRx.delete(widget.transaction, user.uid);
+                        await transactionRx.delete(widget.transaction, user.uid, currencyRates, currencies);
                         Navigator.of(context).pop();
                       },
                     ),
@@ -135,11 +138,20 @@ class DailyItemState extends State<DailyItem> {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              '\$ ${transaction.balanceFixed.abs()}',
-              style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
+            Row(
+              children: [
+                if (transaction.type == TransactionType.transfer)
+                  Text(
+                    '(\$${transaction.balanceConverted?.prettier()}) ',
+                    style: theme.textTheme.labelMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
+                  ),
+                Text(
+                  '\$ ${transaction.balanceFixed.abs().prettier()}',
+                  style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
+                )
+              ],
             ),
-            Text('\$ ${transaction.amount}', style: TextStyle(color: theme.disabledColor))
+            Text('\$ ${transaction.balance.abs().prettier()}', style: TextStyle(color: theme.disabledColor))
           ],
         )
       ],

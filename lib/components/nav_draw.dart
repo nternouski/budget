@@ -1,4 +1,4 @@
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:budget/common/classes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -65,26 +65,8 @@ class NavDrawer extends StatelessWidget {
             leading: const Icon(Icons.info),
             title: const Text('About'),
             onTap: () async {
-              PackageInfo packageInfo = await PackageInfo.fromPlatform();
               Navigator.of(context).pop();
-              showAboutDialog(
-                context: context,
-                applicationIcon: const FlutterLogo(),
-                applicationName: packageInfo.appName,
-                applicationVersion: packageInfo.version,
-                applicationLegalese: '©2022 ${packageInfo.appName}',
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15),
-                    child: Column(children: [
-                      Text('This app is created by Sebastian Ternouski', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 20),
-                      Text('Special thanks to "stories" on freepik.', style: theme.textTheme.bodyMedium),
-                      Text('https://www.freepik.com/author/stories', style: theme.textTheme.bodyMedium),
-                    ]),
-                  )
-                ],
-              );
+              AboutDialogClass.show(context);
             },
           ),
         ],

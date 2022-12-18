@@ -1,5 +1,7 @@
-import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
+
+import '../model/currency.dart';
+import '../model/transaction.dart';
 import '../common/classes.dart';
 import '../common/convert.dart';
 
@@ -65,6 +67,22 @@ class Wallet implements ModelCommonInterface {
       'currencyId': currencyId,
     };
     return data;
+  }
+
+  /// Update the balance depending of the transaction and if and update from old balance
+  void updateBalance(Transaction transaction, {bool fromOld = false, double? balanceConverted}) {
+    if (transaction.type == TransactionType.transfer) {
+      if (id == transaction.walletFromId) {
+        balance += -(transaction.balance + transaction.fee) * (fromOld ? -1 : 1);
+        balanceFixed += -(transaction.balanceFixed + transaction.fee) * (fromOld ? -1 : 1);
+      } else if (balanceConverted != null) {
+        balance += balanceConverted * (fromOld ? -1 : 1);
+        balanceFixed += transaction.balanceFixed * (fromOld ? -1 : 1);
+      }
+    } else {
+      balance += fromOld ? -transaction.balance : transaction.balance;
+      balanceFixed += fromOld ? -transaction.balanceFixed : transaction.balanceFixed;
+    }
   }
 }
 

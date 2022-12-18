@@ -137,7 +137,7 @@ class ProfileSettings extends AbstractSettingsSection {
                 TextFormField(
                   initialValue: user.initialAmount.toString(),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
                   decoration: InputStyle.inputDecoration(
                     labelTextStr: 'Initial Amount',
                     hintTextStr: '0',

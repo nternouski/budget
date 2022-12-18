@@ -45,11 +45,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     id: '',
     name: '',
     amount: 0,
+    fee: 0,
     balance: 0,
     balanceFixed: 0,
     categoryId: '',
     date: now,
-    walletId: '',
+    walletFromId: '',
+    walletToId: '',
     type: TransactionType.expense,
     description: '',
     labels: [],
@@ -57,7 +59,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   );
   String title = 'Create Transaction';
   Action action = Action.create;
-  final ValueNotifier _showDescriptionField = ValueNotifier<bool>(false);
+  final ValueNotifier _showMoreField = ValueNotifier<bool>(false);
   final TextEditingController dateController = TextEditingController(text: '');
   final TextEditingController timeController = TextEditingController(text: '');
   late List<PopupMenuItem<TransactionType>> types = TransactionType.values
@@ -67,7 +69,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             child: Text(Convert.capitalize(t.toShortString()), style: TextStyle(color: colorsTypeTransaction[t])),
           )))
       .toList();
-  Wallet? walletSelected;
+  Wallet? walletFromSelected;
+  Wallet? walletToSelected;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -82,7 +85,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     if (t != null) {
       transaction = t;
       if (t.id != '') {
-        walletSelected = wallets.firstWhereOrNull((w) => w.id == transaction.walletId);
+        walletFromSelected = wallets.firstWhereOrNull((w) => w.id == transaction.walletFromId);
         action = Action.update;
         title = 'Update';
       }
@@ -104,11 +107,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildWallet(BuildContext context, String userId, List<Wallet> wallets, Color disabledColor) {
+  Widget buildWallet(BuildContext context, String userId, List<Wallet> wallets, Color disabledColor, bool fromWallet) {
     return Column(
       children: [
         Row(children: [
-          const Text('Choose Wallet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            'Choose ${fromWallet ? 'From' : 'To'} Wallet',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
@@ -128,8 +134,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 wallets.length,
                 (index) => GestureDetector(
                     onTap: () => setState(() {
-                          transaction.walletId = wallets[index].id;
-                          walletSelected = wallets[index];
+                          if (fromWallet) {
+                            transaction.walletFromId = wallets[index].id;
+                            walletFromSelected = wallets[index];
+                          } else {
+                            transaction.walletToId = wallets[index].id;
+                            walletToSelected = wallets[index];
+                          }
                         }),
                     child: Padding(
                       padding: const EdgeInsets.only(right: 20),
@@ -138,7 +149,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                         userId: userId,
                         showBalance: false,
                         showActions: false,
-                        selected: transaction.walletId == wallets[index].id,
+                        selected: fromWallet
+                            ? transaction.walletFromId == wallets[index].id
+                            : transaction.walletToId == wallets[index].id,
                       ),
                     )),
               ),
@@ -272,7 +285,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         const SizedBox(width: 5),
         InkWell(
           child: const Icon(Icons.edit_note),
-          onTap: () => setState(() => _showDescriptionField.value = !_showDescriptionField.value),
+          onTap: () => setState(() => _showMoreField.value = !_showMoreField.value),
         ),
       ],
     );
@@ -354,7 +367,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     User user = Provider.of<User>(context);
     List<Category> categories = Provider.of<List<Category>>(context);
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
-
+    debugPrint(transaction.fee.toString());
     return Form(
         key: _formKey,
         child: Padding(
@@ -368,7 +381,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 Flexible(
                   flex: 3,
                   child: PopupMenuButton<TransactionType>(
-                    onSelected: (TransactionType item) => setState(() => transaction.type = item),
+                    onSelected: (TransactionType item) {
+                      if (action == Action.create) {
+                        setState(() => transaction.type = item);
+                      } else {
+                        HandlerError()
+                            .setError('You can\'t update type, please delete the transaction and create a new one.');
+                      }
+                    },
                     itemBuilder: (BuildContext context) => types,
                     child: Container(
                       decoration: BoxDecoration(
@@ -392,22 +412,51 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 ),
               ],
             ),
-            buildWallet(context, user.id, wallets, theme.disabledColor),
-            buildCategory(categories),
-            CreateOrUpdateLabel(
-              labels: transaction.labels,
-              onSelect: (selection) {
-                if (!transaction.labels.any((l) => l.id == selection.id)) {
-                  setState(() => transaction.labels.add(selection));
-                }
-              },
-              onDelete: (label) => setState(
-                () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
+            if (transaction.type == TransactionType.transfer)
+              TextFormField(
+                initialValue: transaction.fee.toString(),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                decoration: InputStyle.inputDecoration(
+                  labelTextStr: 'Fee',
+                  hintTextStr: '0',
+                  prefix: const Text('\$ '),
+                ),
+                validator: (String? value) =>
+                    num.tryParse(value ?? '')?.toDouble() == null ? 'Amount is Required.' : null,
+                onSaved: (String? value) => transaction.fee = double.parse(value!),
               ),
-            ),
+            buildWallet(context, user.id, wallets, theme.disabledColor, true),
+            if (transaction.type == TransactionType.transfer)
+              buildWallet(context, user.id, wallets, theme.disabledColor, false),
+            buildCategory(categories),
             buildName(),
             ValueListenableBuilder(
-              valueListenable: _showDescriptionField,
+              valueListenable: _showMoreField,
+              builder: (BuildContext context, dynamic show, _) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return SizeTransition(sizeFactor: animation, child: child);
+                  },
+                  child: show
+                      ? CreateOrUpdateLabel(
+                          labels: transaction.labels,
+                          onSelect: (selection) {
+                            if (!transaction.labels.any((l) => l.id == selection.id)) {
+                              setState(() => transaction.labels.add(selection));
+                            }
+                          },
+                          onDelete: (label) => setState(
+                            () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
+                          ),
+                        )
+                      : const Text(''),
+                );
+              },
+            ),
+            ValueListenableBuilder(
+              valueListenable: _showMoreField,
               builder: (BuildContext context, dynamic show, _) {
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
@@ -425,40 +474,46 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
-                if (transaction.walletId == '' || walletSelected == null) {
-                  return handlerError.setError('You must choice a wallet first');
+
+                if (transaction.walletFromId == '' || walletFromSelected == null) {
+                  return handlerError.setError('You must choice a wallet first.');
+                }
+                if (transaction.type == TransactionType.transfer) {
+                  if (transaction.walletToId == '' || walletToSelected == null) {
+                    return handlerError.setError('You must choice the wallet of from and to transaction is made');
+                  }
+                  if (transaction.walletFromId == transaction.walletToId) {
+                    return handlerError.setError('Wallet must not be the same.');
+                  }
+                } else {
+                  transaction.walletToId = '';
+                  transaction.fee = 0.0;
                 }
                 if (user.defaultCurrency.id == '') {
                   return handlerError.setError('You must have a default currency first');
-                }
-                Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletId);
-                transaction.updateBalance();
-                if (user.defaultCurrency.id == wallet.currencyId) {
-                  transaction.balanceFixed = transaction.balance;
-                } else {
-                  CurrencyRate? cr = currencyRates.firstWhereOrNull((r) =>
-                      ((r.currencyFrom.id == user.defaultCurrency.id && r.currencyTo.id == wallet.currencyId) ||
-                          (r.currencyTo.id == user.defaultCurrency.id && r.currencyFrom.id == wallet.currencyId)));
-                  if (cr != null) {
-                    transaction.balanceFixed =
-                        cr.convert(transaction.balance, wallet.currencyId, user.defaultCurrency.id);
-                  } else {
-                    String defaultSymbol = user.defaultCurrency.symbol;
-                    String tSymbol = wallet.currency?.symbol ?? '';
-                    String message =
-                        'No currency rate of $defaultSymbol-$tSymbol or $tSymbol-$defaultSymbol, please add it before.';
-                    return HandlerError().setError(message);
-                  }
                 }
                 if (transaction.categoryId == '') return handlerError.setError('You must choice a category first');
                 if (transaction.amount <= 0.0) {
                   return handlerError.setError('Amount is required and must be grater than 0.');
                 }
-                if (action == Action.create) {
-                  await transactionRx.create(transaction, user.id, walletSelected!);
+                Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletFromId);
+                transaction.updateBalance();
+                if (user.defaultCurrency.id == wallet.currencyId) {
+                  transaction.balanceFixed = transaction.balance;
                 } else {
-                  await transactionRx.update(transaction, user.id, walletSelected!);
+                  CurrencyRate cr = currencyRates.findCurrencyRate(user.defaultCurrency, wallet.currency!);
+                  transaction.balanceFixed =
+                      cr.convert(transaction.balance, wallet.currencyId, user.defaultCurrency.id);
                 }
+
+                if (action == Action.create) {
+                  await transactionRx.create(
+                      transaction, user.id, walletFromSelected!, currencyRates, walletToSelected);
+                } else {
+                  await transactionRx.update(
+                      transaction, user.id, walletFromSelected!, currencyRates, walletToSelected);
+                }
+                // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
               child: Text(title),

@@ -1,15 +1,18 @@
-import 'package:budget/common/theme.dart';
-import 'package:budget/components/empty_list.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/server/database/user_rx.dart';
-import 'package:budget/server/database/wallet_rx.dart';
+import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
+import '../common/theme.dart';
+import '../components/empty_list.dart';
+import '../model/currency.dart';
+import '../model/user.dart';
+import '../server/database/user_rx.dart';
+import '../server/database/wallet_rx.dart';
 import '../routes.dart';
 import '../common/styles.dart';
 import '../components/icon_circle.dart';
 import '../model/wallet.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 class WalletsScreen extends StatefulWidget {
   const WalletsScreen({Key? key}) : super(key: key);
@@ -23,6 +26,7 @@ class WalletsScreenState extends State<WalletsScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     List<Wallet> wallets = Provider.of<List<Wallet>>(context);
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     auth.User authUser = Provider.of<auth.User>(context, listen: false);
     User? user = Provider.of<User>(context);
@@ -62,7 +66,7 @@ class WalletsScreenState extends State<WalletsScreen> {
               SliverToBoxAdapter(
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   ElevatedButton(
-                    onPressed: () => userRx.updateWallets(user, wallets),
+                    onPressed: () => userRx.calcWallets(user, wallets, currencyRates),
                     child: const Text('Re calculate Wallets'),
                   )
                 ]),
@@ -120,6 +124,8 @@ class WalletItem extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final color = selected ? wallet.color : Theme.of(context).disabledColor;
     final contrastColor = TextColor.getContrastOf(color);
+    User? user = Provider.of<User>(context);
+
     return Container(
       decoration: BoxDecoration(borderRadius: borderRadiusApp, color: color),
       child: Padding(
@@ -129,7 +135,17 @@ class WalletItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconCircle(icon: wallet.icon, color: contrastColor),
+            InkWell(
+              child: IconCircle(icon: wallet.icon, color: contrastColor),
+              onTap: () => {
+                if (wallet.balance.compareTo(wallet.balanceFixed) != 0)
+                  Display.message(
+                    context,
+                    'It\'s equivalent to \$${wallet.balanceFixed.prettier()} ${user.defaultCurrency.symbol}',
+                    seconds: 4,
+                  )
+              },
+            ),
             const SizedBox(width: 15),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,10 +157,10 @@ class WalletItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('\$${(wallet.balance + wallet.initialAmount).floor()}',
+                      Text('\$${(wallet.balance + wallet.initialAmount).prettier()}',
                           style: textTheme.headlineSmall?.copyWith(color: contrastColor)),
                       const SizedBox(width: 5),
-                      Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor))
+                      Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor)),
                     ],
                   ),
                 ],

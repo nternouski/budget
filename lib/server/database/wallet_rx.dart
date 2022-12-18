@@ -16,9 +16,13 @@ class WalletRx {
 
   ValueStream<List<Wallet>>? _wallets;
 
-  Future<Wallet> getDocFuture(String id, String userId) async {
+  Future<Wallet> getDocFuture(String id, String userId, {List<Currency>? currencies}) async {
     var data = await db.getDocFuture(getCollectionPath(userId), id);
-    return Wallet.fromJson(data);
+    Wallet wallet = Wallet.fromJson(data);
+    if (currencies != null) {
+      wallet.currency = currencies.firstWhere((c) => c.id == wallet.currencyId);
+    }
+    return wallet;
   }
 
   ValueStream<List<Wallet>> getWallets(String userId) {
@@ -50,9 +54,18 @@ class WalletRx {
 
   Future delete(String id, String userId) async {
     var transactionPath = TransactionRx.getCollectionPath(userId);
-    var ref = db.getCollection(transactionPath).where('walletId', isEqualTo: id);
-    var transactionIds = await db.getDocIdsOf(transactionPath, reference: ref);
-    transactionRx.deleteAll(transactionIds, userId);
+    var refWalletsFrom = db.getCollection(transactionPath).where('walletFromId', isEqualTo: id);
+    var refWalletsTo = db.getCollection(transactionPath).where('walletToId', isEqualTo: id);
+
+    await transactionRx.deleteAll(
+      List.from(await db.getDocIdsOf(transactionPath, reference: refWalletsFrom)),
+      userId,
+    );
+
+    await transactionRx.deleteAll(
+      List.from(await db.getDocIdsOf(transactionPath, reference: refWalletsTo)),
+      userId,
+    );
 
     return db.deleteDoc(getCollectionPath(userId), id);
   }

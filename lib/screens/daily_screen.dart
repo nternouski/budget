@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:budget/model/wallet.dart';
+import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -74,7 +75,7 @@ class DailyScreenState extends State<DailyScreen> {
           );
         } else {
           String symbol = user.defaultCurrency.symbol;
-          int total = wallets.fold(0, (prev, w) => prev + w.balanceFixed.toInt());
+          double total = wallets.fold(user.initialAmount, (prev, w) => prev + w.balanceFixed);
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 80),
@@ -82,7 +83,9 @@ class DailyScreenState extends State<DailyScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
-                    child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [Text('Currency $symbol \$$total')]),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [Text('Currency $symbol \$${total.prettier()}')]),
                   ),
                   ...List.generate(
                     transactions.length,

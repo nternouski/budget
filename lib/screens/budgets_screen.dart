@@ -1,4 +1,5 @@
 import 'package:budget/common/classes.dart';
+import 'package:budget/model/currency.dart';
 import 'package:budget/model/user.dart';
 import 'package:budget/server/database/budget_rx.dart';
 import 'package:provider/provider.dart';
@@ -169,7 +170,7 @@ class BudgetItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'BALANCE: \$${Convert.roundDouble(budget.balance, 2)}',
+                  'BALANCE: \$${budget.balance.prettier()}',
                   style: theme.textTheme.bodyMedium,
                 ),
                 Text('$porcentaje %', style: theme.textTheme.titleMedium),

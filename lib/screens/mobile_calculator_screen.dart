@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:sim_data/sim_data.dart';
-import 'package:ussd_advanced/ussd_advanced.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:sim_data/sim_data.dart';
+// import 'package:ussd_advanced/ussd_advanced.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../common/error_handler.dart';
+// import '../common/error_handler.dart';
 import '../common/styles.dart';
 import '../model/mobile_calculator.dart';
 
@@ -136,47 +136,48 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     );
   }
 
-  sendAdvancedUssd(BuildContext context, RequestUSSD request) async {
-    var phone = await Permission.phone.request();
-    if (!phone.isGranted) return Display.message(context, 'No permission for phone!');
-    try {
-      var sims = await SimDataPlugin.getSimData();
-      int subscriptionId = sims.cards.firstWhere((c) => c.carrierName.toLowerCase() == request.simName).subscriptionId;
-      var responseAdvance = await UssdAdvanced.sendAdvancedUssd(code: request.code, subscriptionId: subscriptionId);
-      Display.message(context, 'message ADVANCE: $responseAdvance');
-    } catch (e) {
-      HandlerError().setError('error! code: $e');
-    }
-  }
+  // sendAdvancedUssd(BuildContext context, RequestUSSD request) async {
+  //   var phone = await Permission.phone.request();
+  //   if (!phone.isGranted) return Display.message(context, 'No permission for phone!');
+  //   try {
+  //     var sims = await SimDataPlugin.getSimData();
+  //     int subscriptionId = sims.cards.firstWhere((c) => c.carrierName.toLowerCase() == request.simName).subscriptionId;
+  //     var responseAdvance = await UssdAdvanced.sendAdvancedUssd(code: request.code, subscriptionId: subscriptionId);
+  //     Display.message(context, 'message ADVANCE: $responseAdvance');
+  //   } catch (e) {
+  //     HandlerError().setError('error! code: $e');
+  //   }
+  // }
 
   List<Widget> getBody() {
     final theme = Theme.of(context);
 
-    var panels = [
-      Panel(
-        title: 'Update Data Used by USSD',
-        body: Column(
-          children: [
-            InputDecorator(
-              decoration: const InputDecoration(labelText: 'Select Plan'),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<RequestUSSD>(
-                  value: mobileDataFormFields.request,
-                  isDense: true,
-                  onChanged: (RequestUSSD? newRequest) =>
-                      newRequest != null ? setState(() => mobileDataFormFields.request = newRequest) : null,
-                  items: requests.map((r) => DropdownMenuItem(value: r, child: Text(r.simName))).toList(),
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => sendAdvancedUssd(context, mobileDataFormFields.request),
-              child: const Text('Fetch Data Used'),
-            ),
-          ],
-        ),
-      )
-    ];
+    var panels = [];
+    // var panels = [
+    //   Panel(
+    //     title: 'Update Data Used by USSD',
+    //     body: Column(
+    //       children: [
+    //         InputDecorator(
+    //           decoration: const InputDecoration(labelText: 'Select Plan'),
+    //           child: DropdownButtonHideUnderline(
+    //             child: DropdownButton<RequestUSSD>(
+    //               value: mobileDataFormFields.request,
+    //               isDense: true,
+    //               onChanged: (RequestUSSD? newRequest) =>
+    //                   newRequest != null ? setState(() => mobileDataFormFields.request = newRequest) : null,
+    //               items: requests.map((r) => DropdownMenuItem(value: r, child: Text(r.simName))).toList(),
+    //             ),
+    //           ),
+    //         ),
+    //         ElevatedButton(
+    //           onPressed: () => sendAdvancedUssd(context, mobileDataFormFields.request),
+    //           child: const Text('Fetch Data Used'),
+    //         ),
+    //       ],
+    //     ),
+    //   )
+    // ];
     return [
       SliverAppBar(
         titleTextStyle: theme.textTheme.titleLarge,

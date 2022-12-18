@@ -1,6 +1,53 @@
 import 'package:collection/collection.dart';
 import '../common/convert.dart';
 import '../common/classes.dart';
+import 'package:budget/common/error_handler.dart';
+
+extension CurrencyPrettier on double {
+  /// The function remove zeros on decimal and round to two decimals.
+  /// Examples:
+  ///   4.777 => 4.77
+  ///   52.0  => 5
+  String prettier() {
+    // ignore: unnecessary_this
+    return this.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0*$'), '');
+  }
+}
+
+extension CurrencyRateList on List<CurrencyRate> {
+  /// Find currency rate, if the currency its the same return class of rate 1.
+  CurrencyRate findCurrencyRate(Currency cr1, Currency cr2, {String? errorMessage}) {
+    if (cr1.id == cr2.id) {
+      return CurrencyRate(
+        id: '',
+        createdAt: DateTime.now(),
+        rate: 1,
+        currencyFrom: cr1,
+        currencyTo: cr2,
+      );
+    }
+    // ignore: unnecessary_this
+    CurrencyRate? cr = this.firstWhereOrNull((r) {
+      String from = r.currencyFrom.id;
+      String to = r.currencyTo.id;
+      return ((from == cr1.id && to == cr2.id) || (to == cr1.id && from == cr2.id));
+    });
+
+    if (cr == null) {
+      String message =
+          'No currency rate of ${cr1.symbol}-${cr2.symbol} or ${cr2.symbol}-${cr1.symbol}, please add it before.';
+      HandlerError().setError(errorMessage ?? message);
+      throw message;
+    }
+
+    return cr;
+  }
+
+  notExist(Currency cr1, Currency cr2) {
+    // ignore: unnecessary_this
+    return this.where((cr) => cr.currencyFrom.id == cr1.id && cr.currencyTo.id == cr2.id).isEmpty;
+  }
+}
 
 class Currency implements ModelCommonInterface {
   @override

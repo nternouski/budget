@@ -62,7 +62,7 @@ class UserService extends UserRx {
         user$.add(user);
       }
     } on LoginException catch (e) {
-      handlerError.setError('User has Cancelled or no Internet');
+      handlerError.setError('User has Cancelled or no Internet on SignUp. ${e.toString()}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
@@ -83,8 +83,8 @@ class UserService extends UserRx {
         throw LoginException(e.toString());
       }
       if (user != null) await refreshUserData(user.uid);
-    } on LoginException catch (_) {
-      handlerError.setError('User has Cancelled or no Internet');
+    } on LoginException catch (err) {
+      handlerError.setError('User has Cancelled or no Internet on Login. ${err.toString()}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());

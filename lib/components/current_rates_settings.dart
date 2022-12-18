@@ -116,9 +116,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
   _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, String userId) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
-        bool notExist = currencyRates
-            .where((cr) => cr.currencyFrom.id == rate.currencyFrom.id && cr.currencyTo.id == rate.currencyTo.id)
-            .isEmpty;
+        bool notExist = currencyRates.notExist(rate.currencyFrom, rate.currencyTo);
 
         bool differentCurrency = rate.currencyFrom.id != rate.currencyTo.id;
         return SingleChildScrollView(
@@ -155,7 +153,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 TextFormField(
                   initialValue: rate.rate.toString(),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Rate', hintTextStr: '0'),
                   onChanged: (String value) => rate.rate = double.parse(value != '' ? value : '0.0'),
                 ),

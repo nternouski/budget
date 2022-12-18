@@ -87,7 +87,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
         child: TextFormField(
           initialValue: budget.amount.toString(),
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9.]'))],
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
           decoration: InputStyle.inputDecoration(
             labelTextStr: 'Budget Amount',
             hintTextStr: '0',

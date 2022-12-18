@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 
 import '../model/label.dart';
-import '../model/wallet.dart';
 import '../common/classes.dart';
 import '../common/convert.dart';
 import '../model/category.dart';
@@ -32,8 +31,8 @@ class TransactionBalance implements ModelCommonInterface {
 
   /// Amount fixed with default currency of user.
   double balanceFixed;
-  String walletId;
-  TransactionBalance({required this.id, required this.balanceFixed, required this.walletId});
+  String walletFromId;
+  TransactionBalance({required this.id, required this.balanceFixed, required this.walletFromId});
 
   @Deprecated('TransactionBalance fromJson desecrated')
   factory TransactionBalance.fromJson(Map<String, dynamic> json) {
@@ -56,6 +55,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
   late DateTime createdAt;
   String name;
   double amount;
+  double fee;
+  double? balanceConverted; // If type == transfer will be the balance of the walletTo of that moment
 
   /// Amount fixed with default currency of user.
   @override
@@ -63,8 +64,9 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
   double balance;
   DateTime date;
   @override
-  String walletId;
-  Wallet? wallet;
+  String walletFromId;
+  String walletToId;
+
   TransactionType type;
   String description;
   List<Label> labels;
@@ -78,10 +80,13 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
     required this.id,
     required this.name,
     required this.amount,
+    required this.fee,
+    this.balanceConverted,
     required this.balance,
     required this.balanceFixed,
     required this.date,
-    required this.walletId,
+    required this.walletFromId,
+    required this.walletToId,
     required this.type,
     required this.description,
     required this.labels,
@@ -106,6 +111,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       createdAt: Convert.parseDate(json['createdAt'], json),
       name: json['name'],
       amount: Convert.currencyToDouble(json['amount'], json),
+      fee: Convert.currencyToDouble(json['fee'] ?? '0', json),
+      balanceConverted: Convert.currencyToDouble(json['balanceConverted'] ?? '0', json),
       balance: Convert.currencyToDouble(json['balance'], json),
       balanceFixed: Convert.currencyToDouble(json['balanceFixed'], json),
       date: Convert.parseDate(json['date'], json),
@@ -114,7 +121,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       labels: labels,
       category: json['category'] != null ? Category.fromJson(json['category']) : null,
       categoryId: json['categoryId'],
-      walletId: json['walletId'],
+      walletFromId: json['walletFromId'],
+      walletToId: json['walletToId'],
       externalId: json['externalId'] ?? '',
     );
   }
@@ -129,11 +137,14 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       'date': date,
       'type': type.name,
       'amount': amount,
+      'fee': fee,
+      'balanceConverted': balanceConverted,
       'balance': balance,
       'balanceFixed': balanceFixed,
       'categoryId': categoryId,
       'description': description,
-      'walletId': walletId,
+      'walletFromId': walletFromId,
+      'walletToId': walletToId,
       'externalId': externalId,
       'labelIds': labels.map((label) => label.id).toList()
     };
@@ -169,8 +180,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       balance = amount;
       balanceFixed = balanceFixed.abs();
     } else {
-      balance = 0; // Its a TransactionType.transfer
-      balanceFixed = 0; // Its a TransactionType.transfer
+      balance = amount; // Its a TransactionType.transfer
+      balanceFixed = balanceFixed.abs(); // Its a TransactionType.transfer
     }
   }
 }
