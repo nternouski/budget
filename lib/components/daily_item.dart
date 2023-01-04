@@ -23,7 +23,7 @@ class DailyItem extends StatefulWidget {
 
 class DailyItemState extends State<DailyItem> {
   final double opacitySlide = 0.25;
-  final paddingSlide = const SizedBox(width: 20);
+  final paddingSlide = const SizedBox(width: 10);
 
   @override
   Widget build(BuildContext context) {

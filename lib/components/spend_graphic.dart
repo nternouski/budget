@@ -46,7 +46,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
 
       var key = _formatKey.format(t.date);
       if (acc.containsKey(key)) {
-        acc[key]?.balance += t.balanceFixed;
+        acc[key]?.balance += t.type == TransactionType.transfer ? t.fee : t.balanceFixed;
       } else {
         acc.addAll({key: Balance(t.date, t.balanceFixed, key)});
       }
@@ -158,10 +158,12 @@ class _SpendGraphicState extends State<SpendGraphic> {
           ),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
+              fitInsideHorizontally: true,
+              fitInsideVertically: true,
               getTooltipItems: (value) => value.map((e) {
                 return LineTooltipItem('Balance: \$ ${e.y.toInt()}', const TextStyle());
               }).toList(),
-              tooltipBgColor: color,
+              tooltipBgColor: color.withOpacity(0.5),
             ),
           ),
           borderData: FlBorderData(show: false),

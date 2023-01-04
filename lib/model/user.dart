@@ -9,6 +9,18 @@ enum IntegrationType { wise }
 //     return toString().split('.').last;
 //   }
 // }
+
+extension UserValidator on String {
+  bool isValidEmail() {
+    String regex = r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
+    return RegExp(regex).hasMatch(this);
+  }
+
+  bool isValidPassword() {
+    return this.length >= 6;
+  }
+}
+
 class User implements ModelCommonInterface {
   @override
   String id;

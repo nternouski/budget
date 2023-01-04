@@ -1,9 +1,13 @@
-import 'package:budget/common/classes.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../common/classes.dart';
+import '../common/styles.dart';
 import '../common/error_handler.dart';
 import '../components/select_currency.dart';
+import '../model/user.dart';
 import '../model/currency.dart';
 import '../server/user_service.dart';
 
@@ -19,6 +23,11 @@ UserService userService = UserService();
 class _OnBoardingState extends State<OnBoarding> {
   bool isLastPage = false;
   Currency? defaultCurrency;
+  AuthOption authOption = AuthOption.google;
+  String email = '';
+  String password = '';
+  bool disclosureAccepted = false;
+
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
 
@@ -30,26 +39,146 @@ class _OnBoardingState extends State<OnBoarding> {
 
   buildOnBoarding(BuildContext context, ThemeData theme) {
     var pages = [
-      BuildPage(
-        urlImage: 'assets/images/bank-login.png',
-        title: 'Welcome to Budget App',
-        subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.',
-        children: [ElevatedButton(onPressed: () => userService.login(context), child: const Text('LOGIN'))],
-      ),
-      BuildPage(
-        urlImage: 'assets/images/currencies.png',
-        title: 'Select Default Currency',
-        subtitle: 'Before start we need to know what will be the default currency, you can change later.',
+      ListView(children: [
+        BuildPage(
+          urlImage: 'assets/images/bank-login.png',
+          title: 'Welcome to Budget App',
+          subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.',
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 35, right: 35),
+              child: Column(children: [
+                InputDecorator(
+                  decoration: const InputDecoration(labelText: 'Choice One Option'),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<AuthOption>(
+                      isDense: true,
+                      value: authOption,
+                      onChanged: (AuthOption? option) => option != null ? setState(() => authOption = option) : null,
+                      items: AuthOption.values
+                          .map((c) => DropdownMenuItem(value: c, child: Text('  ${c.toShortString()}')))
+                          .toList(),
+                    ),
+                  ),
+                ),
+                if (authOption == AuthOption.email)
+                  Column(children: [
+                    TextFormField(
+                      initialValue: email,
+                      autovalidateMode: AutovalidateMode.always,
+                      decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                      validator: (String? value) => value != null && value.isValidEmail() ? null : 'Email is Required.',
+                      onChanged: (String value) => email = value,
+                    ),
+                    TextFormField(
+                      initialValue: password,
+                      autovalidateMode: AutovalidateMode.always,
+                      decoration: InputStyle.inputDecoration(labelTextStr: 'Password', hintTextStr: ''),
+                      validator: (String? value) =>
+                          value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
+                      onChanged: (String value) => password = value,
+                    ),
+                  ]),
+                ElevatedButton(
+                    onPressed: () {
+                      if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
+                        return HandlerError().setError('First you must set a email and password');
+                      }
+                      userService.login(context, authOption, email, password);
+                    },
+                    child: const Text('LOGIN'))
+              ]),
+            )
+          ],
+        ),
+      ]),
+      ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 35, right: 35),
-            child: SelectCurrency(
-              initialCurrencyId: defaultCurrency?.id ?? '',
-              onSelect: (c) => setState(() => defaultCurrency = c),
-            ),
-          )
+          BuildPage(
+            urlImage: 'assets/images/currencies.png',
+            title: 'Select Default Currency',
+            subtitle: 'Before start we need to know what will be the default currency, you can change later.',
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 35, right: 35),
+                child: Column(children: [
+                  InputDecorator(
+                    decoration: const InputDecoration(labelText: 'Choice One Option'),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<AuthOption>(
+                        isDense: true,
+                        value: authOption,
+                        onChanged: (AuthOption? option) => option != null ? setState(() => authOption = option) : null,
+                        items: AuthOption.values
+                            .map((c) => DropdownMenuItem(value: c, child: Text('  ${c.toShortString()}')))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                  if (authOption == AuthOption.email)
+                    Column(children: [
+                      TextFormField(
+                        initialValue: email,
+                        autovalidateMode: AutovalidateMode.always,
+                        decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                        validator: (String? value) =>
+                            value != null && value.isValidEmail() ? null : 'Email is Required.',
+                        onChanged: (String value) => email = value,
+                      ),
+                      TextFormField(
+                        initialValue: password,
+                        autovalidateMode: AutovalidateMode.always,
+                        decoration: InputStyle.inputDecoration(labelTextStr: 'Password', hintTextStr: ''),
+                        validator: (String? value) =>
+                            value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
+                        onChanged: (String value) => password = value,
+                      ),
+                    ]),
+                  SelectCurrency(
+                    initialCurrencyId: defaultCurrency?.id ?? '',
+                    onSelect: (c) => setState(() => defaultCurrency = c),
+                  ),
+                  const SizedBox(height: 15),
+                  CheckboxListTile(
+                    title: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: 'By continuing, I agree to ', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(
+                            text: 'Terms & Conditions',
+                            style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
+                                    mode: LaunchMode.externalApplication);
+                              },
+                          ),
+                          TextSpan(text: ' and ', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
+                                    mode: LaunchMode.externalApplication);
+                              },
+                          ),
+                          TextSpan(text: ' and allow to verify credentials.', style: TextStyle(color: theme.hintColor)),
+                        ],
+                      ),
+                    ),
+                    value: disclosureAccepted,
+                    onChanged: (newValue) {
+                      setState(() => disclosureAccepted = newValue ?? false);
+                    },
+                    controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
+                  ),
+                ]),
+              )
+            ],
+          ),
         ],
-      ),
+      )
     ];
     return Scaffold(
       body: Container(
@@ -68,11 +197,10 @@ class _OnBoardingState extends State<OnBoarding> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-                onPressed: () {
-                  AboutDialogClass.show(context);
-                },
-                icon: const Icon(Icons.info),
-                color: Colors.grey),
+              onPressed: () => AboutDialogClass.show(context),
+              icon: const Icon(Icons.info),
+              color: Colors.grey,
+            ),
             Center(
               child: SmoothPageIndicator(
                 controller: controller,
@@ -90,9 +218,15 @@ class _OnBoardingState extends State<OnBoarding> {
               onPressed: () async {
                 if (isLastPage) {
                   if (defaultCurrency == null) {
-                    return HandlerError().setError('First yoy must set a default currency');
+                    return HandlerError().setError('First you must set a default currency');
                   }
-                  await userService.singUp(context, defaultCurrency!);
+                  if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
+                    return HandlerError().setError('First you must set a email and password');
+                  }
+                  if (!disclosureAccepted) {
+                    return HandlerError().setError('You must accept the terms and conditions.');
+                  }
+                  await userService.singUp(context, authOption, email, password, defaultCurrency!);
                 } else {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }
@@ -126,6 +260,7 @@ class BuildPage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        const SizedBox(height: 30),
         Image.asset(urlImage, width: 270, height: 270),
         const SizedBox(height: 30),
         Text(title,

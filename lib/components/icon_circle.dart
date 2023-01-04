@@ -6,7 +6,7 @@ class IconCircle extends StatelessWidget {
   late final double size;
 
   IconCircle({required this.icon, required this.color, double? size, Key? key}) : super(key: key) {
-    this.size = size ?? 39;
+    this.size = size ?? 34;
   }
 
   @override
@@ -15,7 +15,7 @@ class IconCircle extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), color: color.withOpacity(0.17)),
       height: size,
       width: size,
-      child: Icon(icon, color: color, size: size / 1.7),
+      child: Icon(icon, color: color, size: size / 1.8),
     );
   }
 }

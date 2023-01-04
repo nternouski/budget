@@ -87,7 +87,6 @@ class UserRx {
       wallet.balance = 0;
       wallet.balanceFixed = 0;
       for (var t in transactions) {
-        debugPrint('${wallet.id == t.walletFromId}');
         if (wallet.id == t.walletFromId) {
           wallet.updateBalance(t);
         } else if (wallet.id == t.walletToId) {

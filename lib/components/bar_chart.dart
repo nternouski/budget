@@ -1,11 +1,11 @@
-import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
-import 'package:budget/common/convert.dart';
-import 'package:budget/model/transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+
+import '../model/currency.dart';
+import '../common/convert.dart';
+import '../model/transaction.dart';
 
 class BarChartGroup {
   DateTime y;
@@ -13,10 +13,20 @@ class BarChartGroup {
   BarChartGroup({required this.y, required this.data}) : super();
 }
 
+class ResumeAcc {
+  double expense;
+  double income;
+  double transfer;
+
+  ResumeAcc({this.expense = 0.0, this.income = 0.0, this.transfer = 0.0});
+}
+
 class BarChartWidget extends StatefulWidget {
   final List<Transaction> transactions;
   final DateTime frameDate;
-  const BarChartWidget({Key? key, required this.transactions, required this.frameDate}) : super(key: key);
+  final Map<TransactionType, bool> selectedTypes;
+  const BarChartWidget({Key? key, required this.transactions, required this.selectedTypes, required this.frameDate})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => BarChartWidgetState();
@@ -33,6 +43,8 @@ class BarChartWidgetState extends State<BarChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     int index = 0;
     rawBarGroups = [];
     maxBalance = 0;
@@ -64,37 +76,66 @@ class BarChartWidgetState extends State<BarChartWidget> {
       ));
     }
 
-    return AspectRatio(
-      aspectRatio: 1.4,
-      child: Padding(
-        padding: const EdgeInsets.all(5),
-        child: BarChart(
-          BarChartData(
-            maxY: maxBalance,
-            titlesData: FlTitlesData(
-              show: true,
-              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(showTitles: true, getTitlesWidget: bottomTitles, reservedSize: 30),
-              ),
-              leftTitles: AxisTitles(
-                axisNameWidget: const Text(''),
-                axisNameSize: 4,
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: maxBalance / 2 + 1,
-                  reservedSize: 30,
-                  getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis + 0)),
+    ResumeAcc resume = widget.transactions.fold(ResumeAcc(), (r, t) {
+      if (t.type == TransactionType.income) {
+        r.income += t.balanceFixed;
+      } else if (t.type == TransactionType.expense) {
+        r.expense += t.balanceFixed;
+      } else if (t.type == TransactionType.transfer) {
+        r.transfer += t.balanceFixed;
+      }
+      return r;
+    });
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        AspectRatio(
+          aspectRatio: 1.4,
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: BarChart(
+              BarChartData(
+                maxY: maxBalance,
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: true, getTitlesWidget: bottomTitles, reservedSize: 30),
+                  ),
+                  leftTitles: AxisTitles(
+                    axisNameWidget: const Text(''),
+                    axisNameSize: 4,
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: maxBalance / 2 + 1,
+                      reservedSize: 30,
+                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis + 0)),
+                    ),
+                  ),
                 ),
+                borderData: FlBorderData(show: false),
+                barGroups: rawBarGroups.map((g) => g.data).toList(),
+                gridData: FlGridData(show: false),
               ),
             ),
-            borderData: FlBorderData(show: false),
-            barGroups: rawBarGroups.map((g) => g.data).toList(),
-            gridData: FlGridData(show: false),
           ),
         ),
-      ),
+        const Text('1 bar 1 week'),
+        const SizedBox(height: 20),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.selectedTypes[TransactionType.income] == true)
+              Text('Total Income: \$${resume.income.prettier()}', style: theme.textTheme.titleMedium),
+            if (widget.selectedTypes[TransactionType.expense] == true)
+              Text('Total Expense: \$${resume.expense.prettier()}', style: theme.textTheme.titleMedium),
+            if (widget.selectedTypes[TransactionType.transfer] == true)
+              Text('Total Transfer: \$${resume.transfer.prettier()}', style: theme.textTheme.titleMedium)
+          ],
+        ),
+      ],
     );
   }
 
@@ -107,7 +148,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
 
   Widget bottomTitles(double value, TitleMeta meta) {
     DateTime date = rawBarGroups[value.toInt()].y;
-    var format = DateTime.now().month != date.month ? DateFormat.ABBR_MONTH_DAY : 'd';
+    var format = DateTime.now().month != date.month ? 'dMMM' : 'd';
     var text = value.toInt() % 2 != 0 ? '' : DateFormat(format).format(date);
     return SideTitleWidget(axisSide: meta.axisSide, space: 5, child: Text(text));
   }

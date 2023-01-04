@@ -122,10 +122,6 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
       children: [
         Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
-            ),
             const Text(
               'Choose Category',
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
@@ -134,6 +130,10 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               icon: const Icon(Icons.add),
               onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
             ),
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
+            )
           ],
         ),
         if (categories.isEmpty)
@@ -170,14 +170,13 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                       borderRadius: categoryBorderRadius,
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 15),
+                      padding: const EdgeInsets.all(5),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconCircle(icon: categories[index].icon, color: categories[index].color),
-                          const SizedBox(width: 10),
-                          Text(categories[index].name,
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16))
+                          const SizedBox(width: 5),
+                          Text(categories[index].name, style: const TextStyle(fontWeight: FontWeight.w500))
                         ],
                       ),
                     ),

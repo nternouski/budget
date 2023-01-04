@@ -129,8 +129,9 @@ class ProfileSettings extends AbstractSettingsSection {
                 sizedBoxHeight,
                 TextFormField(
                   initialValue: user.email,
+                  autovalidateMode: AutovalidateMode.always,
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
-                  validator: (String? value) => value!.isEmpty ? 'Email is Required.' : null,
+                  validator: (String? value) => value != null && value.isValidEmail() ? null : 'Email is Required.',
                   onChanged: (String email) => user.email = email,
                 ),
                 sizedBoxHeight,

@@ -123,6 +123,7 @@ class WalletItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final color = selected ? wallet.color : Theme.of(context).disabledColor;
+    final List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
     final contrastColor = TextColor.getContrastOf(color);
     User? user = Provider.of<User>(context);
 
@@ -137,16 +138,22 @@ class WalletItem extends StatelessWidget {
           children: [
             InkWell(
               child: IconCircle(icon: wallet.icon, color: contrastColor),
-              onTap: () => {
-                if (wallet.balance.compareTo(wallet.balanceFixed) != 0)
+              onTap: () {
+                if (wallet.balance.compareTo(wallet.balanceFixed) != 0) {
+                  double equivalent = wallet.balanceFixed;
+                  if (wallet.initialAmount != 0) {
+                    CurrencyRate cr = currencyRates.findCurrencyRate(user.defaultCurrency, wallet.currency!);
+                    equivalent += cr.convert(wallet.initialAmount, wallet.currencyId, user.defaultCurrency.id);
+                  }
                   Display.message(
                     context,
-                    'It\'s equivalent to \$${wallet.balanceFixed.prettier()} ${user.defaultCurrency.symbol}',
+                    'It\'s equivalent to \$${equivalent.prettier()} ${user.defaultCurrency.symbol}',
                     seconds: 4,
-                  )
+                  );
+                }
               },
             ),
-            const SizedBox(width: 15),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

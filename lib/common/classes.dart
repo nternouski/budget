@@ -35,10 +35,10 @@ class AboutDialogClass {
 
     return showAboutDialog(
       context: context,
-      applicationIcon: const FlutterLogo(),
+      applicationIcon: Image.asset('assets/logo.png', width: 40, height: 40),
       applicationName: packageInfo.appName,
       applicationVersion: packageInfo.version,
-      applicationLegalese: '©2022 ${packageInfo.appName}',
+      applicationLegalese: '© 2023 ${packageInfo.appName}',
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 15),
@@ -61,7 +61,8 @@ class AboutDialogClass {
             const SizedBox(height: 10),
             TextButton(
               onPressed: () => _redirect(Uri.https('www.freepik.com', '/author/stories')),
-              child: Text('Special thanks to "stories" on freepik.', style: theme.textTheme.bodyMedium),
+              child:
+                  Text('Special thanks to "stories" on freepik for the pictures.', style: theme.textTheme.bodyMedium),
             ),
           ]),
         )

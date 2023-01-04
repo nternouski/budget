@@ -1,4 +1,5 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
+import 'package:budget/common/convert.dart';
 import 'package:budget/model/user.dart';
 import 'package:budget/server/database/user_rx.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,17 @@ import '../common/error_handler.dart';
 import '../model/currency.dart';
 
 enum InitStatus { noUserStored, loginCompleted, errorOnLogin, inProgress }
+
+enum AuthOption {
+  email,
+  google,
+}
+
+extension ParseToString on AuthOption {
+  String toShortString() {
+    return Convert.capitalize(toString().split('.').last);
+  }
+}
 
 class UserService extends UserRx {
   final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
@@ -35,15 +47,21 @@ class UserService extends UserRx {
     }
   }
 
-  Future<void> singUp(BuildContext context, Currency defaultCurrency) async {
+  Future<void> singUp(
+      BuildContext context, AuthOption option, String email, String password, Currency defaultCurrency) async {
     try {
       initStarted = true;
 
       auth.User? userAuth;
       try {
-        auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
-        auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
-        userAuth = result.user;
+        if (option == AuthOption.google) {
+          auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
+          auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+          userAuth = result.user;
+        } else if (option == AuthOption.email) {
+          auth.UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+          userAuth = result.user;
+        }
       } catch (e) {
         throw LoginException(e.toString());
       }
@@ -71,14 +89,20 @@ class UserService extends UserRx {
     }
   }
 
-  Future<void> login(BuildContext context, {Currency? defaultCurrency}) async {
+  Future<void> login(BuildContext context, AuthOption option, String email, String password,
+      {Currency? defaultCurrency}) async {
     try {
       initStarted = true;
       auth.User? user;
       try {
-        auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
-        auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
-        user = result.user;
+        if (option == AuthOption.google) {
+          auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
+          auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+          user = result.user;
+        } else if (option == AuthOption.email) {
+          auth.UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
+          user = result.user;
+        }
       } catch (e) {
         throw LoginException(e.toString());
       }

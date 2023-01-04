@@ -34,6 +34,7 @@ class ThemeProvider extends ChangeNotifier {
       secondary: Colors.pink,
     ),
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
+    toggleableActiveColor: _primary,
     disabledColor: const Color.fromARGB(255, 145, 145, 145),
   );
 
@@ -62,6 +63,7 @@ class ThemeProvider extends ChangeNotifier {
       onError: _white,
     ),
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
+    toggleableActiveColor: _primary,
     disabledColor: Colors.grey[600],
   );
 

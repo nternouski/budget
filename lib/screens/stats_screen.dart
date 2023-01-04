@@ -1,17 +1,18 @@
-import 'dart:developer';
 import 'dart:math';
-
 import 'package:budget/common/convert.dart';
-import 'package:budget/components/bar_chart.dart';
+import 'package:budget/model/user.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../components/daily_item.dart';
+import '../components/bar_chart.dart';
 import '../components/icon_circle.dart';
 import '../components/spend_graphic.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../common/styles.dart';
+import '../model/currency.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
 
@@ -38,7 +39,7 @@ class StatsScreen extends StatefulWidget {
 
 class StatsScreenState extends State<StatsScreen> {
   Preferences preferences = Preferences();
-  int touchedIndex = 0;
+  PieCategory? pieSliceSelected;
   List<String>? selectedCategories;
   Map<TransactionType, bool> selectedTypes = TransactionType.values.asMap().map((_, value) => MapEntry(value, true));
 
@@ -112,7 +113,7 @@ class StatsScreenState extends State<StatsScreen> {
                                                   shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
                                             ),
                                             const SizedBox(width: 5),
-                                            Text(e.key.toShortString())
+                                            Text(Convert.capitalize(e.key.toShortString()))
                                           ],
                                         ),
                                       ),
@@ -122,32 +123,36 @@ class StatsScreenState extends State<StatsScreen> {
                             .toList(),
                       ),
                       const SizedBox(height: 10),
+                      Divider(color: theme.dividerColor, thickness: 2),
+                      const SizedBox(height: 10),
                       Padding(
                         padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
                         child: Wrap(
                           spacing: 10,
                           runSpacing: 10,
-                          children: categoriesSelected
-                              .map((p) => _Indicator(
-                                    category: p.category,
-                                    isSelected: p.isSelected,
-                                    onTap: (bool isSelected, String id) {
-                                      if (isSelected) {
-                                        selectedCategories = [...(selectedCategories ?? []), id];
-                                      } else {
-                                        selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
-                                      }
-                                      setState(() {});
-                                    },
-                                  ))
-                              .toList(),
+                          children: categoriesSelected.map((p) {
+                            return _Indicator(
+                              category: p.category,
+                              isSelected: p.isSelected,
+                              onTap: (bool isSelected, String id) {
+                                if (isSelected) {
+                                  selectedCategories = [...(selectedCategories ?? []), id];
+                                } else {
+                                  selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
+                                }
+                                setState(() {});
+                              },
+                            );
+                          }).toList(),
                         ),
                       ),
                     ]),
                   ),
                 ),
-                SliverToBoxAdapter(child: BarChartWidget(transactions: transactions, frameDate: frameDate)),
-                pieChart(context, theme, categoriesSelected, total, periodStats),
+                SliverToBoxAdapter(
+                  child: BarChartWidget(transactions: transactions, selectedTypes: selectedTypes, frameDate: frameDate),
+                ),
+                pieChart(context, theme, categoriesSelected, transactions, total, periodStats),
               ],
             );
           },
@@ -158,32 +163,70 @@ class StatsScreenState extends State<StatsScreen> {
     BuildContext context,
     ThemeData theme,
     List<CategorySelected> categoriesSelected,
+    List<Transaction> transactions,
     double total,
     PeriodStats periodStats,
   ) {
     List<PieCategory> pie = categoriesSelected.fold<List<PieCategory>>([], (acc, item) {
-      if (!item.isSelected) return acc;
+      if (!item.isSelected || item.totalAmount == 0) return acc;
       return [...acc, PieCategory(item.category, total == 0 ? 0 : (item.totalAmount * 100) / total, item.isSelected)];
     }).toList();
+
+    List<Transaction> transactionSelected =
+        transactions.where((t) => t.categoryId == pieSliceSelected?.category.id).toList();
+    User user = Provider.of<User>(context);
+    double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.balanceFixed + acc);
+    String symbol = user.defaultCurrency.symbol;
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 15, bottom: 10, left: 20, right: 20),
-        child: AspectRatio(
-          aspectRatio: 1.3,
-          child: PieChart(
-            PieChartData(
-              pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                setState(() => touchedIndex = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1);
-              }),
-              borderData: FlBorderData(show: false),
-              sectionsSpace: 0,
-              centerSpaceRadius: 30,
-              sections: showingSections(pie),
+        child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 15, bottom: 10, left: 20, right: 20),
+          child: AspectRatio(
+            aspectRatio: 1.3,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                  setState(() {
+                    int touchedIndex = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1;
+                    if (!event.isInterestedForInteractions || touchedIndex == -1) return;
+                    pieSliceSelected = pie[touchedIndex];
+                  });
+                }),
+                borderData: FlBorderData(show: false),
+                sectionsSpace: 0,
+                centerSpaceRadius: 30,
+                sections: showingSections(pie),
+              ),
             ),
           ),
         ),
-      ),
-    );
+        Padding(
+          padding: const EdgeInsets.only(top: 15, bottom: 80),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Text('Category ${pieSliceSelected?.category.name}', style: theme.textTheme.titleLarge)]),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [Text('Currency $symbol \$${totalSelected.prettier()}')]),
+              ),
+              ...List.generate(
+                transactionSelected.length,
+                (index) =>
+                    DailyItem(transaction: transactionSelected[index], key: Key(Random().nextDouble().toString())),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ));
   }
 
   List<PieChartSectionData> showingSections(List<PieCategory> pie) {
@@ -193,7 +236,7 @@ class StatsScreenState extends State<StatsScreen> {
       Category category = pie[index].category;
       double porcentaje = pie[index].porcentaje;
 
-      final isTouched = index == touchedIndex;
+      final isTouched = pieSliceSelected?.category.id == category.id;
       final fontSize = isTouched ? 20.0 : 16.0;
       final radius = isTouched ? 90.0 : 80.0;
       final widgetSize = isTouched ? 52.0 : 42.0;
