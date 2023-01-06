@@ -44,11 +44,11 @@ class _SpendGraphicState extends State<SpendGraphic> {
     var balancedDay = transactions.fold<Map<String, Balance>>({}, (acc, t) {
       if (t.date.isBefore(frameDate)) return acc;
 
-      var key = _formatKey.format(t.date);
+      final key = _formatKey.format(t.date);
       if (acc.containsKey(key)) {
-        acc[key]?.balance += t.type == TransactionType.transfer ? t.fee : t.balanceFixed;
+        acc[key]?.balance += t.getBalanceFromType();
       } else {
-        acc.addAll({key: Balance(t.date, t.balanceFixed, key)});
+        acc.addAll({key: Balance(t.date, t.getBalanceFromType(), key)});
       }
       return acc;
     });
@@ -117,7 +117,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
         );
         firstBalanceOfFrame = transactions
             .where((t) => t.date.isAfter(frameDate))
-            .fold<double>(total, (prev, element) => prev - element.balanceFixed);
+            .fold<double>(total, (prev, element) => prev - element.getBalanceFromType());
         frame = [];
 
         return getGraph(context, frameDate, transactions);

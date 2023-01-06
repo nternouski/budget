@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -43,14 +45,14 @@ class BarChartWidgetState extends State<BarChartWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final ThemeData theme = Theme.of(context);
 
     int index = 0;
     rawBarGroups = [];
     maxBalance = 0;
     for (var time = widget.frameDate; time.isBefore(DateTime.now()); time = time.add(barDuration)) {
       final rodStackItems = TransactionType.values.fold<List<BarChartRodStackItem>>([], (acc, type) {
-        double values = getBalanceOf(widget.transactions, type, time);
+        double values = getBalanceOf(widget.transactions, type, time, time.add(barDuration));
         double prevValue = acc.isEmpty ? 0 : acc.last.toY;
         double total = prevValue + values;
 
@@ -111,11 +113,12 @@ class BarChartWidgetState extends State<BarChartWidget> {
                       showTitles: true,
                       interval: maxBalance / 2 + 1,
                       reservedSize: 30,
-                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis + 0)),
+                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis)),
                     ),
                   ),
                 ),
                 borderData: FlBorderData(show: false),
+                barTouchData: getTooltip(theme),
                 barGroups: rawBarGroups.map((g) => g.data).toList(),
                 gridData: FlGridData(show: false),
               ),
@@ -139,9 +142,35 @@ class BarChartWidgetState extends State<BarChartWidget> {
     );
   }
 
-  double getBalanceOf(List<Transaction> transactions, TransactionType type, DateTime time) {
+  getTooltip(ThemeData theme) {
+    return BarTouchData(
+      touchTooltipData: BarTouchTooltipData(
+        tooltipBgColor: theme.dialogBackgroundColor,
+        getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
+          '',
+          TextStyle(
+            color: theme.textTheme.bodyLarge!.color,
+            fontWeight: FontWeight.bold,
+            fontSize: theme.textTheme.bodyLarge!.fontSize,
+          ),
+          children: rod.rodStackItems.asMap().entries.fold<List<TextSpan>>([], (acc, entry) {
+            final type = TransactionType.values.elementAt(entry.key);
+            double value = entry.value.toY - entry.value.fromY;
+            if (value.compareTo(0.0) > 0) {
+              final itemText =
+                  '${acc.isNotEmpty ? '\n' : ''}${Convert.capitalize(type.toShortString())}: \$${value.prettier()}';
+              acc.add(TextSpan(text: itemText, style: TextStyle(color: colorsTypeTransaction[type]!)));
+            }
+            return acc;
+          }),
+        ),
+      ),
+    );
+  }
+
+  double getBalanceOf(List<Transaction> transactions, TransactionType type, DateTime after, DateTime before) {
     return transactions.fold<double>(0.0, (acc, t) {
-      final match = t.type == type && t.date.isAfter(time) && t.date.isBefore(time.add(barDuration));
+      final match = t.type == type && t.date.isAfter(after) && t.date.isBefore(before);
       return match ? acc + t.balanceFixed.abs() : acc;
     });
   }

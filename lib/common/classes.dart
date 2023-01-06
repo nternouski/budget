@@ -72,7 +72,7 @@ class AboutDialogClass {
 
   static _redirect(Uri uri) async {
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(uri, mode: LaunchMode.inAppWebView);
     } else {
       throw 'Could not launch ${uri.toString()}';
     }

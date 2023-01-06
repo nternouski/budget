@@ -77,7 +77,6 @@ class DailyScreenState extends State<DailyScreen> {
         } else {
           String symbol = user.defaultCurrency.symbol;
           double total = wallets.fold(user.initialAmount, (prev, w) => prev + w.initialAmount + w.balanceFixed);
-          inspect(wallets);
           return SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 80),

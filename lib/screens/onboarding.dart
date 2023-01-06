@@ -149,8 +149,12 @@ class _OnBoardingState extends State<OnBoarding> {
                             style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
-                                    mode: LaunchMode.externalApplication);
+                                try {
+                                  launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
+                                      mode: LaunchMode.inAppWebView);
+                                } catch (e) {
+                                  debugPrint(e.toString());
+                                }
                               },
                           ),
                           TextSpan(text: ' and ', style: TextStyle(color: theme.hintColor)),
@@ -159,8 +163,12 @@ class _OnBoardingState extends State<OnBoarding> {
                             style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
-                                    mode: LaunchMode.externalApplication);
+                                try {
+                                  launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
+                                      mode: LaunchMode.inAppWebView);
+                                } catch (e) {
+                                  debugPrint(e.toString());
+                                }
                               },
                           ),
                           TextSpan(text: ' and allow to verify credentials.', style: TextStyle(color: theme.hintColor)),

@@ -184,4 +184,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       balanceFixed = balanceFixed.abs(); // Its a TransactionType.transfer
     }
   }
+
+  double getBalanceFromType() {
+    return type == TransactionType.transfer ? -fee : balanceFixed;
+  }
 }
