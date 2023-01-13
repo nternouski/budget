@@ -21,6 +21,8 @@ I use firebase and firestore as DB
 
 ### First Steps
 
+If you need to reset and clean the project run: `flutter clean` and then `flutter pub get`
+
 First at all install dependencies and requirements of the project. After that if you are on windows open Docker Desktop.
 
 1. Run `flutter pub run flutter_launcher_icons:main` to build icons of app 

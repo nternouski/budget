@@ -30,18 +30,12 @@ class RequestUSSD {
   const RequestUSSD(this.simName, this.code);
 }
 
-List<RequestUSSD> requests = List.from([
-  const RequestUSSD('tuenti', '*999*2*#' /*   '*31#'   '*999*#'   '*#21#'   */),
-  const RequestUSSD('vudafone', '*#21#'),
-]);
-
 class MobileDataFormFields {
   DateTime startDate;
   PlanData plan;
   int spentDataMb;
-  RequestUSSD request;
 
-  MobileDataFormFields(this.startDate, this.plan, this.spentDataMb, this.request);
+  MobileDataFormFields(this.startDate, this.plan, this.spentDataMb);
 
   @override
   String toString() {

@@ -26,7 +26,8 @@ class _OnBoardingState extends State<OnBoarding> {
   AuthOption authOption = AuthOption.google;
   String email = '';
   String password = '';
-  bool disclosureAccepted = false;
+  bool disclosureAcceptedSignUp = false;
+  bool disclosureAcceptedLogin = false;
 
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
@@ -79,10 +80,59 @@ class _OnBoardingState extends State<OnBoarding> {
                       onChanged: (String value) => password = value,
                     ),
                   ]),
+                const SizedBox(height: 15),
+                CheckboxListTile(
+                  title: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(text: 'By continuing, I agree to ', style: TextStyle(color: theme.hintColor)),
+                        TextSpan(
+                          text: 'Terms & Conditions',
+                          style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              try {
+                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
+                                    mode: LaunchMode.inAppWebView);
+                              } catch (e) {
+                                debugPrint(e.toString());
+                              }
+                            },
+                        ),
+                        TextSpan(text: ' and ', style: TextStyle(color: theme.hintColor)),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              try {
+                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
+                                    mode: LaunchMode.inAppWebView);
+                              } catch (e) {
+                                debugPrint(e.toString());
+                              }
+                            },
+                        ),
+                        TextSpan(
+                            text:
+                                ' and allow to verify credentials. Also, the app not request permission only if you check the biometric auth you can use for login and the app is not a AccessibilityTool.',
+                            style: TextStyle(color: theme.hintColor)),
+                      ],
+                    ),
+                  ),
+                  value: disclosureAcceptedLogin,
+                  onChanged: (newValue) {
+                    setState(() => disclosureAcceptedLogin = newValue ?? false);
+                  },
+                  controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
+                ),
                 ElevatedButton(
                     onPressed: () {
                       if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
                         return HandlerError().setError('First you must set a email and password');
+                      }
+                      if (!disclosureAcceptedLogin) {
+                        return HandlerError().setError('You must accept the terms and conditions.');
                       }
                       userService.login(context, authOption, email, password);
                     },
@@ -171,13 +221,16 @@ class _OnBoardingState extends State<OnBoarding> {
                                 }
                               },
                           ),
-                          TextSpan(text: ' and allow to verify credentials.', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(
+                              text:
+                                  ' and allow to verify credentials. Also, the app not request permission only if you check the biometric auth you can use for login and the app is not a AccessibilityTool.',
+                              style: TextStyle(color: theme.hintColor)),
                         ],
                       ),
                     ),
-                    value: disclosureAccepted,
+                    value: disclosureAcceptedSignUp,
                     onChanged: (newValue) {
-                      setState(() => disclosureAccepted = newValue ?? false);
+                      setState(() => disclosureAcceptedSignUp = newValue ?? false);
                     },
                     controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
                   ),
@@ -231,7 +284,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
                     return HandlerError().setError('First you must set a email and password');
                   }
-                  if (!disclosureAccepted) {
+                  if (!disclosureAcceptedSignUp) {
                     return HandlerError().setError('You must accept the terms and conditions.');
                   }
                   await userService.singUp(context, authOption, email, password, defaultCurrency!);

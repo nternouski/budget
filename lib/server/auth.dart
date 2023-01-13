@@ -96,25 +96,57 @@ class AuthError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     final localAuth = Provider.of<LocalAuthProvider>(context);
-    String message = '';
+    String message = 'Confirm fingerprint to continue.';
     if (status == LocalAuthState.inProgress) message = 'Authentication In Progress.';
     if (status == LocalAuthState.nonSupported) message = 'Authentication Not Supported.';
     if (status == LocalAuthState.tryAgain) message = 'Error on authenticate with biometric.';
 
     return Scaffold(
-      body: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Text(message),
-            if (status == LocalAuthState.tryAgain)
-              ElevatedButton(onPressed: () => localAuth.tryAgain(), child: const Text('Try again!'))
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          const SizedBox(height: 200),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              DecoratedBox(
+                  decoration: BoxDecoration(color: theme.cardColor),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Fingerprint Unlock', style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 20),
+                        InkWell(
+                          onTap: () => localAuth.tryAgain(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.fingerprint, size: 35),
+                              SizedBox(width: 15),
+                              Text('Touch Sensor')
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(message),
+                        if (status == LocalAuthState.tryAgain) const SizedBox(height: 10),
+                        if (status == LocalAuthState.tryAgain)
+                          ElevatedButton(child: const Text('Try again!'), onPressed: () => localAuth.tryAgain())
+                      ],
+                    ),
+                  ))
+            ],
+          )
+        ],
       ),
     );
   }
