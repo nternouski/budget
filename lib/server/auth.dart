@@ -1,14 +1,15 @@
 import 'dart:developer';
 
-import 'package:budget/common/error_handler.dart';
-import 'package:budget/common/preference.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../common/error_handler.dart';
+import '../common/preference.dart';
+import '../screens/email_verification_screen.dart';
 import '../components/bottom_navigation_bar_widget.dart';
 import '../screens/onboarding.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 enum LocalAuthState { nonSupported, success, error, inProgress, tryAgain }
 
@@ -74,9 +75,11 @@ class AuthWrapper extends StatelessWidget {
 
     if (user != null) {
       userService.init(user.uid);
+      final emailVerification = Provider.of<EmailVerificationNotifier>(context);
+      if (!emailVerification.isEmailVerified && !user.emailVerified) return const EmailVerificationScreen();
+
       final localAuth = Provider.of<LocalAuthProvider>(context);
       if (!localAuth.enable) return const BottomNavigationBarWidget();
-
       return FutureBuilder<LocalAuthState>(
         future: localAuth.authenticate(),
         builder: (BuildContext context, snapshot) {

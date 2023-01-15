@@ -26,7 +26,7 @@ final now = DateTime.now();
 class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   HandlerError handlerError = HandlerError();
 
-  Wallet wallet = defaultWallet;
+  Wallet wallet = defaultWallet.copy();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -103,12 +103,11 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Column(children: <Widget>[
           buildAmount(action),
-          sizedBoxHeight,
           buildName(),
           ColorPicker(
             color: wallet.color,
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             padding: const EdgeInsets.only(top: 16, bottom: 0),
             borderRadius: 25,
             enableShadesSelection: false,

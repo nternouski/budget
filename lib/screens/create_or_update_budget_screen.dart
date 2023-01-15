@@ -149,8 +149,8 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
           Align(
             alignment: Alignment.topLeft,
             child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 5,
+              runSpacing: 5,
               children: List.generate(categories.length, (index) {
                 var colorItem = budget.categories.any((c) => c.id == categories[index].id)
                     ? categories[index].color
@@ -247,8 +247,8 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
             buildName(),
             ColorPicker(
               color: budget.color,
-              width: 40,
-              height: 40,
+              width: 35,
+              height: 35,
               padding: const EdgeInsets.only(top: 16, bottom: 0),
               borderRadius: 25,
               enableShadesSelection: false,

@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 import 'package:budget/common/convert.dart';
 import 'package:budget/model/user.dart';
+import 'package:budget/routes.dart';
 import 'package:budget/server/database/user_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -63,7 +64,8 @@ class UserService extends UserRx {
           userAuth = result.user;
         }
       } catch (e) {
-        throw LoginException(e.toString());
+        dynamic error = e as dynamic;
+        throw LoginException(error?.code, error?.message);
       }
 
       if (userAuth != null) {
@@ -80,7 +82,8 @@ class UserService extends UserRx {
         user$.add(user);
       }
     } on LoginException catch (e) {
-      handlerError.setError('User has Cancelled or no Internet on SignUp. ${e.toString()}');
+      debugPrint('| ${e.code}: ${e.message}');
+      handlerError.setError('User has Cancelled or no Internet on SignUp. ${e.message}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
@@ -104,11 +107,18 @@ class UserService extends UserRx {
           user = result.user;
         }
       } catch (e) {
-        throw LoginException(e.toString());
+        dynamic error = e as dynamic;
+        throw LoginException(error?.code, error?.message);
       }
-      if (user != null) await refreshUserData(user.uid);
-    } on LoginException catch (err) {
-      handlerError.setError('User has Cancelled or no Internet on Login. ${err.toString()}');
+      if (user != null) {
+        if (!user.emailVerified) {
+          return RouteApp.redirect(context: context, url: URLS.emailVerification, fromScaffold: false);
+        }
+        await refreshUserData(user.uid);
+      }
+    } on LoginException catch (e) {
+      debugPrint('| ${e.code}: ${e.message}');
+      handlerError.setError('User has Cancelled or no Internet on Login. ${e.toString()}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());

@@ -1,23 +1,26 @@
 // @dart=2.9
 import 'dart:async';
-import 'package:budget/model/budget.dart';
-import 'package:budget/model/category.dart';
-import 'package:budget/model/currency.dart';
-import 'package:budget/model/transaction.dart';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/server/database/budget_rx.dart';
-import 'package:budget/server/database/category_rx.dart';
-import 'package:budget/server/database/currency_rate_rx.dart';
-import 'package:budget/server/database/currency_rx.dart';
-import 'package:budget/server/database/transaction_rx.dart';
-import 'package:budget/server/database/wallet_rx.dart';
-import 'package:budget/server/auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../screens/email_verification_screen.dart';
+import '../common/ad_helper.dart';
+import '../model/budget.dart';
+import '../model/category.dart';
+import '../model/currency.dart';
+import '../model/transaction.dart';
+import '../model/wallet.dart';
+import '../server/database/budget_rx.dart';
+import '../server/database/category_rx.dart';
+import '../server/database/currency_rate_rx.dart';
+import '../server/database/currency_rx.dart';
+import '../server/database/transaction_rx.dart';
+import '../server/database/wallet_rx.dart';
+import '../server/auth.dart';
 import './common/error_handler.dart';
 import './common/preference.dart';
 import './common/theme.dart';
@@ -30,6 +33,10 @@ final UserService userService = UserService();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await dotenv.load(fileName: '.env');
+  final adsInitialization = MobileAds.instance.initialize();
+  final adState = AdState(initialization: adsInitialization);
+
   Preferences preferences = Preferences();
 
   runZonedGuarded<Future<void>>(
@@ -48,7 +55,7 @@ Future<void> main() async {
                   ? ThemeMode.dark
                   : ThemeMode.light;
 
-          return runApp(MyApp(themeMode: themeMode, authLoginEnable: authLoginEnable));
+          return runApp(MyApp(themeMode: themeMode, authLoginEnable: authLoginEnable, adState: adState));
         },
       );
     },
@@ -61,8 +68,9 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   final ThemeMode themeMode;
   final bool authLoginEnable;
+  final AdState adState;
 
-  const MyApp({Key key, this.themeMode, this.authLoginEnable}) : super(key: key);
+  const MyApp({Key key, this.themeMode, this.authLoginEnable, this.adState}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +106,10 @@ class MyApp extends StatelessWidget {
               HandlerError().setError(error.toString());
               return [];
             }),
+        ChangeNotifierProvider<EmailVerificationNotifier>(create: (context) => EmailVerificationNotifier()),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
         ChangeNotifierProvider<LocalAuthProvider>(create: (context) => LocalAuthProvider(authLoginEnable)),
+        ChangeNotifierProvider<AdState>(create: (context) => adState),
       ],
       builder: (context, child) {
         return MaterialApp(

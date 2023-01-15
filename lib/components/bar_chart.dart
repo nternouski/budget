@@ -1,10 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 
+import '../components/spend_graphic.dart';
 import '../model/currency.dart';
 import '../common/convert.dart';
 import '../model/transaction.dart';
@@ -27,8 +26,15 @@ class BarChartWidget extends StatefulWidget {
   final List<Transaction> transactions;
   final DateTime frameDate;
   final Map<TransactionType, bool> selectedTypes;
-  const BarChartWidget({Key? key, required this.transactions, required this.selectedTypes, required this.frameDate})
-      : super(key: key);
+  final int frameWindow;
+
+  const BarChartWidget({
+    Key? key,
+    required this.transactions,
+    required this.selectedTypes,
+    required this.frameDate,
+    required this.frameWindow,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => BarChartWidgetState();
@@ -36,12 +42,8 @@ class BarChartWidget extends StatefulWidget {
 
 class BarChartWidgetState extends State<BarChartWidget> {
   final double width = 7;
-  final barDuration = const Duration(days: 7);
-
-  int lengthGroup = 0;
   List<BarChartGroup> rawBarGroups = [];
   double maxBalance = 0;
-  int touchedGroupIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,9 @@ class BarChartWidgetState extends State<BarChartWidget> {
     int index = 0;
     rawBarGroups = [];
     maxBalance = 0;
-    for (var time = widget.frameDate; time.isBefore(DateTime.now()); time = time.add(barDuration)) {
+    final step = Duration(days: widget.frameWindow);
+    final frameWindowDate = Duration(days: widget.frameWindow, microseconds: -1);
+    for (var time = widget.frameDate; time.isBefore(nowZero); time = time.add(step)) {
       final rodStackItems = TransactionType.values.fold<List<BarChartRodStackItem>>([], (acc, type) {
         double values = getBalanceOf(widget.transactions, type, time, time.add(barDuration));
         double prevValue = acc.isEmpty ? 0 : acc.last.toY;
@@ -113,7 +117,9 @@ class BarChartWidgetState extends State<BarChartWidget> {
                       showTitles: true,
                       interval: maxBalance / 2 + 1,
                       reservedSize: 30,
-                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis)),
+                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
+                        axis == 0.0 ? '' : Convert.roundMoney(axis),
+                      ),
                     ),
                   ),
                 ),
@@ -131,11 +137,11 @@ class BarChartWidgetState extends State<BarChartWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.selectedTypes[TransactionType.income] == true)
-              Text('Total Income: \$${resume.income.prettier()}', style: theme.textTheme.titleMedium),
+              Text('Total Income: ${resume.income.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
             if (widget.selectedTypes[TransactionType.expense] == true)
-              Text('Total Expense: \$${resume.expense.prettier()}', style: theme.textTheme.titleMedium),
+              Text('Total Expense: ${resume.expense.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
             if (widget.selectedTypes[TransactionType.transfer] == true)
-              Text('Total Transfer: \$${resume.transfer.prettier()}', style: theme.textTheme.titleMedium)
+              Text('Total Transfer: ${resume.transfer.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium)
           ],
         ),
       ],
@@ -170,15 +176,17 @@ class BarChartWidgetState extends State<BarChartWidget> {
 
   double getBalanceOf(List<Transaction> transactions, TransactionType type, DateTime after, DateTime before) {
     return transactions.fold<double>(0.0, (acc, t) {
-      final match = t.type == type && t.date.isAfter(after) && t.date.isBefore(before);
-      return match ? acc + t.balanceFixed.abs() : acc;
+      final matchDate = t.date.isAtSameMomentAs(after) || (t.date.isAfter(after) && t.date.isBefore(before));
+      return t.type == type && matchDate ? acc + t.balanceFixed.abs() : acc;
     });
   }
 
   Widget bottomTitles(double value, TitleMeta meta) {
     DateTime date = rawBarGroups[value.toInt()].y;
-    var format = DateTime.now().month != date.month ? 'dMMM' : 'd';
-    var text = value.toInt() % 2 != 0 ? '' : DateFormat(format).format(date);
+    final format = nowZero.month != date.month ? 'dMMM' : 'd';
+    // If the precision is less than 1 month show
+    final showText = nowZero.difference(widget.frameDate).inDays < 30 || value.toInt() % 2 == 0;
+    var text = showText ? DateFormat(format).format(date) : '';
     return SideTitleWidget(axisSide: meta.axisSide, space: 5, child: Text(text));
   }
 }

@@ -18,7 +18,7 @@ class TransactionRx {
   static String getCollectionPath(String userId) => '${UserRx.docPath(userId)}/$collectionPath';
   final db = Database();
 
-  final windowFetchTransactions = const Duration(days: 30 * 3);
+  static var windowFetchTransactions = const Duration(days: 30 * 3);
   ValueStream<List<Transaction>>? _transactions;
 
   List<Transaction> _updateTransactions(

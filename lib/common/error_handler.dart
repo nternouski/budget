@@ -12,9 +12,17 @@ class Display {
   }
 }
 
+class ErrorData {
+  String text;
+  String? actionLabel;
+  Function? actionCallback;
+
+  ErrorData(this.text, this.actionLabel, this.actionCallback);
+}
+
 class HandlerError {
-  final ValueNotifier<String?> _textError = ValueNotifier<String?>(null);
-  get notifier => _textError;
+  final ValueNotifier<ErrorData?> _data = ValueNotifier<ErrorData?>(null);
+  get notifier => _data;
 
   HandlerError._internal();
   static final HandlerError _singleton = HandlerError._internal();
@@ -23,24 +31,33 @@ class HandlerError {
     return _singleton;
   }
 
-  void setError(String text) {
-    _textError.value = text;
-    _textError.notifyListeners();
+  void setError(String text, {String? actionLabel, Function? actionCallback}) {
+    _data.value = ErrorData(text, actionLabel, actionCallback);
+    _data.notifyListeners();
   }
 
   showError(BuildContext context) {
-    var text = _textError.value;
+    String? text = _data.value?.text;
+    String? actionLabel = _data.value?.actionLabel;
+    Function? actionCallback = _data.value?.actionCallback;
+
     if (text != null) {
       final theme = Theme.of(context);
+      Color textColor = theme.colorScheme.onError;
+      SnackBarAction? action;
+      if (actionLabel != null && actionCallback != null) {
+        action = SnackBarAction(label: actionLabel, textColor: textColor, onPressed: () => actionCallback());
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: theme.colorScheme.error,
-          content: Text(text, style: TextStyle(color: theme.colorScheme.onError)),
+          content: Text(text, style: TextStyle(color: textColor)),
           duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
+          action: action,
         ),
       );
-      _textError.value = null;
+      _data.value = null;
     }
   }
 }
@@ -56,11 +73,12 @@ class UserException implements Exception {
 }
 
 class LoginException implements Exception {
-  String cause;
-  LoginException(this.cause);
+  String message;
+  String code;
+  LoginException(this.code, this.message);
 
   @override
   String toString() {
-    return 'LoginException: $cause';
+    return 'LoginException ($code): $message';
   }
 }

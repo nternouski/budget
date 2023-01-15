@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 
@@ -9,13 +7,6 @@ class FAQ {
 
   FAQ({required this.answer, required this.question});
 }
-
-List<FAQ> faqListData = [
-  FAQ(
-    question: 'How to create a transaction?',
-    answer: 'First you need to create a wallet, the transaction belong to a wallet with a specific currency.',
-  ),
-];
 
 class FAQScreen extends StatefulWidget {
   const FAQScreen({Key? key}) : super(key: key);
@@ -28,7 +19,43 @@ class FAQPageState extends State<FAQScreen> {
   bool isExpand = false;
   int selected = -1;
   final TextEditingController search = TextEditingController(text: '');
-  final List<FAQ> filtered = faqListData;
+
+  static List<FAQ> faqListData = [
+    FAQ(
+      question: 'How to create a transaction?',
+      answer: 'First you need to create a wallet, the transaction belong to a wallet with a specific currency.',
+    ),
+    FAQ(
+      question: 'How can I remove the Ads?',
+      answer:
+          'We use Ads to pay server expenses in the app, but if you insist on hiding ads, you can contact me by email and I will do something about it.',
+    ),
+    FAQ(
+      question: 'Do you notice some wrong in the wallet?',
+      answer: 'There are admin features, just let me know and I will enable those functions in your account.',
+    ),
+    FAQ(
+      question: 'My currency rate it is wrong?',
+      answer:
+          'You can change the rate manually, go to Settings > Scroll down to \'Currency Rates\' > Click on the rate and will apear the form.',
+    ),
+    FAQ(
+      question: 'What it is Wise Sync?',
+      answer: 'The feature is to update wise movement, but it\'s in alpha and not works properly.',
+    ),
+    FAQ(
+      question: 'How can I contact with the developer?',
+      answer: 'You can send email to nahuelternouski@gmail.com.',
+    ),
+  ];
+
+  final List<FAQ> filtered = List.from(faqListData);
+
+  List<FAQ> getMatchSearch(String text) {
+    String search = text.toLowerCase().trim();
+    searchFn(faq) => faq.question.toLowerCase().contains(search) || faq.answer.toLowerCase().contains(search);
+    return List.from(faqListData.where(searchFn));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,26 +70,21 @@ class FAQPageState extends State<FAQScreen> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Expanded(
               child: TextFormField(
                 controller: search,
-                textInputAction: TextInputAction.search,
                 decoration: InputStyle.inputDecoration(labelTextStr: 'Search'),
                 onFieldSubmitted: (input) {
                   filtered.clear();
-                  filtered
-                      .addAll(faqListData.where((faq) => faq.question.contains(input) || faq.answer.contains(input)));
-                  setState(() {});
+                  setState(() => filtered.addAll(getMatchSearch(search.text)));
                 },
               ),
             ),
             IconButton(
               onPressed: () {
                 filtered.clear();
-                filtered.addAll(
-                    faqListData.where((faq) => faq.question.contains(search.text) || faq.answer.contains(search.text)));
-                setState(() {});
+                setState(() => filtered.addAll(getMatchSearch(search.text)));
               },
               icon: const Icon(Icons.search),
             )
@@ -74,13 +96,13 @@ class FAQPageState extends State<FAQScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 15, bottom: 80),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   child: Column(
                     children: List.generate(
                       filtered.length,
                       (index) => Card(
                         elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 3),
+                        margin: const EdgeInsets.only(bottom: 5),
                         child: ExpansionTile(
                           key: Key(index.toString()),
                           initiallyExpanded: index == selected,
@@ -92,7 +114,7 @@ class FAQPageState extends State<FAQScreen> {
                           },
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(top: 10.0, bottom: 10, left: 17, right: 17),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 17),
                               child: Row(children: [Expanded(child: Text(filtered[index].answer))]),
                             )
                           ],

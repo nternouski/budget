@@ -84,6 +84,20 @@ class Wallet implements ModelCommonInterface {
       balanceFixed += fromOld ? -transaction.balanceFixed : transaction.balanceFixed;
     }
   }
+
+  Wallet copy() {
+    return Wallet(
+      id: id,
+      createdAt: createdAt,
+      name: name,
+      color: Convert.colorToHexString(color),
+      iconName: iconName,
+      initialAmount: initialAmount,
+      balance: balance,
+      balanceFixed: balanceFixed,
+      currencyId: currencyId,
+    );
+  }
 }
 
 final defaultWallet = Wallet(

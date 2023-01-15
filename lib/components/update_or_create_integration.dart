@@ -11,8 +11,6 @@ class UpdateOrCreateIntegration extends StatefulWidget {
   UpdateUserState createState() => UpdateUserState();
 }
 
-final now = DateTime.now();
-
 class UpdateUserState extends State<UpdateOrCreateIntegration> {
   @override
   Widget build(BuildContext context) {

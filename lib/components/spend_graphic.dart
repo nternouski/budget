@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../common/classes.dart';
 import '../common/theme.dart';
 import '../server/database/transaction_rx.dart';
 import '../model/wallet.dart';
@@ -10,7 +11,7 @@ import '../model/user.dart';
 import '../common/convert.dart';
 import '../model/transaction.dart';
 
-DateTime now = DateTime.now();
+DateTime nowZero = DateTime.now().copyWith(toZeroHours: true);
 
 class Balance {
   late String key;
@@ -54,7 +55,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
     });
 
     for (var pivote = widget.frameRange; pivote >= 0; pivote--) {
-      var date = now.subtract(Duration(days: pivote));
+      var date = nowZero.subtract(Duration(days: pivote));
       var key = _formatKey.format(date);
       var lastFrame = frame.isEmpty ? Balance(date, initialBalance, key) : frame.last;
       var balance = balancedDay[key];
@@ -74,7 +75,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
       interval: widget.frameRange / 5,
       getTitlesWidget: (double axis, TitleMeta titleMeta) {
         DateTime date = frame[axis.toInt()].date;
-        var format = now.month != date.month ? DateFormat.ABBR_MONTH_DAY : 'd';
+        var format = nowZero.month != date.month ? DateFormat.ABBR_MONTH_DAY : 'd';
         return Text(DateFormat(format).format(date), style: const TextStyle(height: 2));
       },
       reservedSize: 25,
@@ -86,13 +87,16 @@ class _SpendGraphicState extends State<SpendGraphic> {
       showTitles: true,
       interval: maxBalance / 2 + 1,
       reservedSize: 25,
-      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(Convert.roundMoney(axis + minBalance)),
+      getTitlesWidget: (double axis, TitleMeta titleMeta) {
+        double value = axis + minBalance;
+        return Text(value == 0.0 ? '' : Convert.roundMoney(value));
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final DateTime frameDate = now.subtract(Duration(days: widget.frameRange));
+    final DateTime frameDate = nowZero.subtract(Duration(days: widget.frameRange));
 
     return StreamBuilder<List<Transaction>>(
       stream: transactionRx.getTransactions(widget.user.id),

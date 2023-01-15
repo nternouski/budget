@@ -8,9 +8,9 @@ extension CurrencyPrettier on double {
   /// Examples:
   ///   4.777 => 4.77
   ///   52.0  => 5
-  String prettier() {
-    // ignore: unnecessary_this
-    return this.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0*$'), '');
+  String prettier({bool withSymbol = false}) {
+    final amount = abs().toStringAsFixed(2).replaceFirst(RegExp(r'\.?0*$'), '');
+    return '${isNegative ? '-' : ''}${withSymbol ? '\$' : ''}$amount';
   }
 }
 

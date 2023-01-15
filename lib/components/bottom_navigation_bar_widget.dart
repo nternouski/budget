@@ -1,5 +1,8 @@
+import 'package:budget/common/ad_helper.dart';
+import 'package:budget/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 import '../common/error_handler.dart';
@@ -20,6 +23,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int pageIndex = 0;
   DateTime? backPressTime;
   final durationBackTime = const Duration(seconds: 2);
+  BannerAd? banner;
 
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
@@ -50,14 +54,14 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         extendBody: true,
         drawer: NavDrawer(),
         body: IndexedStack(index: pageIndex, children: footer.map((f) => f.widget()).toList()),
-        bottomNavigationBar: getFooter(theme),
+        bottomNavigationBar: getFooter(context, theme),
         floatingActionButton: footer[pageIndex].actionIcon != null ? floatingActionButton : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );
   }
 
-  Widget getFooter(ThemeData theme) {
+  Widget getFooter(BuildContext context, ThemeData theme) {
     Color backgroundColor;
     if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
       var temp = Convert.increaseColorLightness(theme.backgroundColor, 0.55);
@@ -66,20 +70,48 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       backgroundColor = Convert.increaseColorLightness(theme.backgroundColor, -0.18);
     }
 
-    return AnimatedBottomNavigationBar(
-      activeColor: theme.colorScheme.primary,
-      splashColor: theme.colorScheme.primary,
-      backgroundColor: backgroundColor,
-      inactiveColor: theme.disabledColor,
-      icons: footer.map((f) => f.icon).toList(),
-      activeIndex: pageIndex,
-      gapLocation: GapLocation.center,
-      notchSmoothness: NotchSmoothness.softEdge,
-      leftCornerRadius: 10,
-      iconSize: 25,
-      splashSpeedInMilliseconds: 200,
-      rightCornerRadius: 10,
-      onTap: (index) => selectedTab(footer[index].url),
+    final adState = Provider.of<AdState>(context);
+    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+
+    if (showAds && banner == null) {
+      banner = BannerAd(
+          size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
+          adUnitId: adState.bannerAdUnitId,
+          listener: adState.bannerAdListener(onFailed: () {
+            setState(() {
+              banner = null;
+            });
+          }),
+          request: const AdRequest())
+        ..load();
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBottomNavigationBar(
+          activeColor: theme.colorScheme.primary,
+          splashColor: theme.colorScheme.primary,
+          backgroundColor: backgroundColor,
+          inactiveColor: theme.disabledColor,
+          icons: footer.map((f) => f.icon).toList(),
+          activeIndex: pageIndex,
+          gapLocation: GapLocation.center,
+          notchSmoothness: NotchSmoothness.softEdge,
+          leftCornerRadius: 10,
+          iconSize: 25,
+          splashSpeedInMilliseconds: 200,
+          rightCornerRadius: 10,
+          onTap: (index) => selectedTab(footer[index].url),
+        ),
+        if (banner != null)
+          Container(
+            height: banner!.size.height.toDouble(),
+            color: theme.scaffoldBackgroundColor,
+            child: AdWidget(ad: banner!),
+          ),
+      ],
     );
   }
 

@@ -1,11 +1,11 @@
-import 'package:budget/common/classes.dart';
-import 'package:budget/model/currency.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/server/database/budget_rx.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_animations/animation_builder/custom_animation_builder.dart';
 
+import '../common/classes.dart';
+import '../model/currency.dart';
+import '../model/user.dart';
+import '../server/database/budget_rx.dart';
 import '../common/convert.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
@@ -37,8 +37,6 @@ class BudgetsScreenState extends State<BudgetsScreen> {
           slivers: [
             SliverAppBar(
               titleTextStyle: theme.textTheme.titleLarge,
-              actionsIconTheme: Theme.of(context).iconTheme,
-              actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
               pinned: true,
               leading: getLadingButton(context),
               title: const Text('Budgets'),
@@ -50,7 +48,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
             if (budgets.isNotEmpty)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 80),
+                  padding: const EdgeInsets.only(bottom: 20),
                   child: Column(
                     children: List.generate(
                       budgets.length,
@@ -170,7 +168,7 @@ class BudgetItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'BALANCE: \$${budget.balance.prettier()}',
+                  'BALANCE: \$${budget.balance.prettier(withSymbol: true)}',
                   style: theme.textTheme.bodyMedium,
                 ),
                 Text('$porcentaje %', style: theme.textTheme.titleMedium),

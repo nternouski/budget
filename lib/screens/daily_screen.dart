@@ -1,7 +1,4 @@
-import 'dart:developer';
 import 'dart:math';
-import 'package:budget/model/wallet.dart';
-import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +6,8 @@ import '../common/classes.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../components/empty_list.dart';
+import '../model/wallet.dart';
+import '../model/currency.dart';
 import '../model/user.dart';
 import '../server/database/transaction_rx.dart';
 import '../common/styles.dart';
@@ -79,21 +78,21 @@ class DailyScreenState extends State<DailyScreen> {
           double total = wallets.fold(user.initialAmount, (prev, w) => prev + w.initialAmount + w.balanceFixed);
           return SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 15, bottom: 80),
+              padding: const EdgeInsets.only(top: 15, bottom: 130),
               child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [Text('Currency $symbol \$${total.prettier()}')]),
+                        children: [Text('Currency $symbol ${total.prettier(withSymbol: true)}')]),
                   ),
                   ...List.generate(
                     transactions.length,
                     (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
                   ),
                   if (!fetchAll)
-                    TextButton(onPressed: () => setState(() => fetchAll = true), child: const Text('Get All')),
+                    TextButton(onPressed: () => setState(() => fetchAll = true), child: const Text('See All')),
                 ],
               ),
             ),

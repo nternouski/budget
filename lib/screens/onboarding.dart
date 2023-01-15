@@ -18,7 +18,7 @@ class OnBoarding extends StatefulWidget {
   State<StatefulWidget> createState() => _OnBoardingState();
 }
 
-UserService userService = UserService();
+final UserService userService = UserService();
 
 class _OnBoardingState extends State<OnBoarding> {
   bool isLastPage = false;
@@ -26,8 +26,8 @@ class _OnBoardingState extends State<OnBoarding> {
   AuthOption authOption = AuthOption.google;
   String email = '';
   String password = '';
-  bool disclosureAcceptedSignUp = false;
-  bool disclosureAcceptedLogin = false;
+  bool _passwordVisible = true;
+  bool _disclosureAcceptedSignUp = false;
 
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
@@ -66,6 +66,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   Column(children: [
                     TextFormField(
                       initialValue: email,
+                      keyboardType: TextInputType.emailAddress,
                       autovalidateMode: AutovalidateMode.always,
                       decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
                       validator: (String? value) => value != null && value.isValidEmail() ? null : 'Email is Required.',
@@ -74,65 +75,25 @@ class _OnBoardingState extends State<OnBoarding> {
                     TextFormField(
                       initialValue: password,
                       autovalidateMode: AutovalidateMode.always,
-                      decoration: InputStyle.inputDecoration(labelTextStr: 'Password', hintTextStr: ''),
                       validator: (String? value) =>
                           value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
                       onChanged: (String value) => password = value,
+                      obscureText: !_passwordVisible,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your password',
+                        suffixIcon: IconButton(
+                          icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                          onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                        ),
+                      ),
                     ),
                   ]),
                 const SizedBox(height: 15),
-                CheckboxListTile(
-                  title: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(text: 'By continuing, I agree to ', style: TextStyle(color: theme.hintColor)),
-                        TextSpan(
-                          text: 'Terms & Conditions',
-                          style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              try {
-                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
-                                    mode: LaunchMode.inAppWebView);
-                              } catch (e) {
-                                debugPrint(e.toString());
-                              }
-                            },
-                        ),
-                        TextSpan(text: ' and ', style: TextStyle(color: theme.hintColor)),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              try {
-                                launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
-                                    mode: LaunchMode.inAppWebView);
-                              } catch (e) {
-                                debugPrint(e.toString());
-                              }
-                            },
-                        ),
-                        TextSpan(
-                            text:
-                                ' and allow to verify credentials. Also, the app not request permission only if you check the biometric auth you can use for login and the app is not a AccessibilityTool.',
-                            style: TextStyle(color: theme.hintColor)),
-                      ],
-                    ),
-                  ),
-                  value: disclosureAcceptedLogin,
-                  onChanged: (newValue) {
-                    setState(() => disclosureAcceptedLogin = newValue ?? false);
-                  },
-                  controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
-                ),
                 ElevatedButton(
                     onPressed: () {
                       if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
                         return HandlerError().setError('First you must set a email and password');
-                      }
-                      if (!disclosureAcceptedLogin) {
-                        return HandlerError().setError('You must accept the terms and conditions.');
                       }
                       userService.login(context, authOption, email, password);
                     },
@@ -169,6 +130,7 @@ class _OnBoardingState extends State<OnBoarding> {
                     Column(children: [
                       TextFormField(
                         initialValue: email,
+                        keyboardType: TextInputType.emailAddress,
                         autovalidateMode: AutovalidateMode.always,
                         decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
                         validator: (String? value) =>
@@ -178,10 +140,18 @@ class _OnBoardingState extends State<OnBoarding> {
                       TextFormField(
                         initialValue: password,
                         autovalidateMode: AutovalidateMode.always,
-                        decoration: InputStyle.inputDecoration(labelTextStr: 'Password', hintTextStr: ''),
                         validator: (String? value) =>
                             value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
                         onChanged: (String value) => password = value,
+                        obscureText: !_passwordVisible,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          hintText: 'Enter your password',
+                          suffixIcon: IconButton(
+                            icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                            onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                          ),
+                        ),
                       ),
                     ]),
                   SelectCurrency(
@@ -228,9 +198,9 @@ class _OnBoardingState extends State<OnBoarding> {
                         ],
                       ),
                     ),
-                    value: disclosureAcceptedSignUp,
+                    value: _disclosureAcceptedSignUp,
                     onChanged: (newValue) {
-                      setState(() => disclosureAcceptedSignUp = newValue ?? false);
+                      setState(() => _disclosureAcceptedSignUp = newValue ?? false);
                     },
                     controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
                   ),
@@ -284,7 +254,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
                     return HandlerError().setError('First you must set a email and password');
                   }
-                  if (!disclosureAcceptedSignUp) {
+                  if (!_disclosureAcceptedSignUp) {
                     return HandlerError().setError('You must accept the terms and conditions.');
                   }
                   await userService.singUp(context, authOption, email, password, defaultCurrency!);

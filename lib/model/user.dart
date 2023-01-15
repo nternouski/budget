@@ -31,6 +31,7 @@ class User implements ModelCommonInterface {
   Currency defaultCurrency;
   double initialAmount;
   bool superUser;
+  DateTime? hideAdsUntil;
 
   User({
     required this.id,
@@ -41,6 +42,7 @@ class User implements ModelCommonInterface {
     required this.defaultCurrency,
     this.superUser = false,
     this.initialAmount = 0.0,
+    this.hideAdsUntil,
   });
 
   factory User.fromJson(Map<String, dynamic> json, Currency defaultCurrency) {
@@ -57,8 +59,9 @@ class User implements ModelCommonInterface {
       email: json['email'],
       integrations: integrations,
       defaultCurrency: defaultCurrency,
-      initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? 0, json),
       superUser: superUser,
+      initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? 0, json),
+      hideAdsUntil: json['hideAdsUntil'] != null ? Convert.parseDate(json['hideAdsUntil'], json) : null,
     );
   }
 
@@ -75,7 +78,12 @@ class User implements ModelCommonInterface {
         acc.addAll({entry.key.name: entry.value});
         return acc;
       }),
+      'hideAdsUntil': hideAdsUntil,
     };
     return data;
+  }
+
+  bool showAds() {
+    return hideAdsUntil != null ? hideAdsUntil!.isBefore(DateTime.now()) : true;
   }
 }

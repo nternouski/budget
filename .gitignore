@@ -128,3 +128,6 @@ app.*.symbols
 
 .env
 /assets/resource
+/verify_email
+/android/app/google-services.json
+/android/app/budget-bb188-firebase-adminsdk-ihph5-51409d3e5a.json

@@ -40,7 +40,7 @@ class WalletsScreenState extends State<WalletsScreen> {
       component = SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, idx) => Padding(
-            padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             child: WalletItem(
                 wallet: wallets[idx], userId: authUser.uid, showBalance: true, showActions: true, selected: true),
           ),
@@ -61,7 +61,6 @@ class WalletsScreenState extends State<WalletsScreen> {
               title: const Text('Wallets'),
             ),
             component,
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
             if (user != null && user.superUser == true)
               SliverToBoxAdapter(
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -71,7 +70,7 @@ class WalletsScreenState extends State<WalletsScreen> {
                   )
                 ]),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 80))
+            const SliverToBoxAdapter(child: SizedBox(height: 100))
           ],
         ),
         onRefresh: () async => setState(() {}),
@@ -147,7 +146,7 @@ class WalletItem extends StatelessWidget {
                   }
                   Display.message(
                     context,
-                    'It\'s equivalent to \$${equivalent.prettier()} ${user.defaultCurrency.symbol}',
+                    'It\'s equivalent to ${equivalent.prettier(withSymbol: true)} ${user.defaultCurrency.symbol}',
                     seconds: 4,
                   );
                 }
@@ -164,7 +163,7 @@ class WalletItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('\$${(wallet.balance + wallet.initialAmount).prettier()}',
+                      Text((wallet.balance + wallet.initialAmount).prettier(withSymbol: true),
                           style: textTheme.headlineSmall?.copyWith(color: contrastColor)),
                       const SizedBox(width: 5),
                       Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor)),

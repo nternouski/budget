@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../common/icon_helper.dart';
@@ -5,9 +6,10 @@ import '../common/styles.dart';
 
 class IconPicker {
   static var icons = <IconMap>[];
-  static picker(IconMap iconMap, Function(IconMap) onIconSelected) {
-    const sizedBoxHeight = SizedBox(height: 10);
+  static var scrollController = ScrollController();
+  static var xUnit = 50; // min heigh unit pixels per icon
 
+  static picker(IconMap iconMap, Function(IconMap) onIconSelected) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         return SingleChildScrollView(
@@ -42,22 +44,29 @@ class IconPicker {
               ),
               onSaved: (String? value) {},
             ),
-            sizedBoxHeight,
             SizedBox(
-              height: icons.isEmpty ? 10 : 200,
-              child: GridView.count(
-                crossAxisCount: 6,
-                children: List.generate(icons.length, (index) {
-                  return Center(
-                    child: IconButton(
-                      icon: Icon(icons[index].icon),
-                      onPressed: () => setState(() {
-                        iconMap = IconMap(icons[index].name, icons[index].icon);
-                        onIconSelected(iconMap);
-                      }),
-                    ),
-                  );
-                }),
+              height: icons.isEmpty ? 0 : min(xUnit * (icons.length / 6).ceilToDouble(), xUnit * 3),
+              child: Scrollbar(
+                trackVisibility: true,
+                thumbVisibility: true,
+                controller: scrollController,
+                child: GridView.count(
+                  crossAxisCount: 7,
+                  padding: EdgeInsets.zero,
+                  controller: scrollController,
+                  children: List.generate(icons.length, (index) {
+                    return Center(
+                      child: IconButton(
+                        padding: const EdgeInsets.all(0),
+                        icon: Icon(icons[index].icon, size: 30),
+                        onPressed: () => setState(() {
+                          iconMap = IconMap(icons[index].name, icons[index].icon);
+                          onIconSelected(iconMap);
+                        }),
+                      ),
+                    );
+                  }),
+                ),
               ),
             ),
           ],

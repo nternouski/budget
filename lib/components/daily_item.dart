@@ -142,16 +142,16 @@ class DailyItemState extends State<DailyItem> {
               children: [
                 if (transaction.type == TransactionType.transfer)
                   Text(
-                    '(\$${transaction.balanceConverted?.prettier()}) ',
+                    '(${transaction.balanceConverted?.prettier(withSymbol: true)}) ',
                     style: theme.textTheme.labelMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
                   ),
                 Text(
-                  '\$ ${transaction.balanceFixed.abs().prettier()}',
+                  transaction.balanceFixed.prettier(withSymbol: true),
                   style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
                 )
               ],
             ),
-            Text('\$ ${transaction.balance.abs().prettier()}', style: TextStyle(color: theme.disabledColor))
+            Text(transaction.balance.prettier(withSymbol: true), style: TextStyle(color: theme.disabledColor))
           ],
         )
       ],

@@ -1,5 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+import 'dart:ui' as ui;
+
+import 'package:budget/common/ad_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
@@ -44,7 +49,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Transaction transaction = Transaction(
     id: '',
     name: '',
-    amount: 0,
+    amount: -1,
     fee: 0,
     balance: 0,
     balanceFixed: 0,
@@ -72,9 +77,37 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Wallet? walletFromSelected;
   Wallet? walletToSelected;
 
+  InterstitialAd? _interstitialAd;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final sizedBoxHeight = const SizedBox(height: 20);
+  @override
+  void initState() {
+    super.initState();
+    final adState = Provider.of<AdState>(context, listen: false);
+    InterstitialAd.load(
+      adUnitId: adState.interstitialAdUnitId,
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) => Navigator.of(context).pop(),
+          );
+
+          // ignore: unnecessary_cast
+          final user = Provider.of<User>(context, listen: false) as User?;
+          if (user != null && user.showAds()) setState(() => _interstitialAd = ad);
+        },
+        onAdFailedToLoad: (err) => debugPrint('Failed to load an interstitial ad: ${err.toString()}'),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    if (_interstitialAd != null) _interstitialAd!.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,8 +224,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           Align(
             alignment: Alignment.topLeft,
             child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 5,
+              runSpacing: 5,
               children: List.generate(categories.length, (index) {
                 var colorItem =
                     transaction.categoryId == categories[index].id ? categories[index].color : Colors.transparent;
@@ -230,20 +263,29 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Flexible(
           flex: 3,
-          child: TextFormField(
-            initialValue: transaction.amount.toInt().toString(),
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
-            ],
-            textAlign: TextAlign.end,
-            style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold),
-            decoration: const InputDecoration(border: InputBorder.none, hintText: '\$ 0'),
-            onSaved: (String? value) {
-              final decimals = transaction.amount.toString().split('.')[1];
-              transaction.amount = double.parse('$value.$decimals');
-            },
+          child: Directionality(
+            textDirection: ui.TextDirection.rtl, // align errorText to the right
+            child: TextFormField(
+              initialValue: transaction.amount.isNegative ? '' : transaction.amount.toInt().toString(),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
+              ],
+              style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: '\$0',
+                contentPadding: EdgeInsets.only(top: 15),
+              ),
+              validator: (value) =>
+                  value != null && value.isNotEmpty && !int.parse(value).isNegative ? null : 'Amount is Required',
+              onChanged: (String _) => _formKey.currentState!.validate(),
+              onSaved: (String? value) {
+                final decimals = transaction.amount.toString().split('.')[1];
+                transaction.amount = double.parse('$value.$decimals');
+              },
+            ),
           ),
         ),
         Flexible(
@@ -307,14 +349,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
 
   // DATE PICKER //
 
-  Widget buildDateField() {
+  Widget buildDateField(ThemeData theme) {
     const formatDate = 'dd/MM/yyyy';
-    const formatTime = 'hh:mm';
+    const formatTime = 'HH:mm';
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Flexible(
-          child: TextFormField(
-            controller: dateController,
+          child: InkWell(
             onTap: () async {
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
@@ -330,19 +372,30 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }
               dateController.text = DateFormat(formatDate).format(transaction.date);
             },
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Date', hintTextStr: formatDate),
-            validator: (String? value) => value!.isEmpty ? 'Date is Required.' : null,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.edit_calendar_rounded),
+                  const SizedBox(width: 10),
+                  Text(DateFormat(formatDate).format(transaction.date), style: theme.textTheme.titleMedium)
+                ]),
+              ),
+            ),
           ),
         ),
         Flexible(
-          child: TextFormField(
-            controller: timeController,
+          child: InkWell(
             onTap: () async {
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
               // Show Date Picker Here
               final TimeOfDay? picked = await showTimePicker(
                 context: context,
+                builder: (BuildContext context, Widget? child) => MediaQuery(
+                  data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                  child: child!,
+                ),
                 initialTime: TimeOfDay(hour: transaction.date.hour, minute: transaction.date.minute),
               );
               if (picked != null && picked != transaction.getTime()) {
@@ -352,10 +405,16 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }
               timeController.text = DateFormat(formatTime).format(transaction.date);
             },
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Time', hintTextStr: formatTime),
-            validator: (String? value) {
-              return value!.isEmpty ? 'Date is Required.' : null;
-            },
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.more_time_rounded),
+                  const SizedBox(width: 10),
+                  Text(DateFormat(formatTime).format(transaction.date), style: theme.textTheme.titleMedium)
+                ]),
+              ),
+            ),
           ),
         ),
       ],
@@ -366,7 +425,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     User user = Provider.of<User>(context);
     List<Category> categories = Provider.of<List<Category>>(context);
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
-    debugPrint(transaction.fee.toString());
+
     return Form(
         key: _formKey,
         child: Padding(
@@ -416,11 +475,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 initialValue: transaction.fee.toString(),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                decoration: InputStyle.inputDecoration(
-                  labelTextStr: 'Fee',
-                  hintTextStr: '0',
-                  prefix: const Text('\$ '),
-                ),
+                decoration:
+                    InputStyle.inputDecoration(labelTextStr: 'Fee', hintTextStr: '0', prefix: const Text('\$ ')),
                 validator: (String? value) =>
                     num.tryParse(value ?? '')?.toDouble() == null ? 'Amount is Required.' : null,
                 onSaved: (String? value) => transaction.fee = double.parse(value!),
@@ -434,7 +490,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               valueListenable: _showMoreField,
               builder: (BuildContext context, dynamic show, _) {
                 return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
+                  duration: const Duration(milliseconds: 300),
                   transitionBuilder: (Widget child, Animation<double> animation) {
                     return SizeTransition(sizeFactor: animation, child: child);
                   },
@@ -450,29 +506,31 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                             () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
                           ),
                         )
-                      : const Text(''),
+                      : null,
                 );
               },
             ),
             ValueListenableBuilder(
               valueListenable: _showMoreField,
-              builder: (BuildContext context, dynamic show, _) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return SizeTransition(sizeFactor: animation, child: child);
-                  },
-                  child: show ? buildDescription() : const Text(''),
-                );
-              },
+              builder: (BuildContext context, dynamic show, _) => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SizeTransition(sizeFactor: animation, child: child);
+                },
+                child: show ? buildDescription() : null,
+              ),
             ),
-            buildDateField(),
-            sizedBoxHeight,
-            sizedBoxHeight,
+            const SizedBox(height: 10),
+            buildDateField(theme),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
+
+                if (transaction.name.isEmpty) {
+                  return handlerError.setError('The name must not be empty.');
+                }
 
                 if (transaction.walletFromId == '' || walletFromSelected == null) {
                   return handlerError.setError('You must choice a wallet first.');
@@ -512,13 +570,15 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                   await transactionRx.update(
                       transaction, user.id, walletFromSelected!, currencyRates, walletToSelected);
                 }
-                // ignore: use_build_context_synchronously
-                Navigator.of(context).pop();
+                if (_interstitialAd != null) {
+                  _interstitialAd!.show();
+                } else {
+                  Navigator.of(context).pop();
+                }
               },
               child: Text(title),
             ),
-            sizedBoxHeight,
-            sizedBoxHeight,
+            const SizedBox(height: 40),
           ]),
         ));
   }

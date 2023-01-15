@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:budget/screens/email_verification_screen.dart';
 import 'package:budget/screens/budgets_screen.dart';
 import 'package:budget/screens/create_or_update_budget_screen.dart';
 import 'package:budget/screens/create_or_update_transaction_screen.dart';
@@ -23,7 +24,8 @@ enum URLS {
   settings,
   createOrUpdateTransaction,
   mobileCalculator,
-  faq
+  faq,
+  emailVerification
 }
 
 class RouteApp {
@@ -39,6 +41,7 @@ class RouteApp {
     URLS.createOrUpdateBudgets.toString(): (context) => const CreateOrUpdateBudgetScreen(),
     URLS.mobileCalculator.toString(): (context) => const MobileCalculatorScreen(),
     URLS.faq.toString(): (context) => const FAQScreen(),
+    URLS.emailVerification.toString(): (context) => const EmailVerificationScreen(),
   };
   static redirect({required BuildContext context, required URLS url, dynamic param, bool fromScaffold = true}) {
     if (fromScaffold) Scaffold.of(context).closeDrawer(); // Paca cerrar el mat menu.

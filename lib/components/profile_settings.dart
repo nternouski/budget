@@ -11,7 +11,7 @@ import '../model/user.dart';
 import '../server/user_service.dart';
 
 class ProfileSettings extends AbstractSettingsSection {
-  final int textLimit = 22;
+  final int textLimit = 25;
   final User user;
 
   const ProfileSettings({Key? key, required this.user}) : super(key: key);

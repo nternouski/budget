@@ -1,17 +1,20 @@
 import 'dart:math';
-import 'package:budget/common/convert.dart';
-import 'package:budget/model/user.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../server/database/transaction_rx.dart';
 import '../components/daily_item.dart';
 import '../components/bar_chart.dart';
 import '../components/icon_circle.dart';
 import '../components/spend_graphic.dart';
+import '../common/ad_helper.dart';
+import '../common/convert.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../common/styles.dart';
+import '../model/user.dart';
 import '../model/currency.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
@@ -42,13 +45,16 @@ class StatsScreenState extends State<StatsScreen> {
   PieCategory? pieSliceSelected;
   List<String>? selectedCategories;
   Map<TransactionType, bool> selectedTypes = TransactionType.values.asMap().map((_, value) => MapEntry(value, true));
+  BannerAd? banner;
+
+  final frameWindow = 7;
 
   StatsScreenState();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    List<Transaction> transactions = Provider.of<List<Transaction>>(context);
+    List<Transaction> allTransactions = Provider.of<List<Transaction>>(context);
 
     return Scaffold(
         appBar: AppBar(
@@ -59,12 +65,14 @@ class StatsScreenState extends State<StatsScreen> {
         body: ValueListenableBuilder<PeriodStats>(
           valueListenable: periods.selected,
           builder: (context, periodStats, child) {
-            final DateTime frameDate = now.subtract(Duration(days: periodStats.days));
+            // Calc frame but respect window and start week from today
+            final DateTime frameDate =
+                nowZero.subtract(Duration(days: frameWindow * (periodStats.days / frameWindow).round()));
             List<Category> categories = Provider.of<List<Category>>(context);
             selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
             double total = 0;
 
-            transactions = transactions
+            var transactions = allTransactions
                 .where((t) =>
                     t.date.isAfter(frameDate) &&
                     selectedCategories!.contains(t.categoryId) &&
@@ -79,78 +87,124 @@ class StatsScreenState extends State<StatsScreen> {
               return CategorySelected(c, isSelected, totalAmount: acc);
             }).toList();
 
+            String maxPeriodBalance = '${(TransactionRx.windowFetchTransactions.inDays / 30).floor()} months';
+            double balance = allTransactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
+
+            final adState = Provider.of<AdState>(context);
+            bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+
+            if (showAds && banner == null) {
+              banner = BannerAd(
+                  size: AdSize.largeBanner,
+                  adUnitId: adState.bannerAdUnitId,
+                  listener: adState.bannerAdListener(onFailed: () {
+                    setState(() => banner = null);
+                  }),
+                  request: const AdRequest())
+                ..load();
+            }
+
             return CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
               slivers: [
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Column(children: [
-                      Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: selectedTypes.entries
-                            .map((e) => Padding(
-                                  padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
-                                  child: GestureDetector(
-                                    onTap: () => setState(() => selectedTypes.update(e.key, (value) => !value)),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        border:
-                                            e.value ? Border.all(width: 2, color: colorsTypeTransaction[e.key]!) : null,
-                                        borderRadius: categoryBorderRadius,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: <Widget>[
-                                            Container(
-                                              width: 16,
-                                              height: 16,
-                                              decoration: BoxDecoration(
-                                                  shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
-                                            ),
-                                            const SizedBox(width: 5),
-                                            Text(Convert.capitalize(e.key.toShortString()))
-                                          ],
-                                        ),
+                  child: Column(children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
+                      child: Card(
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
+                        color: balance.isNegative ? theme.errorColor : theme.primaryColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Icon(
+                                balance.isNegative
+                                    ? Icons.keyboard_double_arrow_down_rounded
+                                    : Icons.keyboard_double_arrow_up_rounded,
+                                size: 45,
+                              ),
+                              Column(children: [
+                                Text('In the last $maxPeriodBalance', style: theme.textTheme.titleMedium),
+                                Text(balance.prettier(withSymbol: true), style: theme.textTheme.titleLarge)
+                              ]),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
+                    const SizedBox(height: 10),
+                    Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: selectedTypes.entries
+                          .map((e) => Padding(
+                                padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                                child: GestureDetector(
+                                  onTap: () => setState(() => selectedTypes.update(e.key, (value) => !value)),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border:
+                                          e.value ? Border.all(width: 2, color: colorsTypeTransaction[e.key]!) : null,
+                                      borderRadius: categoryBorderRadius,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Container(
+                                            width: 16,
+                                            height: 16,
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(Convert.capitalize(e.key.toShortString()))
+                                        ],
                                       ),
                                     ),
                                   ),
-                                ))
-                            .toList(),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 10),
+                    Divider(color: theme.dividerColor, thickness: 2),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                      child: Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: categoriesSelected.map((p) {
+                          return _Indicator(
+                            category: p.category,
+                            isSelected: p.isSelected,
+                            onTap: (bool isSelected, String id) {
+                              if (isSelected) {
+                                selectedCategories = [...(selectedCategories ?? []), id];
+                              } else {
+                                selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
+                              }
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
                       ),
-                      const SizedBox(height: 10),
-                      Divider(color: theme.dividerColor, thickness: 2),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: categoriesSelected.map((p) {
-                            return _Indicator(
-                              category: p.category,
-                              isSelected: p.isSelected,
-                              onTap: (bool isSelected, String id) {
-                                if (isSelected) {
-                                  selectedCategories = [...(selectedCategories ?? []), id];
-                                } else {
-                                  selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
-                                }
-                                setState(() {});
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ]),
-                  ),
+                    ),
+                  ]),
                 ),
                 SliverToBoxAdapter(
-                  child: BarChartWidget(transactions: transactions, selectedTypes: selectedTypes, frameDate: frameDate),
+                  child: BarChartWidget(
+                    transactions: transactions,
+                    selectedTypes: selectedTypes,
+                    frameDate: frameDate,
+                    frameWindow: frameWindow,
+                  ),
                 ),
                 pieChart(context, theme, categoriesSelected, transactions, total, periodStats),
               ],
@@ -181,9 +235,9 @@ class StatsScreenState extends State<StatsScreen> {
         child: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 15, bottom: 10, left: 20, right: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: AspectRatio(
-            aspectRatio: 1.3,
+            aspectRatio: 1.2,
             child: PieChart(
               PieChartData(
                 pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
@@ -202,7 +256,7 @@ class StatsScreenState extends State<StatsScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 15, bottom: 80),
+          padding: const EdgeInsets.only(top: 15, bottom: 100),
           child: Column(
             children: [
               Padding(
@@ -215,7 +269,7 @@ class StatsScreenState extends State<StatsScreen> {
                 padding: const EdgeInsets.only(right: 10),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: [Text('Currency $symbol \$${totalSelected.prettier()}')]),
+                    children: [Text('Currency $symbol ${totalSelected.prettier(withSymbol: true)}')]),
               ),
               ...List.generate(
                 transactionSelected.length,

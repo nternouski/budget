@@ -79,7 +79,11 @@ class SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Common', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
         tiles: [
           SettingsTile.navigation(
-              leading: const Icon(Icons.language), title: const Text('Language'), value: const Text('English')),
+            leading: const Icon(Icons.language),
+            title: const Text('Language - Coming soon'),
+            value: const Text('English'),
+            enabled: false,
+          ),
           SettingsTile.navigation(
             leading: const Icon(Icons.query_stats),
             title: const Text('Period of Analytics'),
@@ -168,7 +172,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           },
         ),
       ),
-      const SliverToBoxAdapter(child: SizedBox(height: 80))
+      const SliverToBoxAdapter(child: SizedBox(height: 100))
     ];
   }
 }
