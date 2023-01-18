@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 import 'dart:ui' as ui;
-
-import 'package:budget/common/ad_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -9,13 +7,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
+import '../common/ad_helper.dart';
+import '../components/choose_category.dart';
 import '../model/currency.dart';
 import '../model/user.dart';
 import '../common/convert.dart';
 import '../common/error_handler.dart';
 import '../components/create_or_update_label.dart';
-import '../components/icon_circle.dart';
-import '../components/create_or_update_category.dart';
 import '../screens/wallets_screen.dart';
 import '../server/database/transaction_rx.dart';
 import '../model/wallet.dart';
@@ -78,29 +76,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Wallet? walletToSelected;
 
   InterstitialAd? _interstitialAd;
+  int _interstitialAdRetry = 0;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    final adState = Provider.of<AdState>(context, listen: false);
-    InterstitialAd.load(
-      adUnitId: adState.interstitialAdUnitId,
-      request: AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) => Navigator.of(context).pop(),
-          );
-
-          // ignore: unnecessary_cast
-          final user = Provider.of<User>(context, listen: false) as User?;
-          if (user != null && user.showAds()) setState(() => _interstitialAd = ad);
-        },
-        onAdFailedToLoad: (err) => debugPrint('Failed to load an interstitial ad: ${err.toString()}'),
-      ),
-    );
   }
 
   @override
@@ -109,12 +91,39 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     super.dispose();
   }
 
+  Future<void> _loadInterstitialAd(AdState adState) {
+    return InterstitialAd.load(
+      adUnitId: adState.interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) => Navigator.of(context).pop(),
+          );
+          User? user = Provider.of<User>(context, listen: false) as dynamic;
+          if (user == null || user.showAds()) setState(() => _interstitialAd = ad);
+        },
+        onAdFailedToLoad: (err) {
+          debugPrint('Failed to load an interstitial ad: ${err.toString()}');
+          if (_interstitialAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+            debugPrint('=> RETRYING $_interstitialAdRetry load an interstitial ad');
+            _interstitialAdRetry++;
+            _loadInterstitialAd(adState);
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final adState = Provider.of<AdState>(context);
+    if (_interstitialAd == null) _loadInterstitialAd(adState);
+
     final t = ModalRoute.of(context)!.settings.arguments as Transaction?;
     List<Wallet> wallets = Provider.of<List<Wallet>>(context);
-
     if (t != null) {
       transaction = t;
       if (t.id != '') {
@@ -191,68 +200,6 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             ),
           ),
         const SizedBox(height: 10),
-      ],
-    );
-  }
-
-  Widget buildCategory(List<Category> categories) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Text('Choose Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
-            ),
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
-            )
-          ],
-        ),
-        if (categories.isEmpty)
-          SizedBox(
-            height: 60,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [Text('No categories by the moment.')],
-            ),
-          ),
-        if (categories.isNotEmpty)
-          Align(
-            alignment: Alignment.topLeft,
-            child: Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: List.generate(categories.length, (index) {
-                var colorItem =
-                    transaction.categoryId == categories[index].id ? categories[index].color : Colors.transparent;
-                return GestureDetector(
-                  onLongPress: () => CreateOrUpdateCategory.showButtonSheet(context, categories[index]),
-                  onTap: () => setState(() => transaction.categoryId = categories[index].id),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 2, color: colorItem),
-                      borderRadius: categoryBorderRadius,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconCircle(icon: categories[index].icon, color: categories[index].color),
-                          const SizedBox(width: 5),
-                          Text(categories[index].name, style: const TextStyle(fontWeight: FontWeight.w500))
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
       ],
     );
   }
@@ -484,7 +431,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             buildWallet(context, user.id, wallets, theme.disabledColor, true),
             if (transaction.type == TransactionType.transfer)
               buildWallet(context, user.id, wallets, theme.disabledColor, false),
-            buildCategory(categories),
+            ChooseCategory(
+              selected: [transaction.category],
+              multi: false,
+              onSelected: (c) {
+                transaction.category = c;
+                transaction.categoryId = c.id;
+              },
+            ),
             buildName(),
             ValueListenableBuilder(
               valueListenable: _showMoreField,

@@ -4,6 +4,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AdState extends ChangeNotifier {
+  // ignore: constant_identifier_names
+  static const int MAXIMUM_NUMBER_OF_AD_REQUEST = 5;
   Future<InitializationStatus> initialization;
 
   AdState({required this.initialization}) {
@@ -57,10 +59,7 @@ class AdState extends ChangeNotifier {
   BannerAdListener _getBanner({Function()? onFailed}) {
     return BannerAdListener(
       // Called when un ad is successfully received.
-      onAdLoaded: (Ad ad) {
-        String description = ad.responseInfo?.loadedAdapterResponseInfo?.description ?? '';
-        debugPrint('Ad loaded. ${description.toString()}');
-      },
+      onAdLoaded: (Ad ad) => debugPrint('Ad loaded.'),
       // Called when an ad request failed.
       onAdFailedToLoad: (Ad ad, LoadAdError error) {
         ad.dispose();

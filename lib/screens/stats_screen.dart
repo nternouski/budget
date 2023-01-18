@@ -56,6 +56,20 @@ class StatsScreenState extends State<StatsScreen> {
     final theme = Theme.of(context);
     List<Transaction> allTransactions = Provider.of<List<Transaction>>(context);
 
+    final adState = Provider.of<AdState>(context);
+    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+
+    if (showAds && banner == null) {
+      banner = BannerAd(
+          size: AdSize.largeBanner,
+          adUnitId: adState.bannerAdUnitId,
+          listener: adState.bannerAdListener(onFailed: () {
+            setState(() => banner = null);
+          }),
+          request: const AdRequest())
+        ..load();
+    }
+
     return Scaffold(
         appBar: AppBar(
           titleTextStyle: theme.textTheme.titleLarge,
@@ -89,20 +103,6 @@ class StatsScreenState extends State<StatsScreen> {
 
             String maxPeriodBalance = '${(TransactionRx.windowFetchTransactions.inDays / 30).floor()} months';
             double balance = allTransactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
-
-            final adState = Provider.of<AdState>(context);
-            bool showAds = Provider.of<User>(context)?.showAds() ?? true;
-
-            if (showAds && banner == null) {
-              banner = BannerAd(
-                  size: AdSize.largeBanner,
-                  adUnitId: adState.bannerAdUnitId,
-                  listener: adState.bannerAdListener(onFailed: () {
-                    setState(() => banner = null);
-                  }),
-                  request: const AdRequest())
-                ..load();
-            }
 
             return CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -176,7 +176,7 @@ class StatsScreenState extends State<StatsScreen> {
                     Divider(color: theme.dividerColor, thickness: 2),
                     const SizedBox(height: 10),
                     Padding(
-                      padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                      padding: const EdgeInsets.all(5),
                       child: Wrap(
                         spacing: 10,
                         runSpacing: 10,

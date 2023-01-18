@@ -41,6 +41,22 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final adState = Provider.of<AdState>(context);
+    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+
+    if (showAds && banner == null) {
+      banner = BannerAd(
+          size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
+          adUnitId: adState.bannerAdUnitId,
+          listener: adState.bannerAdListener(onFailed: () {
+            setState(() {
+              banner = null;
+            });
+          }),
+          request: const AdRequest())
+        ..load();
+    }
+
     final floatingActionButton = FloatingActionButton(
       onPressed: () => RouteApp.redirect(context: context, url: footer[pageIndex].actionIcon!, fromScaffold: false),
       backgroundColor: theme.colorScheme.primary,
@@ -68,22 +84,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       backgroundColor = Convert.increaseColorSaturation(temp, -0.5);
     } else {
       backgroundColor = Convert.increaseColorLightness(theme.backgroundColor, -0.18);
-    }
-
-    final adState = Provider.of<AdState>(context);
-    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
-
-    if (showAds && banner == null) {
-      banner = BannerAd(
-          size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
-          adUnitId: adState.bannerAdUnitId,
-          listener: adState.bannerAdListener(onFailed: () {
-            setState(() {
-              banner = null;
-            });
-          }),
-          request: const AdRequest())
-        ..load();
     }
 
     return Column(

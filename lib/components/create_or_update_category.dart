@@ -1,11 +1,11 @@
-import 'package:budget/components/icon_picker.dart';
-import 'package:budget/server/database/category_rx.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:provider/provider.dart';
 
+import '../components/icon_picker.dart';
+import '../server/database/category_rx.dart';
 import '../common/icon_helper.dart';
 import '../common/styles.dart';
 import '../model/category.dart';
@@ -48,7 +48,7 @@ class CreateOrUpdateCategory {
                 controller: nameController,
                 decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Food'),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp('[a-zA-Z  ]')),
+                  FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9  ]')),
                   LengthLimitingTextInputFormatter(Category.MAX_LENGTH_NAME)
                 ],
                 validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,

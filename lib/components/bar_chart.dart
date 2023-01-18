@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
 
 import '../components/spend_graphic.dart';
 import '../model/currency.dart';
@@ -56,29 +55,20 @@ class BarChartWidgetState extends State<BarChartWidget> {
     final frameWindowDate = Duration(days: widget.frameWindow, microseconds: -1);
     for (var time = widget.frameDate; time.isBefore(nowZero); time = time.add(step)) {
       final rodStackItems = TransactionType.values.fold<List<BarChartRodStackItem>>([], (acc, type) {
-        double values = getBalanceOf(widget.transactions, type, time, time.add(barDuration));
-        double prevValue = acc.isEmpty ? 0 : acc.last.toY;
-        double total = prevValue + values;
-
-        if (total > maxBalance) maxBalance = total;
-        acc.add(BarChartRodStackItem(prevValue, total, colorsTypeTransaction[type]!));
+        double values = getBalanceOf(widget.transactions, type, time, time.add(frameWindowDate));
+        if (values > maxBalance) maxBalance = values;
+        acc.add(BarChartRodStackItem(0, values, colorsTypeTransaction[type]!));
         return acc;
       }).toList();
 
       rawBarGroups.add(BarChartGroup(
         y: time,
         data: BarChartGroupData(
-          barsSpace: 4,
-          x: index++,
-          barRods: [
-            BarChartRodData(
-              toY: rodStackItems.last.toY,
-              rodStackItems: rodStackItems,
-              width: width,
-              color: rodStackItems.lastWhereOrNull((i) => i.fromY != i.toY)?.color,
-            )
-          ],
-        ),
+            barsSpace: 3,
+            x: index++,
+            barRods: rodStackItems
+                .map((item) => BarChartRodData(toY: item.toY, rodStackItems: [item], width: width, color: item.color))
+                .toList()),
       ));
     }
 
@@ -115,7 +105,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                     axisNameSize: 4,
                     sideTitles: SideTitles(
                       showTitles: true,
-                      interval: maxBalance / 2 + 1,
+                      interval: maxBalance / 3 + 1,
                       reservedSize: 30,
                       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
                         axis == 0.0 ? '' : Convert.roundMoney(axis),
@@ -126,12 +116,11 @@ class BarChartWidgetState extends State<BarChartWidget> {
                 borderData: FlBorderData(show: false),
                 barTouchData: getTooltip(theme),
                 barGroups: rawBarGroups.map((g) => g.data).toList(),
-                gridData: FlGridData(show: false),
+                gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 3 + 1),
               ),
             ),
           ),
         ),
-        const Text('1 bar 1 week'),
         const SizedBox(height: 20),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -159,13 +148,9 @@ class BarChartWidgetState extends State<BarChartWidget> {
             fontWeight: FontWeight.bold,
             fontSize: theme.textTheme.bodyLarge!.fontSize,
           ),
-          children: rod.rodStackItems.asMap().entries.fold<List<TextSpan>>([], (acc, entry) {
-            final type = TransactionType.values.elementAt(entry.key);
-            double value = entry.value.toY - entry.value.fromY;
-            if (value.compareTo(0.0) > 0) {
-              final itemText =
-                  '${acc.isNotEmpty ? '\n' : ''}${Convert.capitalize(type.toShortString())}: \$${value.prettier()}';
-              acc.add(TextSpan(text: itemText, style: TextStyle(color: colorsTypeTransaction[type]!)));
+          children: rod.rodStackItems.fold<List<TextSpan>>([], (acc, item) {
+            if (item.toY.compareTo(0.0) > 0) {
+              acc.add(TextSpan(text: item.toY.prettier(withSymbol: true), style: TextStyle(color: item.color)));
             }
             return acc;
           }),

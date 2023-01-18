@@ -1,10 +1,3 @@
-import 'package:budget/common/error_handler.dart';
-import 'package:budget/common/period_stats.dart';
-import 'package:budget/components/create_or_update_category.dart';
-import 'package:budget/components/icon_circle.dart';
-import 'package:budget/model/budget.dart';
-import 'package:budget/model/category.dart';
-import 'package:budget/server/database/budget_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -12,6 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../common/error_handler.dart';
+import '../common/period_stats.dart';
+import '../components/choose_category.dart';
+import '../model/budget.dart';
+import '../server/database/budget_rx.dart';
 import '../common/styles.dart';
 
 enum Action { create, update }
@@ -116,79 +114,6 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     );
   }
 
-  Widget buildCategory(BuildContext context, String userId) {
-    List<Category> categories = Provider.of<List<Category>>(context);
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Choose Category',
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
-            ),
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
-            )
-          ],
-        ),
-        if (categories.isEmpty)
-          SizedBox(
-            height: 60,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [Text('No categories by the moment.')],
-            ),
-          ),
-        if (categories.isNotEmpty)
-          Align(
-            alignment: Alignment.topLeft,
-            child: Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: List.generate(categories.length, (index) {
-                var colorItem = budget.categories.any((c) => c.id == categories[index].id)
-                    ? categories[index].color
-                    : Colors.transparent;
-                return GestureDetector(
-                  onLongPress: () => CreateOrUpdateCategory.showButtonSheet(context, categories[index]),
-                  onTap: () => setState(() {
-                    if (budget.categories.any((c) => c.id == categories[index].id)) {
-                      budget.categories = budget.categories.where((c) => c.id != categories[index].id).toList();
-                    } else {
-                      budget.categories.add(categories[index]);
-                    }
-                  }),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 2, color: colorItem),
-                      borderRadius: categoryBorderRadius,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconCircle(icon: categories[index].icon, color: categories[index].color),
-                          const SizedBox(width: 5),
-                          Text(categories[index].name, style: const TextStyle(fontWeight: FontWeight.w500))
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget buildDateField(BuildContext context, ThemeData theme) {
     const formatDate = 'dd/MM/yyyy';
     return Row(
@@ -259,7 +184,17 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                 ColorPickerType.accent: false,
               },
             ),
-            buildCategory(context, user.uid),
+            ChooseCategory(
+              selected: budget.categories,
+              multi: true,
+              onSelected: (selected) {
+                if (budget.categories.any((c) => c.id == selected.id)) {
+                  budget.categories = budget.categories.where((c) => c.id != selected.id).toList();
+                } else {
+                  budget.categories.add(selected);
+                }
+              },
+            ),
             buildDateField(context, theme),
             sizedBoxHeight,
             ElevatedButton(

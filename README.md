@@ -32,3 +32,10 @@ First at all install dependencies and requirements of the project.
 ### Release on Google Play
 
 [Link](https://play.google.com/store/apps/details?id=com.nternouski.budget&pli=1)
+### FAQ
+
+- I test the app in my phone and I cant install the release version from Google Play.
+	* Fist connect your phone to the computer and open the terminal.
+	* Second, go to the Android folder in my case it is `~/AppData/Local/Android/Sdk/platform-tools`.
+	* And finally run the command `adb uninstall com.nternouski.budget`
+	* Now you can install the release version from Google Play

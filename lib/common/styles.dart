@@ -38,7 +38,7 @@ class InputStyle {
 
 TextButton buttonCancelContext(BuildContext context) {
   return TextButton(
-    style: TextButton.styleFrom(primary: Theme.of(context).colorScheme.error),
+    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
     onPressed: () => Navigator.of(context).pop(),
     child: const Text('Cancel'),
   );

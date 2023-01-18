@@ -1,3 +1,4 @@
+import 'package:budget/components/auth_google_button.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -23,7 +24,7 @@ final UserService userService = UserService();
 class _OnBoardingState extends State<OnBoarding> {
   bool isLastPage = false;
   Currency? defaultCurrency;
-  AuthOption authOption = AuthOption.google;
+  AuthOption? authOption;
   String email = '';
   String password = '';
   bool _passwordVisible = true;
@@ -38,6 +39,19 @@ class _OnBoardingState extends State<OnBoarding> {
     return buildOnBoarding(context, theme);
   }
 
+  Future<void> _signUp(AuthOption option) async {
+    if (defaultCurrency == null) {
+      return HandlerError().setError('First you must set a default currency');
+    }
+    if (option == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
+      return HandlerError().setError('First you must set a email and password');
+    }
+    if (!_disclosureAcceptedSignUp) {
+      return HandlerError().setError('You must accept the terms and conditions.');
+    }
+    await userService.singUp(context, option, email, password, defaultCurrency!);
+  }
+
   buildOnBoarding(BuildContext context, ThemeData theme) {
     var pages = [
       ListView(children: [
@@ -47,21 +61,20 @@ class _OnBoardingState extends State<OnBoarding> {
           subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.',
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 35, right: 35),
+              padding: const EdgeInsets.only(left: 35, right: 35, top: 20),
               child: Column(children: [
-                InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Choice One Option'),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<AuthOption>(
-                      isDense: true,
-                      value: authOption,
-                      onChanged: (AuthOption? option) => option != null ? setState(() => authOption = option) : null,
-                      items: AuthOption.values
-                          .map((c) => DropdownMenuItem(value: c, child: Text('  ${c.toShortString()}')))
-                          .toList(),
-                    ),
+                if (authOption == null)
+                  AuthButton(
+                    option: AuthOption.google,
+                    text: 'Sign in with Google',
+                    onPressed: () => userService.login(context, AuthOption.google, email, password),
                   ),
-                ),
+                if (authOption == null)
+                  AuthButton(
+                    option: AuthOption.email,
+                    text: ' Sign in with Email ',
+                    onPressed: () => setState(() => authOption = AuthOption.email),
+                  ),
                 if (authOption == AuthOption.email)
                   Column(children: [
                     TextFormField(
@@ -88,16 +101,27 @@ class _OnBoardingState extends State<OnBoarding> {
                         ),
                       ),
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                          onPressed: () => setState(() => authOption = null),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (!email.isValidEmail() || !password.isValidPassword()) {
+                              return HandlerError().setError('First you must set a email and password');
+                            }
+                            userService.login(context, AuthOption.email, email, password);
+                          },
+                          child: const Text('LOGIN'),
+                        )
+                      ],
+                    )
                   ]),
                 const SizedBox(height: 15),
-                ElevatedButton(
-                    onPressed: () {
-                      if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
-                        return HandlerError().setError('First you must set a email and password');
-                      }
-                      userService.login(context, authOption, email, password);
-                    },
-                    child: const Text('LOGIN'))
               ]),
             )
           ],
@@ -113,52 +137,73 @@ class _OnBoardingState extends State<OnBoarding> {
               Padding(
                 padding: const EdgeInsets.only(left: 35, right: 35),
                 child: Column(children: [
-                  InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Choice One Option'),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<AuthOption>(
-                        isDense: true,
-                        value: authOption,
-                        onChanged: (AuthOption? option) => option != null ? setState(() => authOption = option) : null,
-                        items: AuthOption.values
-                            .map((c) => DropdownMenuItem(value: c, child: Text('  ${c.toShortString()}')))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-                  if (authOption == AuthOption.email)
-                    Column(children: [
-                      TextFormField(
-                        initialValue: email,
-                        keyboardType: TextInputType.emailAddress,
-                        autovalidateMode: AutovalidateMode.always,
-                        decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
-                        validator: (String? value) =>
-                            value != null && value.isValidEmail() ? null : 'Email is Required.',
-                        onChanged: (String value) => email = value,
-                      ),
-                      TextFormField(
-                        initialValue: password,
-                        autovalidateMode: AutovalidateMode.always,
-                        validator: (String? value) =>
-                            value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
-                        onChanged: (String value) => password = value,
-                        obscureText: !_passwordVisible,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          hintText: 'Enter your password',
-                          suffixIcon: IconButton(
-                            icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
-                            onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
-                          ),
-                        ),
-                      ),
-                    ]),
                   SelectCurrency(
                     initialCurrencyId: defaultCurrency?.id ?? '',
                     onSelect: (c) => setState(() => defaultCurrency = c),
                   ),
                   const SizedBox(height: 15),
+                  if (authOption == null)
+                    AuthButton(
+                      option: AuthOption.google,
+                      text: 'Sign up with Google',
+                      onPressed: () async => await _signUp(AuthOption.google),
+                    ),
+                  if (authOption == null)
+                    AuthButton(
+                      option: AuthOption.email,
+                      text: ' Sign Up with Email ',
+                      onPressed: () => setState(() => authOption = AuthOption.email),
+                    ),
+                  if (authOption == AuthOption.email)
+                    Column(
+                      children: [
+                        TextFormField(
+                          initialValue: email,
+                          keyboardType: TextInputType.emailAddress,
+                          autovalidateMode: AutovalidateMode.always,
+                          decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                          validator: (String? value) =>
+                              value != null && value.isValidEmail() ? null : 'Email is Required.',
+                          onChanged: (String value) => email = value,
+                        ),
+                        TextFormField(
+                          initialValue: password,
+                          autovalidateMode: AutovalidateMode.always,
+                          validator: (String? value) =>
+                              value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
+                          onChanged: (String value) => password = value,
+                          obscureText: !_passwordVisible,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            hintText: 'Enter your password',
+                            suffixIcon: IconButton(
+                              icon:
+                                  Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                              onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            TextButton(
+                              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                              onPressed: () => setState(() => authOption = null),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (!email.isValidEmail() || !password.isValidPassword()) {
+                                  return HandlerError().setError('First you must set a email and password');
+                                }
+                                await _signUp(AuthOption.email);
+                              },
+                              child: const Text('SIGN UP'),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
                   CheckboxListTile(
                     title: RichText(
                       text: TextSpan(
@@ -191,10 +236,7 @@ class _OnBoardingState extends State<OnBoarding> {
                                 }
                               },
                           ),
-                          TextSpan(
-                              text:
-                                  ' and allow to verify credentials. Also, the app not request permission only if you check the biometric auth you can use for login and the app is not a AccessibilityTool.',
-                              style: TextStyle(color: theme.hintColor)),
+                          TextSpan(text: ' and allow to verify credentials.', style: TextStyle(color: theme.hintColor)),
                         ],
                       ),
                     ),
@@ -248,21 +290,12 @@ class _OnBoardingState extends State<OnBoarding> {
             TextButton(
               onPressed: () async {
                 if (isLastPage) {
-                  if (defaultCurrency == null) {
-                    return HandlerError().setError('First you must set a default currency');
-                  }
-                  if (authOption == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
-                    return HandlerError().setError('First you must set a email and password');
-                  }
-                  if (!_disclosureAcceptedSignUp) {
-                    return HandlerError().setError('You must accept the terms and conditions.');
-                  }
-                  await userService.singUp(context, authOption, email, password, defaultCurrency!);
+                  controller.previousPage(duration: durationAnimation, curve: Curves.ease);
                 } else {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }
               },
-              child: Text(isLastPage ? 'SIGN UP' : '  NEXT  '),
+              child: Text(isLastPage ? 'BACK' : 'NEXT'),
             ),
           ],
         ),
@@ -292,20 +325,22 @@ class BuildPage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 30),
-        Image.asset(urlImage, width: 270, height: 270),
+        Image.asset(urlImage, width: 250, height: 250),
         const SizedBox(height: 30),
-        Text(title,
-            textAlign: TextAlign.center, style: theme.textTheme.headline6?.copyWith(color: theme.colorScheme.primary)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headline6?.copyWith(color: theme.colorScheme.primary),
+        ),
         const SizedBox(height: 30),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey, fontSize: 17, height: 1.5),
+            style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey),
           ),
         ),
-        const SizedBox(height: 20),
         ...children
       ],
     );
