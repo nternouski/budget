@@ -65,6 +65,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   final ValueNotifier _showMoreField = ValueNotifier<bool>(false);
   final TextEditingController dateController = TextEditingController(text: '');
   final TextEditingController timeController = TextEditingController(text: '');
+  final TextEditingController decimalAmountController = TextEditingController(text: '0');
+  final decimalAmountFocusNode = FocusNode();
+
   late List<PopupMenuItem<TransactionType>> types = TransactionType.values
       .map((t) => PopupMenuItem(
           value: t,
@@ -84,6 +87,14 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   @override
   void initState() {
     super.initState();
+    decimalAmountFocusNode.addListener(() {
+      int? decimal = int.tryParse(decimalAmountController.text);
+      if (decimalAmountFocusNode.hasFocus) {
+        if (decimal == 0) decimalAmountController.text = '';
+      } else {
+        if (decimal == null) decimalAmountController.text = '0';
+      }
+    });
   }
 
   @override
@@ -152,6 +163,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
     timeController.text = DateFormat('hh:mm').format(transaction.date);
+    decimalAmountController.text = transaction.amount.toString().split('.')[1];
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -256,12 +269,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         Flexible(
           flex: 1,
           child: TextFormField(
-            initialValue: transaction.amount.toString().split('.')[1],
+            controller: decimalAmountController,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
             textAlign: TextAlign.start,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             decoration: const InputDecoration(border: InputBorder.none, hintText: '00'),
+            focusNode: decimalAmountFocusNode,
             onSaved: (String? value) {
               final intValue = transaction.amount.toString().split('.')[0];
               transaction.amount = double.parse('$intValue.$value');
