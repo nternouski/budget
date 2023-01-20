@@ -76,6 +76,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Wallet? walletToSelected;
 
   InterstitialAd? _interstitialAd;
+  String interstitialAdUnitId = '';
   int _interstitialAdRetry = 0;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -91,15 +92,12 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     super.dispose();
   }
 
-  Future<void> _loadInterstitialAd(AdState adState) {
+  Future<void> _loadInterstitialAd(String interstitialAdUnitId) {
     return InterstitialAd.load(
-      adUnitId: adState.interstitialAdUnitId,
+      adUnitId: interstitialAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) => Navigator.of(context).pop(),
-          );
           User? user = Provider.of<User>(context, listen: false) as dynamic;
           if (user == null || user.showAds()) setState(() => _interstitialAd = ad);
         },
@@ -108,11 +106,30 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           if (_interstitialAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
             debugPrint('=> RETRYING $_interstitialAdRetry load an interstitial ad');
             _interstitialAdRetry++;
-            _loadInterstitialAd(adState);
+            _loadInterstitialAd(interstitialAdUnitId);
           }
         },
       ),
     );
+  }
+
+  Future<void> _showInterstitialAd() async {
+    if (_interstitialAd == null) return debugPrint('Warning: attempt to show interstitial before loaded.');
+
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) => debugPrint('ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        debugPrint('ad onAdDismissedFullScreenContent.');
+        ad.dispose();
+        _loadInterstitialAd(interstitialAdUnitId);
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        debugPrint('ad onAdFailedToShowFullScreenContent: ${error.toString()}');
+        ad.dispose();
+        _loadInterstitialAd(interstitialAdUnitId);
+      },
+    );
+    return _interstitialAd!.show();
   }
 
   @override
@@ -120,7 +137,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     final theme = Theme.of(context);
 
     final adState = Provider.of<AdState>(context);
-    if (_interstitialAd == null) _loadInterstitialAd(adState);
+    interstitialAdUnitId = adState.interstitialAdUnitId;
+    if (_interstitialAd == null) _loadInterstitialAd(interstitialAdUnitId);
 
     final t = ModalRoute.of(context)!.settings.arguments as Transaction?;
     List<Wallet> wallets = Provider.of<List<Wallet>>(context);
@@ -370,7 +388,6 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
 
   Widget getForm(BuildContext context, List<Wallet> wallets, ThemeData theme) {
     User user = Provider.of<User>(context);
-    List<Category> categories = Provider.of<List<Category>>(context);
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     return Form(
@@ -524,11 +541,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                   await transactionRx.update(
                       transaction, user.id, walletFromSelected!, currencyRates, walletToSelected);
                 }
-                if (_interstitialAd != null) {
-                  _interstitialAd!.show();
-                } else {
-                  Navigator.of(context).pop();
-                }
+                await _showInterstitialAd();
+                Navigator.of(context).pop();
               },
               child: Text(title),
             ),
