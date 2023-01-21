@@ -107,7 +107,7 @@ class FAQPageState extends State<FAQScreen> {
                           key: Key(index.toString()),
                           initiallyExpanded: index == selected,
                           iconColor: theme.disabledColor,
-                          title: Text(filtered[index].question, style: theme.textTheme.titleLarge),
+                          title: Text(filtered[index].question, style: theme.textTheme.titleMedium),
                           onExpansionChanged: (newState) {
                             isExpand = newState;
                             setState(() => selected = newState ? index : -1 /* isExpand=newState; */);

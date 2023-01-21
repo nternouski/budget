@@ -129,7 +129,7 @@ class BudgetItem extends StatelessWidget {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  content: const Text('Are you sure you want to delete ?'),
+                  content: const Text('Are you sure you want to delete?'),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
