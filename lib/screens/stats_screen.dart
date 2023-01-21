@@ -46,6 +46,7 @@ class StatsScreenState extends State<StatsScreen> {
   List<String>? selectedCategories;
   Map<TransactionType, bool> selectedTypes = TransactionType.values.asMap().map((_, value) => MapEntry(value, true));
   BannerAd? banner;
+  int _bannerAdRetry = 0;
 
   final frameWindow = 7;
 
@@ -59,7 +60,8 @@ class StatsScreenState extends State<StatsScreen> {
     final adState = Provider.of<AdState>(context);
     bool showAds = Provider.of<User>(context)?.showAds() ?? true;
 
-    if (showAds && banner == null) {
+    if (showAds && banner == null && _bannerAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+      _bannerAdRetry++;
       banner = BannerAd(
           size: AdSize.largeBanner,
           adUnitId: adState.bannerAdUnitId,
@@ -113,7 +115,6 @@ class StatsScreenState extends State<StatsScreen> {
                       padding: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
                       child: Card(
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
-                        color: balance.isNegative ? theme.errorColor : theme.primaryColor,
                         child: Padding(
                           padding: const EdgeInsets.all(15),
                           child: Row(
@@ -124,6 +125,7 @@ class StatsScreenState extends State<StatsScreen> {
                                     ? Icons.keyboard_double_arrow_down_rounded
                                     : Icons.keyboard_double_arrow_up_rounded,
                                 size: 45,
+                                color: balance.isNegative ? theme.errorColor : theme.primaryColor,
                               ),
                               Column(children: [
                                 Text('In the last $maxPeriodBalance', style: theme.textTheme.titleMedium),

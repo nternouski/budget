@@ -8,7 +8,6 @@ import '../components/current_rates_settings.dart';
 import '../common/period_stats.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
-import '../components/update_or_create_integration.dart';
 import '../server/user_service.dart';
 import '../model/user.dart';
 
@@ -117,17 +116,76 @@ class SettingsScreenState extends State<SettingsScreen> {
         ]);
   }
 
-  SettingsSection getIntegration() {
+  SettingsSection getIntegration(User user) {
     return SettingsSection(
       title: const Text('Integrations ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
       tiles: [
         SettingsTile.navigation(
           leading: const Icon(Icons.wallet),
           title: const Text('Wise'),
-          trailing: const UpdateOrCreateIntegration(),
-        ),
+          onPressed: (_) => showBottomSheetWiseIntegration(user),
+          trailing: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => showBottomSheetWiseIntegration(user),
+          ),
+        )
       ],
     );
+  }
+
+  showBottomSheetWiseIntegration(User user) {
+    String apiKey = user.integrations[IntegrationType.wise] ?? '';
+
+    return showModalBottomSheet(
+      enableDrag: false,
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (BuildContext context) => BottomSheet(
+        enableDrag: false,
+        onClosing: () {},
+        builder: (BuildContext context) => _wiseBottomSheetBody(apiKey, user, context),
+      ),
+    );
+  }
+
+  _wiseBottomSheetBody(String apiKey, User user, BuildContext context) {
+    return SingleChildScrollView(
+        child: Container(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Update Integration', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            TextFormField(
+              initialValue: apiKey,
+              decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),
+              validator: (String? value) => value!.isEmpty ? 'Integration is Required.' : null,
+              onChanged: (String newApiKey) => apiKey = newApiKey,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                buttonCancelContext(context),
+                ElevatedButton(
+                  child: const Text('Update'),
+                  onPressed: () {
+                    user.integrations.update(IntegrationType.wise, (value) => apiKey, ifAbsent: () => apiKey);
+                    UserService().update(user);
+                    setState(() => {});
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    ));
   }
 
   List<Widget> getBody(BuildContext context) {
@@ -150,7 +208,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               sections = [
                 ProfileSettings(user: user),
                 getCommon(theme, periodStats),
-                getIntegration(),
+                getIntegration(user),
                 CurrentRatesSettings(user: user),
                 DangerZone(userId: user.id),
               ];

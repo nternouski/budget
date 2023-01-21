@@ -1,4 +1,5 @@
 import 'package:budget/common/ad_helper.dart';
+import 'package:budget/common/version_checker.dart';
 import 'package:budget/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
@@ -24,9 +25,18 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   DateTime? backPressTime;
   final durationBackTime = const Duration(seconds: 2);
   BannerAd? banner;
+  int _bannerAdRetry = 0;
+
+  final _checker = AppVersionChecker();
 
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
+  }
+
+  @override
+  initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () => _checker.checkUpdate(context));
   }
 
   Future<bool> onWillPop() {
@@ -44,7 +54,8 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     final adState = Provider.of<AdState>(context);
     bool showAds = Provider.of<User>(context)?.showAds() ?? true;
 
-    if (showAds && banner == null) {
+    if (showAds && banner == null && _bannerAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+      _bannerAdRetry++;
       banner = BannerAd(
           size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
           adUnitId: adState.bannerAdUnitId,

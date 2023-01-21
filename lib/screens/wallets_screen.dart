@@ -1,3 +1,4 @@
+import 'package:budget/common/convert.dart';
 import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,10 +40,14 @@ class WalletsScreenState extends State<WalletsScreen> {
     } else {
       component = SliverList(
         delegate: SliverChildBuilderDelegate(
-          (_, idx) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: WalletItem(
-                wallet: wallets[idx], userId: authUser.uid, showBalance: true, showActions: true, selected: true),
+          (_, idx) => GestureDetector(
+            onTap: () => RouteApp.redirect(
+                context: context, url: URLS.createOrUpdateWallet, param: wallets[idx], fromScaffold: false),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: WalletItem(
+                  wallet: wallets[idx], userId: authUser.uid, showBalance: true, showActions: true, selected: true),
+            ),
           ),
           childCount: wallets.length,
         ),
@@ -156,7 +161,7 @@ class WalletItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(wallet.name, style: textTheme.titleLarge?.copyWith(color: contrastColor)),
+                Text(Convert.capitalize(wallet.name), style: textTheme.titleLarge?.copyWith(color: contrastColor)),
                 if (showBalance) ...[
                   const SizedBox(height: 5),
                   Row(
