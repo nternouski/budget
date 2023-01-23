@@ -56,85 +56,11 @@ class _OnBoardingState extends State<OnBoarding> {
 
   buildOnBoarding(BuildContext context, ThemeData theme) {
     var pages = [
-      ListView(children: [
-        BuildPage(
-          urlImage: 'assets/images/bank-login.png',
-          title: 'Welcome to Budget App'.i18n,
-          subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.'.i18n,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 35, right: 35, top: 20),
-              child: Column(children: [
-                if (authOption == null)
-                  AuthButton(
-                    option: AuthOption.google,
-                    text: 'Sign in with Google'.i18n,
-                    onPressed: () => userService.login(context, AuthOption.google, email, password),
-                  ),
-                if (authOption == null)
-                  AuthButton(
-                    option: AuthOption.email,
-                    text: ' Sign in with Email '.i18n,
-                    onPressed: () => setState(() => authOption = AuthOption.email),
-                  ),
-                if (authOption == AuthOption.email)
-                  Column(children: [
-                    TextFormField(
-                      initialValue: email,
-                      keyboardType: TextInputType.emailAddress,
-                      autovalidateMode: AutovalidateMode.always,
-                      decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
-                      validator: (String? value) => value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
-                      onChanged: (String value) => email = value,
-                    ),
-                    TextFormField(
-                      initialValue: password,
-                      autovalidateMode: AutovalidateMode.always,
-                      validator: (String? value) => value != null && value.isValidPassword()
-                          ? null
-                          : 'Password min %d characters.'.plural(PASSWORD_MIN),
-                      onChanged: (String value) => password = value,
-                      obscureText: !_passwordVisible,
-                      decoration: InputDecoration(
-                        labelText: 'Password'.i18n,
-                        hintText: 'Enter your password'.i18n,
-                        suffixIcon: IconButton(
-                          icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
-                          onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        TextButton(
-                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                          onPressed: () => setState(() => authOption = null),
-                          child: Text('Cancel'.i18n),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (!email.isValidEmail() || !password.isValidPassword()) {
-                              return HandlerError().setError('First you must set a email and password.'.i18n);
-                            }
-                            userService.login(context, AuthOption.email, email, password);
-                          },
-                          child: Text('LOGIN'.i18n),
-                        )
-                      ],
-                    )
-                  ]),
-                const SizedBox(height: 15),
-              ]),
-            )
-          ],
-        ),
-      ]),
       ListView(
         children: [
           BuildPage(
             urlImage: 'assets/images/currencies.png',
-            title: 'Select Default Currency'.i18n,
+            title: 'Welcome to Budget App'.i18n,
             subtitle: 'Before start we need to know what will be the default currency, you can change later.'.i18n,
             children: [
               Padding(
@@ -179,7 +105,7 @@ class _OnBoardingState extends State<OnBoarding> {
                           obscureText: !_passwordVisible,
                           decoration: InputDecoration(
                             labelText: 'Password'.i18n,
-                            hintText: 'Enter your password.'.i18n,
+                            hintText: 'Enter your password'.i18n,
                             suffixIcon: IconButton(
                               icon:
                                   Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
@@ -256,7 +182,81 @@ class _OnBoardingState extends State<OnBoarding> {
             ],
           ),
         ],
-      )
+      ),
+      ListView(children: [
+        BuildPage(
+          urlImage: 'assets/images/bank-login.png',
+          title: 'Welcome to Budget App'.i18n,
+          subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.'.i18n,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 35, right: 35, top: 20),
+              child: Column(children: [
+                if (authOption == null)
+                  AuthButton(
+                    option: AuthOption.google,
+                    text: 'Sign in with Google'.i18n,
+                    onPressed: () => userService.login(context, AuthOption.google, email, password),
+                  ),
+                if (authOption == null)
+                  AuthButton(
+                    option: AuthOption.email,
+                    text: ' Sign in with Email '.i18n,
+                    onPressed: () => setState(() => authOption = AuthOption.email),
+                  ),
+                if (authOption == AuthOption.email)
+                  Column(children: [
+                    TextFormField(
+                      initialValue: email,
+                      keyboardType: TextInputType.emailAddress,
+                      autovalidateMode: AutovalidateMode.always,
+                      decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                      validator: (String? value) => value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
+                      onChanged: (String value) => email = value,
+                    ),
+                    TextFormField(
+                      initialValue: password,
+                      autovalidateMode: AutovalidateMode.always,
+                      validator: (String? value) => value != null && value.isValidPassword()
+                          ? null
+                          : 'Password min %d characters.'.plural(PASSWORD_MIN),
+                      onChanged: (String value) => password = value,
+                      obscureText: !_passwordVisible,
+                      decoration: InputDecoration(
+                        labelText: 'Password'.i18n,
+                        hintText: 'Enter your password'.i18n,
+                        suffixIcon: IconButton(
+                          icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
+                          onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                          onPressed: () => setState(() => authOption = null),
+                          child: Text('Cancel'.i18n),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (!email.isValidEmail() || !password.isValidPassword()) {
+                              return HandlerError().setError('First you must set a email and password.'.i18n);
+                            }
+                            userService.login(context, AuthOption.email, email, password);
+                          },
+                          child: Text('LOGIN'.i18n),
+                        )
+                      ],
+                    )
+                  ]),
+                const SizedBox(height: 15),
+              ]),
+            )
+          ],
+        ),
+      ]),
     ];
     return Scaffold(
       body: Container(
@@ -297,7 +297,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }
               },
-              child: Text(isLastPage ? 'BACK'.i18n : 'NEXT'.i18n),
+              child: Text(isLastPage ? 'BACK'.i18n : 'LOGIN'.i18n),
             ),
           ],
         ),
@@ -334,7 +334,7 @@ class BuildPage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: theme.textTheme.headline6?.copyWith(color: theme.colorScheme.primary),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(

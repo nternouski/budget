@@ -85,16 +85,18 @@ class StatsScreenState extends State<StatsScreen> {
             // Calc frame but respect window and start week from today
             final DateTime frameDate =
                 nowZero.subtract(Duration(days: frameWindow * (periodStats.days / frameWindow).round()));
-            List<Category> categories = Provider.of<List<Category>>(context);
+            List<Category> categories = Provider.of<List<Category>>(context)
+                .where((c) => allTransactions.any((t) => t.categoryId == c.id))
+                .toList();
             selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
-            double total = 0;
-
             var transactions = allTransactions
                 .where((t) =>
                     t.date.isAfter(frameDate) &&
                     selectedCategories!.contains(t.categoryId) &&
                     selectedTypes[t.type] == true)
                 .toList();
+
+            double total = 0;
 
             List<CategorySelected> categoriesSelected = categories.map((c) {
               bool isSelected = selectedCategories != null && selectedCategories!.contains(c.id);

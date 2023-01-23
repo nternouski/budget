@@ -126,7 +126,7 @@ final screens = Translations('en') +
     {'en': 'First you must set a default currency.', 'es': 'Primero debes seleccionar una moneda'} +
     {'en': 'First you must set a email and password.', 'es': 'Primero debes seleccionar agregar email y contraseña'} +
     {'en': 'You must accept the terms and conditions.', 'es': 'Debes aceptar los Términos y Condiciones.'} +
-    {'en': 'Welcome to Budget App', 'es': 'Budget App'} +
+    {'en': 'Welcome to Budget App', 'es': 'Bienvenido/a a Budget App'} +
     {
       'en': 'Login with your user created with the button below or keep the steps to Sign Up.',
       'es':
@@ -143,21 +143,20 @@ final screens = Translations('en') +
     {'en': 'Enter your password', 'es': 'Ingrese su contraseña'} +
     {'en': 'Cancel', 'es': 'Cancelar'} +
     {'en': 'LOGIN', 'es': 'INICIAR'} +
-    {'en': 'Select Default Currency', 'es': 'Seleccione Moneda por Defecto'} +
     {
       'en': 'Before start we need to know what will be the default currency, you can change later.',
-      'es': 'Antes de empezar necesitamos saber que va a ser su moneda por defecto, puedes cambiarlo luego.'
+      'es': 'Antes de empezar necesitamos saber su moneda, puedes cambiarlo luego.'
     } +
     {'en': 'Sign Up with Google', 'es': 'Crear sesión con Google'} +
     {'en': ' Sign Up with Email ', 'es': 'Crear sesión con Email'} +
-    {'en': 'SIGN UP', 'es': 'CREAR'} +
+    {'en': 'SIGN UP', 'es': 'CREAR USUARIO'} +
     {'en': 'By continuing, I agree to ', 'es': 'Al continuar, estoy de acuerdo con '} +
     {'en': 'Terms & Conditions', 'es': 'Términos & Condiciones'} +
     {'en': ' and ', 'es': ' y '} +
     {'en': 'Privacy Policy', 'es': 'Políticas de Privacidad'} +
     {'en': ' and allow to verify credentials.', 'es': ' y acepto verificar las credenciales.'} +
-    {'en': 'BACK', 'es': '  ATRÁS  '} +
-    {'en': 'NEXT', 'es': 'SIGUIENTE'} +
+    {'en': 'BACK', 'es': 'ATRÁS'} +
+    {'en': 'LOGIN', 'es': 'INICIAR SESIÓN'} +
 
     // settings
     {'en': 'Settings', 'es': 'Configuración'} +
