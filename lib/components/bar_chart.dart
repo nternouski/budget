@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
+import '../i18n/index.dart';
 import '../components/spend_graphic.dart';
 import '../model/currency.dart';
 import '../common/convert.dart';
@@ -126,11 +127,14 @@ class BarChartWidgetState extends State<BarChartWidget> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.selectedTypes[TransactionType.income] == true)
-              Text('Total Income: ${resume.income.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
+              Text('${'Total Income'.i18n}: ${resume.income.prettier(withSymbol: true)}',
+                  style: theme.textTheme.titleMedium),
             if (widget.selectedTypes[TransactionType.expense] == true)
-              Text('Total Expense: ${resume.expense.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
+              Text('${'Total Expense'.i18n}: ${resume.expense.prettier(withSymbol: true)}',
+                  style: theme.textTheme.titleMedium),
             if (widget.selectedTypes[TransactionType.transfer] == true)
-              Text('Total Transfer: ${resume.transfer.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium)
+              Text('${'Total Transfer'.i18n}: ${resume.transfer.prettier(withSymbol: true)}',
+                  style: theme.textTheme.titleMedium)
           ],
         ),
       ],

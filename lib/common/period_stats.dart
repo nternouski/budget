@@ -1,21 +1,25 @@
-import 'package:budget/common/preference.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../common/preference.dart';
+import '../i18n/index.dart';
 
 class PeriodStats {
   final int days;
-  final String humanize;
+  late String humanize;
 
-  const PeriodStats({required this.days, required this.humanize});
+  PeriodStats({required this.days}) {
+    humanize = days < 30 ? '%d Days'.plural(days) : '%d Months'.plural(days / 30);
+  }
 }
 
 class Periods {
   final Preferences _preferences = Preferences();
 
   static final List<PeriodStats> options = [
-    const PeriodStats(days: 14, humanize: '14 Days'),
-    const PeriodStats(days: 30, humanize: '1 Month'),
-    const PeriodStats(days: 60, humanize: '2 Month'),
-    const PeriodStats(days: 90, humanize: '3 Month'),
+    PeriodStats(days: 14),
+    PeriodStats(days: 30),
+    PeriodStats(days: 60),
+    PeriodStats(days: 90),
   ];
 
   static final _defaultOption = Periods.options[1];

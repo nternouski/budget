@@ -1,9 +1,12 @@
 import 'dart:async';
-import 'package:budget/common/error_handler.dart';
-import 'package:budget/server/user_service.dart';
+
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../i18n/index.dart';
+import '../common/error_handler.dart';
+import '../server/user_service.dart';
 
 class EmailVerificationNotifier extends ChangeNotifier {
   bool isEmailVerified = false;
@@ -45,7 +48,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     bool check = instance.currentUser!.emailVerified;
     if (check) {
       setState(() {
-        Display.message(context, 'Email Successfully Verified');
+        Display.message(context, 'Email Successfully Verified'.i18n);
         timer?.cancel();
         emailVerification.update(check);
       });
@@ -71,27 +74,27 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             icon: const Icon(Icons.exit_to_app),
             onPressed: () {
               userService.logout();
-              Display.message(context, 'Logout successfully!');
+              Display.message(context, 'Logout successfully!'.i18n);
             }),
-        title: const Text('Email Verification'),
+        title: Text('Email Verification'.i18n),
       ),
       body: Column(children: [
         const SizedBox(height: 70),
-        const Center(child: Text('Check your Email', textAlign: TextAlign.center)),
+        Center(child: Text('Check your Email'.i18n, textAlign: TextAlign.center)),
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Center(
-            child: Text('We have sent you a Email on  ${user?.email}', textAlign: TextAlign.center),
+            child: Text('We have sent you a Email on %s'.fill([user?.email ?? '']), textAlign: TextAlign.center),
           ),
         ),
         const SizedBox(height: 20),
         const Center(child: CircularProgressIndicator()),
         const SizedBox(height: 20),
-        const Center(child: Text('Verifying email..', textAlign: TextAlign.center)),
+        Center(child: Text('Verifying email..'.i18n, textAlign: TextAlign.center)),
         const SizedBox(height: 30),
         ElevatedButton(
-          child: const Text('Resend'),
+          child: Text('Resend'.i18n),
           onPressed: () {
             try {
               auth.FirebaseAuth.instance.currentUser?.sendEmailVerification();

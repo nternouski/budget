@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
+import '../i18n/index.dart';
 import '../common/ad_helper.dart';
 import '../components/choose_category.dart';
 import '../model/currency.dart';
@@ -17,7 +18,6 @@ import '../components/create_or_update_label.dart';
 import '../screens/wallets_screen.dart';
 import '../server/database/transaction_rx.dart';
 import '../model/wallet.dart';
-import '../model/category.dart';
 import '../model/transaction.dart';
 import '../common/styles.dart';
 import '../routes.dart';
@@ -60,7 +60,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     labels: [],
     externalId: '',
   );
-  String title = 'Create Transaction';
+  String title = '${'Create'.i18n} ${'Transaction'.i18n}';
   Action action = Action.create;
   final ValueNotifier _showMoreField = ValueNotifier<bool>(false);
   final TextEditingController dateController = TextEditingController(text: '');
@@ -158,7 +158,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       if (t.id != '') {
         walletFromSelected = wallets.firstWhereOrNull((w) => w.id == transaction.walletFromId);
         action = Action.update;
-        title = 'Update';
+        title = 'Update'.i18n;
       }
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
@@ -185,7 +185,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
       children: [
         Row(children: [
           Text(
-            'Choose ${fromWallet ? 'From' : 'To'} Wallet',
+            fromWallet ? 'Choose From Wallet'.i18n : 'Choose To Wallet'.i18n,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           IconButton(
@@ -197,7 +197,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [SizedBox(height: 60), Text('No wallets by the moment.')],
+            children: [const SizedBox(height: 60), Text('No wallets by the moment.'.i18n)],
           ),
         if (wallets.isNotEmpty)
           SingleChildScrollView(
@@ -257,7 +257,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 contentPadding: EdgeInsets.only(top: 15),
               ),
               validator: (value) =>
-                  value != null && value.isNotEmpty && !int.parse(value).isNegative ? null : 'Amount is Required',
+                  value != null && value.isNotEmpty && !int.parse(value).isNegative ? null : 'Is Required'.i18n,
               onChanged: (String _) => _formKey.currentState!.validate(),
               onSaved: (String? value) {
                 final decimals = transaction.amount.toString().split('.')[1];
@@ -293,9 +293,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         Expanded(
           child: TextFormField(
             initialValue: transaction.name,
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Cookies'),
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
             validator: (String? value) {
-              if (value!.isEmpty) return 'Name is Required.';
+              if (value!.isEmpty) return 'Is Required'.i18n;
               return null;
             },
             onChanged: (String _) => _formKey.currentState!.validate(),
@@ -319,7 +319,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         keyboardType: TextInputType.multiline,
         maxLines: null,
         inputFormatters: [LengthLimitingTextInputFormatter(Transaction.MAX_LENGTH_DESCRIPTION)],
-        decoration: InputStyle.inputDecoration(labelTextStr: 'Description', hintTextStr: 'Cookies are the best'),
+        decoration: InputStyle.inputDecoration(labelTextStr: 'Description'.i18n, hintTextStr: ''),
         onSaved: (String? value) => transaction.description = value!,
       ),
       const SizedBox(height: 1)
@@ -421,8 +421,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                       if (action == Action.create) {
                         setState(() => transaction.type = item);
                       } else {
-                        HandlerError()
-                            .setError('You can\'t update type, please delete the transaction and create a new one.');
+                        HandlerError().setError(
+                          'You can\'t update type, please delete the transaction and create a new one.'.i18n,
+                        );
                       }
                     },
                     itemBuilder: (BuildContext context) => types,
@@ -454,9 +455,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
                 decoration:
-                    InputStyle.inputDecoration(labelTextStr: 'Fee', hintTextStr: '0', prefix: const Text('\$ ')),
-                validator: (String? value) =>
-                    num.tryParse(value ?? '')?.toDouble() == null ? 'Amount is Required.' : null,
+                    InputStyle.inputDecoration(labelTextStr: 'Fee'.i18n, hintTextStr: '0', prefix: const Text('\$ ')),
+                validator: (String? value) => num.tryParse(value ?? '')?.toDouble() == null ? 'Is Required'.i18n : null,
                 onSaved: (String? value) => transaction.fee = double.parse(value!),
               ),
             buildWallet(context, user.id, wallets, theme.disabledColor, true),
@@ -514,29 +514,29 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 _formKey.currentState!.save();
 
                 if (transaction.name.isEmpty) {
-                  return handlerError.setError('The name must not be empty.');
+                  return handlerError.setError('The name must not be empty.'.i18n);
                 }
 
                 if (transaction.walletFromId == '' || walletFromSelected == null) {
-                  return handlerError.setError('You must choice a wallet first.');
+                  return handlerError.setError('You must choice a wallet first.'.i18n);
                 }
                 if (transaction.type == TransactionType.transfer) {
                   if (transaction.walletToId == '' || walletToSelected == null) {
-                    return handlerError.setError('You must choice the wallet of from and to transaction is made');
+                    return handlerError.setError('You must choice the wallet of from and to transaction is made.'.i18n);
                   }
                   if (transaction.walletFromId == transaction.walletToId) {
-                    return handlerError.setError('Wallet must not be the same.');
+                    return handlerError.setError('Wallet must not be the same.'.i18n);
                   }
                 } else {
                   transaction.walletToId = '';
                   transaction.fee = 0.0;
                 }
                 if (user.defaultCurrency.id == '') {
-                  return handlerError.setError('You must have a default currency first');
+                  return handlerError.setError('You must have a default currency first.'.i18n);
                 }
-                if (transaction.categoryId == '') return handlerError.setError('You must choice a category first');
+                if (transaction.categoryId == '') return handlerError.setError('You must choice a category first'.i18n);
                 if (transaction.amount <= 0.0) {
-                  return handlerError.setError('Amount is required and must be grater than 0.');
+                  return handlerError.setError('Amount is required and must be grater than 0.'.i18n);
                 }
                 Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletFromId);
                 transaction.updateBalance();

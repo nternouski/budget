@@ -6,6 +6,7 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../common/error_handler.dart';
 import '../common/theme.dart';
 import '../common/convert.dart';
@@ -43,7 +44,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     DateTime now = DateTime.now();
     if (backPressTime != null && (now.difference(backPressTime!) < durationBackTime)) return Future.value(true);
     backPressTime = now;
-    Display.message(context, 'Double Tap to Exit');
+    Display.message(context, 'Double Tap to Exit'.i18n);
     return Future.value(false);
   }
 

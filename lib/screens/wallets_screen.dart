@@ -1,9 +1,10 @@
-import 'package:budget/common/convert.dart';
-import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
+import '../common/error_handler.dart';
+import '../common/convert.dart';
 import '../common/theme.dart';
 import '../components/empty_list.dart';
 import '../model/currency.dart';
@@ -34,8 +35,8 @@ class WalletsScreenState extends State<WalletsScreen> {
 
     Widget? component;
     if (wallets.isEmpty) {
-      component = const SliverToBoxAdapter(
-        child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'),
+      component = SliverToBoxAdapter(
+        child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'.i18n),
       );
     } else {
       component = SliverList(
@@ -63,7 +64,7 @@ class WalletsScreenState extends State<WalletsScreen> {
               titleTextStyle: textTheme.titleLarge,
               pinned: true,
               leading: getLadingButton(context),
-              title: const Text('Wallets'),
+              title: Text('Wallets'.i18n),
             ),
             component,
             if (user != null && user.superUser == true)
@@ -71,7 +72,7 @@ class WalletsScreenState extends State<WalletsScreen> {
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   ElevatedButton(
                     onPressed: () => userRx.calcWallets(user, wallets, currencyRates),
-                    child: const Text('Re calculate Wallets'),
+                    child: Text('Re calculate Wallets'.i18n),
                   )
                 ]),
               ),
@@ -105,13 +106,13 @@ class WalletItem extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text('This action will delete all transaction of this wallets too.'),
+          title: Text('Are you sure you want to delete?'.i18n),
+          content: Text('This action will delete all transaction of this wallets too.'.i18n),
           actions: <Widget>[
             buttonCancelContext(context),
             ElevatedButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-              child: const Text('Delete'),
+              child: Text('Delete'.i18n),
               onPressed: () {
                 walletRx.delete(wallet.id, userId);
                 Navigator.pop(context);
@@ -151,7 +152,7 @@ class WalletItem extends StatelessWidget {
                   }
                   Display.message(
                     context,
-                    'It\'s equivalent to ${equivalent.prettier(withSymbol: true)} ${user.defaultCurrency.symbol}',
+                    '${'It\'s equivalent to'.i18n} ${equivalent.prettier(withSymbol: true)} ${user.defaultCurrency.symbol}',
                     seconds: 4,
                   );
                 }

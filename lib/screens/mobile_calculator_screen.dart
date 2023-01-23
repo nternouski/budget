@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../i18n/index.dart';
 import '../common/styles.dart';
 import '../model/mobile_calculator.dart';
 
@@ -32,14 +33,72 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final form = Form(
+      key: _formKey,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        buildSelectPlan(),
+        buildDateField(),
+        TextFormField(
+          decoration: InputDecoration(labelText: 'Data Spent'.i18n, hintText: '0', suffix: const Text('Mb')),
+          validator: (value) {
+            final int? spentDataMb = int.tryParse(value!);
+            if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {
+              return null;
+            } else {
+              return '${'Please enter your a value grater than'.i18n} $SPENT_DATE_MB_MIN.';
+            }
+          },
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onSaved: (value) {
+            final int? spentDataMb = int.tryParse(value!);
+            if (spentDataMb != null && spentDataMb != mobileDataFormFields.spentDataMb) {
+              setState(() => mobileDataFormFields.spentDataMb = spentDataMb);
+            }
+          },
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+          child: ElevatedButton(
+            onPressed: () {
+              final form = _formKey.currentState;
+              if (form != null && form.validate()) {
+                form.save();
+                _showDialog(context);
+              }
+            },
+            child: Text('Calculate'.i18n),
+          ),
+        ),
+      ]),
+    );
     return Scaffold(
-      body: CustomScrollView(slivers: getBody()),
+      body: CustomScrollView(slivers: [
+        SliverAppBar(
+          titleTextStyle: theme.textTheme.titleLarge,
+          pinned: true,
+          leading: getBackButton(context),
+          title: Text('Mobile Data Calculator'.i18n),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                child: Builder(builder: (context) => form),
+              )
+            ]),
+          ),
+        ),
+      ]),
     );
   }
 
   Widget buildSelectPlan() {
     return InputDecorator(
-      decoration: const InputDecoration(labelText: 'Select Plan'),
+      decoration: InputDecoration(labelText: 'Select Plan'.i18n),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<PlanData>(
           value: mobileDataFormFields.plan,
@@ -53,6 +112,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   }
 
   _showDialog(BuildContext context) {
+    final theme = Theme.of(context);
     final data = mobileDataFormFields;
     int daysRemaining = data.plan.totalDays - DateTime.now().difference(data.startDate).inDays;
     double dataRemaining = double.parse(((data.plan.gb - data.spentDataMb / 1024) / daysRemaining).toStringAsFixed(1));
@@ -60,7 +120,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Resultado'),
+          title: Text('Result'.i18n),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -68,16 +128,16 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Restante promedio:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                  Text('$dataRemaining Gb/dia')
+                  Text('${'Avg reminding'.i18n}:', style: theme.textTheme.bodyMedium),
+                  Text('$dataRemaining ${'Gb/day'.i18n}', style: theme.textTheme.bodySmall)
                 ],
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Dias restantes:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                  Text('$daysRemaining')
+                  Text('${'Days reminder'.i18n}:', style: theme.textTheme.bodyMedium),
+                  Text('$daysRemaining', style: theme.textTheme.bodySmall)
                 ],
               ),
             ],
@@ -101,10 +161,10 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
         Flexible(
           child: TextFormField(
             controller: _dateController,
-            decoration: const InputDecoration(
-              labelText: 'Start Date Plan',
-              suffixIcon: Icon(Icons.calendar_today),
-              hintText: 'Search',
+            decoration: InputDecoration(
+              labelText: 'Start Date Plan'.i18n,
+              suffixIcon: const Icon(Icons.calendar_today),
+              hintText: 'Search'.i18n,
             ),
             onTap: () async {
               final DateTime? picked = await showDatePicker(
@@ -120,76 +180,10 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
               }
               _dateController.text = DateFormat(formatDate).format(mobileDataFormFields.startDate);
             },
-            validator: (String? value) {
-              return value!.isEmpty ? 'Date is Required.' : null;
-            },
+            validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           ),
         ),
       ],
     );
-  }
-
-  List<Widget> getBody() {
-    final theme = Theme.of(context);
-
-    var panels = [];
-    return [
-      SliverAppBar(
-        titleTextStyle: theme.textTheme.titleLarge,
-        pinned: true,
-        leading: getBackButton(context),
-        title: const Text('Mobile Data Calculator'),
-      ),
-      SliverPadding(
-        padding: const EdgeInsets.all(0),
-        sliver: SliverList(
-          delegate: SliverChildListDelegate([
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-              child: Builder(
-                builder: (context) => Form(
-                  key: _formKey,
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    buildSelectPlan(),
-                    buildDateField(),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Data Spent', hintText: '0', suffix: Text('Mb')),
-                      validator: (value) {
-                        final int? spentDataMb = int.tryParse(value!);
-                        if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {
-                          return null;
-                        } else {
-                          return 'Please enter your a value grater than $SPENT_DATE_MB_MIN.';
-                        }
-                      },
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      onSaved: (value) {
-                        final int? spentDataMb = int.tryParse(value!);
-                        if (spentDataMb != null && spentDataMb != mobileDataFormFields.spentDataMb) {
-                          setState(() => mobileDataFormFields.spentDataMb = spentDataMb);
-                        }
-                      },
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final form = _formKey.currentState;
-                          if (form != null && form.validate()) {
-                            form.save();
-                            _showDialog(context);
-                          }
-                        },
-                        child: const Text('Calculate'),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-            )
-          ]),
-        ),
-      ),
-    ];
   }
 }

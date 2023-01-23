@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../components/icon_picker.dart';
 import '../server/database/category_rx.dart';
 import '../common/icon_helper.dart';
@@ -29,8 +30,8 @@ class CreateOrUpdateCategory {
   }
 
   static _bottomSheet(BuildContext context, Category category) {
-    var title = category.id == '' ? 'Create Category' : 'Update ${category.name}';
-    var actionButton = category.id == '' ? 'Create' : 'Update';
+    var title = category.id == '' ? '${'Create'.i18n} ${'Category'.i18n}' : '${'Update'.i18n} ${category.name}';
+    var actionButton = category.id == '' ? 'Create'.i18n : 'Update'.i18n;
 
     auth.User user = Provider.of<auth.User>(context, listen: false);
 
@@ -46,12 +47,12 @@ class CreateOrUpdateCategory {
               Text(title, style: Theme.of(context).textTheme.titleLarge),
               TextFormField(
                 controller: nameController,
-                decoration: InputStyle.inputDecoration(labelTextStr: 'Name', hintTextStr: 'Food'),
+                decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9  ]')),
                   LengthLimitingTextInputFormatter(Category.MAX_LENGTH_NAME)
                 ],
-                validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
+                validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}.' : null,
               ),
               ColorPicker(
                 color: category.color,

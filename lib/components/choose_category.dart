@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../components/create_or_update_category.dart';
 import '../components/icon_circle.dart';
 import '../common/error_handler.dart';
@@ -45,9 +46,9 @@ class ChooseCategoryState extends State<ChooseCategory> {
       children: [
         Row(
           children: [
-            const Text(
-              'Choose Category',
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+            Text(
+              'Choose Category'.i18n,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
             ),
             IconButton(
               icon: const Icon(Icons.add),
@@ -55,7 +56,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
             ),
             IconButton(
               icon: const Icon(Icons.info_outline),
-              onPressed: () => Display.message(context, 'Long press on category to edit it.', seconds: 4),
+              onPressed: () => Display.message(context, 'Long press on category to edit it.'.i18n, seconds: 4),
             )
           ],
         ),
@@ -74,7 +75,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [Text('No categories by the moment.')],
+              children: [Text('No categories by the moment.'.i18n)],
             ),
           ),
       ],
@@ -99,7 +100,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Select Category', style: theme.textTheme.titleLarge),
+                Text('Select Category'.i18n, style: theme.textTheme.titleLarge),
                 const SizedBox(height: 30),
                 displayCategories(
                   categories,

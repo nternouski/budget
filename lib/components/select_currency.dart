@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:budget/model/currency.dart';
+import '../i18n/index.dart';
+import '../model/currency.dart';
 
 class SelectCurrency extends StatelessWidget {
   final String initialCurrencyId;
@@ -21,9 +22,9 @@ class SelectCurrency extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Currency> currencies = List.from(Provider.of<List<Currency>>(context));
     if (currencies.isEmpty) {
-      return const Text('No Currency by the moment.');
+      return Text('No Currency by the moment.'.i18n);
     } else {
-      currencies.insert(0, Currency(id: '', name: '', symbol: 'Select Currency'));
+      currencies.insert(0, Currency(id: '', name: '', symbol: 'Select Currency'.i18n));
       return InputDecorator(
         decoration: InputDecoration(labelText: '  $labelText'),
         child: DropdownButtonHideUnderline(

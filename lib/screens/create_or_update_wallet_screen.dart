@@ -4,6 +4,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../common/error_handler.dart';
 import '../server/database/wallet_rx.dart';
 import '../common/icon_helper.dart';
@@ -38,7 +39,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
 
     if (w != null) wallet = w;
     final action = wallet.id == '' ? Action.create : Action.update;
-    final title = wallet.id == '' ? 'Create Wallet' : 'Update Wallet';
+    final title = wallet.id == '' ? '${'Create'.i18n} ${'Wallet'.i18n}' : 'Update'.i18n;
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: CustomScrollView(
@@ -63,11 +64,11 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
           decoration: InputStyle.inputDecoration(
-            labelTextStr: 'Initial Amount',
-            hintTextStr: '1300',
+            labelTextStr: 'Initial Amount'.i18n,
+            hintTextStr: '',
             prefix: const Text('\$ '),
           ),
-          validator: (String? value) => value!.isEmpty ? 'Amount is Required.' : null,
+          validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           onSaved: (String? value) => wallet.initialAmount = double.parse(value!),
         ),
       ),
@@ -87,9 +88,9 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   Widget buildName() {
     return TextFormField(
       initialValue: wallet.name,
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name', hintTextStr: 'Bank'),
+      decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name'.i18n, hintTextStr: 'Bank XX'.i18n),
       inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
-      validator: (String? value) => value!.isEmpty ? 'Name is Required.' : null,
+      validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
       onChanged: (String _) => _formKey.currentState!.validate(),
       onSaved: (String? value) => wallet.name = value!,
     );
@@ -130,7 +131,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             onPressed: () {
               if (!_formKey.currentState!.validate()) return;
               _formKey.currentState!.save();
-              if (wallet.currency == null) return handlerError.setError('Currency is required');
+              if (wallet.currency == null) return handlerError.setError('${'Currency'.i18n} ${'Is Required'.i18n}.');
 
               if (action == Action.create) {
                 walletRx.create(wallet, user.uid);

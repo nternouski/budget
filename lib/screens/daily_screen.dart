@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
@@ -39,7 +40,7 @@ class DailyScreenState extends State<DailyScreen> {
       appBar: AppBar(
         titleTextStyle: theme.textTheme.titleLarge,
         leading: getLadingButton(context),
-        title: const Text('Daily Transaction'),
+        title: Text('Daily Transaction'.i18n),
       ),
       body: Column(children: [
         ValueListenableBuilder<PeriodStats>(
@@ -70,8 +71,8 @@ class DailyScreenState extends State<DailyScreen> {
         List<Transaction> transactions = List.castFrom(snapshot.data ?? []);
         transactions.sort((a, b) => b.date.compareTo(a.date));
         if (transactions.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'),
+          return SliverToBoxAdapter(
+            child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'.i18n),
           );
         } else {
           String symbol = user.defaultCurrency.symbol;
@@ -85,14 +86,14 @@ class DailyScreenState extends State<DailyScreen> {
                     padding: const EdgeInsets.only(right: 10),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [Text('Currency $symbol ${total.prettier(withSymbol: true)}')]),
+                        children: [Text('${'Total Currency'.i18n} $symbol ${total.prettier(withSymbol: true)}')]),
                   ),
                   ...List.generate(
                     transactions.length,
                     (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
                   ),
                   if (!fetchAll)
-                    TextButton(onPressed: () => setState(() => fetchAll = true), child: const Text('See All')),
+                    TextButton(onPressed: () => setState(() => fetchAll = true), child: Text('See All'.i18n)),
                 ],
               ),
             ),

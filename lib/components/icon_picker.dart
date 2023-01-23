@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import '../i18n/index.dart';
 import '../common/icon_helper.dart';
 import '../common/styles.dart';
 
@@ -38,8 +39,8 @@ class IconPicker {
                 }
               },
               decoration: InputStyle.inputDecoration(
-                labelTextStr: 'Icon',
-                hintTextStr: 'Icon Name',
+                labelTextStr: 'Icon'.i18n,
+                hintTextStr: '${'Icon'.i18n} ${'Name'.i18n}',
                 suffixIcon: Icon(iconMap.icon, size: 30, color: Colors.grey),
               ),
               onSaved: (String? value) {},

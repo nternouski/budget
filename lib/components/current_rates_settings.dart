@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../server/currency_rates_service.dart';
 import '../server/database/currency_rate_rx.dart';
 import '../model/currency.dart';
@@ -22,11 +25,11 @@ class CurrentRatesSettings extends AbstractSettingsSection {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm?'),
+          title: Text('Confirm'.i18n),
           content: Text(content),
           actions: <Widget>[
             buttonCancelContext(context),
-            ElevatedButton(child: const Text('YES'), onPressed: () => Navigator.pop(context, true)),
+            ElevatedButton(child: Text('YES'.i18n), onPressed: () => Navigator.pop(context, true)),
           ],
         );
       },
@@ -56,9 +59,10 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   icon: const Icon(Icons.sync_alt),
                   onPressed: () async {
                     final rate = await currencyRateApi.fetchRate(cr);
-                    String content =
-                        'We found a new rate. ${cr.currencyFrom.symbol} to ${cr.currencyTo.symbol}: \$$rate. Update Currency Rate?';
-                    final res = await _confirm(context, content);
+                    final res = await _confirm(
+                      context,
+                      '${'We found a new rate.'.i18n} ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol}: \$$rate. ${'Update Currency Rate?'.i18n}',
+                    );
                     if (res == true) {
                       cr.rate = rate;
                       await currencyRateRx.update(cr, user.uid);
@@ -68,7 +72,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () async {
-                    final res = await _confirm(context, 'Delete ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol} ?');
+                    final res =
+                        await _confirm(context, '${'Delete'.i18n} ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol} ?');
                     if (res == true) await currencyRateRx.delete(cr.id, user.uid);
                   },
                 )
@@ -93,7 +98,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Currency Rates', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+            Text('Currency Rates'.i18n, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
             InkWell(
               child: const Icon(Icons.add),
               onTap: () => showModalBottomSheet(
@@ -128,7 +133,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(update ? 'Update Rate' : 'Create Rate',
+                Text(update ? 'Update'.i18n : 'Create'.i18n,
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,14 +142,14 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                       child: SelectCurrency(
                         initialCurrencyId: rate.currencyFrom.id,
                         onSelect: (c) => setStateBottomSheet(() => rate.currencyFrom = c),
-                        labelText: 'From',
+                        labelText: 'From Rate'.i18n,
                       ),
                     ),
                     Flexible(
                       child: SelectCurrency(
                         initialCurrencyId: rate.currencyTo.id,
                         onSelect: (c) => setStateBottomSheet(() => rate.currencyTo = c),
-                        labelText: 'To',
+                        labelText: 'To Rate'.i18n,
                       ),
                     )
                   ],
@@ -169,7 +174,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                               Navigator.pop(context);
                             }
                           : null,
-                      child: Text(update ? 'Update' : 'Create'),
+                      child: Text(update ? 'Update'.i18n : 'Create'.i18n),
                     ),
                   ],
                 )

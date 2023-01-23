@@ -1,5 +1,7 @@
-import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
+
+import '../i18n/index.dart';
+import '../common/styles.dart';
 
 class FAQ {
   String answer;
@@ -22,30 +24,32 @@ class FAQPageState extends State<FAQScreen> {
 
   static List<FAQ> faqListData = [
     FAQ(
-      question: 'How to create a transaction?',
-      answer: 'First you need to create a wallet, the transaction belong to a wallet with a specific currency.',
+      question: 'How to create a transaction?'.i18n,
+      answer: 'First you need to create a wallet, the transaction belong to a wallet with a specific currency.'.i18n,
     ),
     FAQ(
-      question: 'How can I remove the Ads?',
+      question: 'How can I remove the Ads?'.i18n,
       answer:
-          'We use Ads to pay server expenses in the app, but if you insist on hiding ads, you can contact me by email and I will do something about it.',
+          'We use Ads to pay server expenses in the app, but if you insist on hiding ads, you can contact me by email and I will do something about it.'
+              .i18n,
     ),
     FAQ(
-      question: 'Do you notice some wrong in the wallet?',
-      answer: 'There are admin features, just let me know and I will enable those functions in your account.',
+      question: 'Do you notice some wrong in the wallet?'.i18n,
+      answer: 'There are admin features, just let me know and I will enable those functions in your account.'.i18n,
     ),
     FAQ(
-      question: 'My currency rate it is wrong?',
+      question: 'My currency rate it is wrong?'.i18n,
       answer:
-          'You can change the rate manually, go to Settings > Scroll down to \'Currency Rates\' > Click on the rate and will apear the form.',
+          'You can change the rate manually, go to Settings > Scroll down to \'Currency Rates\' > Click on the rate and will apear the form.'
+              .i18n,
     ),
     FAQ(
-      question: 'What it is Wise Sync?',
-      answer: 'The feature is to update wise movement, but it\'s in alpha and not works properly.',
+      question: 'What it is Wise Sync?'.i18n,
+      answer: 'The feature is to update wise movement, but it\'s in alpha and not works properly.'.i18n,
     ),
     FAQ(
-      question: 'How can I contact with the developer?',
-      answer: 'You can send email to nahuelternouski@gmail.com.',
+      question: 'How can I contact with the developer?'.i18n,
+      answer: 'You can send email to nahuelternouski@gmail.com.'.i18n,
     ),
   ];
 
@@ -74,7 +78,7 @@ class FAQPageState extends State<FAQScreen> {
             Expanded(
               child: TextFormField(
                 controller: search,
-                decoration: InputStyle.inputDecoration(labelTextStr: 'Search'),
+                decoration: InputStyle.inputDecoration(labelTextStr: 'Search'.i18n),
                 onFieldSubmitted: (input) {
                   filtered.clear();
                   setState(() => filtered.addAll(getMatchSearch(search.text)));

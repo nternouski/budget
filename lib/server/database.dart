@@ -1,7 +1,9 @@
-import 'package:budget/common/error_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+
+import '../i18n/index.dart';
+import 'package:budget/common/error_handler.dart';
 
 class Database {
   final db = FirebaseFirestore.instance;
@@ -31,7 +33,7 @@ class Database {
     try {
       return db.collection(collectionPath).doc(id).get().then((snapshot) {
         printMsg(collectionPath, 'GET FUTURE id = $id');
-        if (!snapshot.exists) throw Exception('Document Not Exist $collectionPath ID: $id');
+        if (!snapshot.exists) throw Exception('${'Document Not Exist'.i18n} $collectionPath ID: $id');
         return {'id': snapshot.id, ...(snapshot.data() ?? {})};
       });
     } catch (error) {
@@ -82,7 +84,7 @@ class Database {
     try {
       return db.collection(collectionPath).doc(id).snapshots().asyncMap((snapshot) {
         printMsg(collectionPath, 'GET id = $id');
-        if (!snapshot.exists) throw Exception('Document Not Exist $collectionPath ID: $id');
+        if (!snapshot.exists) throw Exception('${'Document Not Exist'.i18n} $collectionPath ID: $id');
         return {'id': snapshot.id, ...(snapshot.data() ?? {})};
       }).shareValue();
     } catch (error) {

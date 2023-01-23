@@ -2,6 +2,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_animations/animation_builder/custom_animation_builder.dart';
 
+import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../model/currency.dart';
 import '../model/user.dart';
@@ -39,11 +40,11 @@ class BudgetsScreenState extends State<BudgetsScreen> {
               titleTextStyle: theme.textTheme.titleLarge,
               pinned: true,
               leading: getLadingButton(context),
-              title: const Text('Budgets'),
+              title: Text('Budgets'.i18n),
             ),
             if (budgets.isEmpty)
-              const SliverToBoxAdapter(
-                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'),
+              SliverToBoxAdapter(
+                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'.i18n),
               ),
             if (budgets.isNotEmpty)
               SliverToBoxAdapter(
@@ -85,7 +86,8 @@ class BudgetItem extends StatelessWidget {
           children: [
             SizedBox(width: widthPaddingValue),
             Icon(Icons.edit, color: primary),
-            Text(' Edit', style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
+            Text(' ${'Edit'.i18n}',
+                style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
           ],
         ),
       ),
@@ -100,8 +102,11 @@ class BudgetItem extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(' Delete',
-                style: TextStyle(color: errorColor, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
+            Text(
+              ' ${'Delete'.i18n}',
+              style: TextStyle(color: errorColor, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.right,
+            ),
             Icon(Icons.delete, color: errorColor),
             SizedBox(width: widthPaddingValue),
           ],
@@ -129,12 +134,12 @@ class BudgetItem extends StatelessWidget {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  content: const Text('Are you sure you want to delete?'),
+                  content: Text('Are you sure you want to delete?'.i18n),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                      child: const Text('Delete'),
+                      child: Text('Delete'.i18n),
                       onPressed: () {
                         budgetRx.delete(budget.id, userId);
                         Navigator.of(context).pop();
@@ -159,7 +164,10 @@ class BudgetItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(Convert.capitalize(budget.name), style: theme.textTheme.titleMedium),
-                Text(daysLeft < 0 ? 'Finished' : '$daysLeft days left', style: theme.textTheme.bodyMedium),
+                Text(
+                  daysLeft <= 0 ? 'Finished'.i18n : '%d days left'.plural(daysLeft),
+                  style: theme.textTheme.bodyMedium,
+                ),
               ],
             ),
             heightPadding,
@@ -167,10 +175,7 @@ class BudgetItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'BALANCE: \$${budget.balance.prettier(withSymbol: true)}',
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text('BALANCE: ${budget.balance.prettier(withSymbol: true)}', style: theme.textTheme.bodyMedium),
                 Text('$porcentaje %', style: theme.textTheme.titleMedium),
               ],
             ),
@@ -181,10 +186,8 @@ class BudgetItem extends StatelessWidget {
                 Container(
                   width: sizeBar,
                   height: 10,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
-                    color: Colors.grey.withOpacity(0.3),
-                  ),
+                  decoration:
+                      BoxDecoration(borderRadius: BorderRadius.circular(3), color: Colors.grey.withOpacity(0.3)),
                 ),
                 CustomAnimationBuilder<double>(
                   control: control,

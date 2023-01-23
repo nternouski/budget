@@ -1,12 +1,13 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
-import 'package:budget/common/convert.dart';
-import 'package:budget/model/user.dart';
-import 'package:budget/routes.dart';
-import 'package:budget/server/database/user_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
+import '../routes.dart';
+import '../server/database/user_rx.dart';
+import '../common/convert.dart';
 import '../common/error_handler.dart';
+import '../model/user.dart';
 import '../model/currency.dart';
 
 enum InitStatus { noUserStored, loginCompleted, errorOnLogin, inProgress }
@@ -72,7 +73,7 @@ class UserService extends UserRx {
         final user = User(
           id: userAuth.uid,
           createdAt: DateTime.now(),
-          name: userAuth.displayName ?? 'Name Not Set',
+          name: userAuth.displayName ?? 'Name Not Set'.i18n,
           email: userAuth.email ?? '',
           integrations: {},
           defaultCurrency: defaultCurrency,
@@ -83,7 +84,7 @@ class UserService extends UserRx {
       }
     } on LoginException catch (e) {
       debugPrint('| ${e.code}: ${e.message}');
-      handlerError.setError('User has Cancelled or no Internet on SignUp. ${e.message}');
+      handlerError.setError('${'User has Cancelled or no Internet on SignUp.'.i18n} ${e.message}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());
@@ -118,7 +119,7 @@ class UserService extends UserRx {
       }
     } on LoginException catch (e) {
       debugPrint('| ${e.code}: ${e.message}');
-      handlerError.setError('User has Cancelled or no Internet on Login. ${e.toString()}');
+      handlerError.setError('${'User has Cancelled or no Internet on Login.'.i18n} ${e.toString()}');
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrint(s.toString());

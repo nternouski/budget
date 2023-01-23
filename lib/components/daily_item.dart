@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../common/theme.dart';
 import '../components/icon_circle.dart';
 import '../server/database/transaction_rx.dart';
@@ -43,16 +44,15 @@ class DailyItemState extends State<DailyItem> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text(widget.transaction.name, style: theme.textTheme.titleLarge),
-                  content: const Text('Are you sure you want to delete ?'),
+                  content: Text('Are you sure you want to delete?'.i18n),
                   actions: <Widget>[
                     buttonCancelContext(context),
                     ElevatedButton(
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                      child: const Text('Delete'),
-                      onPressed: () async {
-                        await transactionRx.delete(widget.transaction, user.uid, currencyRates, currencies);
-                        Navigator.of(context).pop();
-                      },
+                      child: Text('Delete'.i18n),
+                      onPressed: () => transactionRx
+                          .delete(widget.transaction, user.uid, currencyRates, currencies)
+                          .then((value) => Navigator.of(context).pop()),
                     ),
                   ],
                 );
@@ -81,7 +81,7 @@ class DailyItemState extends State<DailyItem> {
             paddingSlide,
             Icon(widget.actionIcon ?? Icons.edit, color: primary),
             Text(
-              widget.action ?? ' Edit',
+              widget.action ?? ' ${'Edit'.i18n}',
               style: TextStyle(color: primary, fontWeight: FontWeight.w700),
               textAlign: TextAlign.left,
             ),
@@ -99,7 +99,7 @@ class DailyItemState extends State<DailyItem> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(' Delete',
+            Text(' ${'Delete'.i18n}',
                 style: TextStyle(color: errorColor, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
             Icon(Icons.delete, color: errorColor),
             paddingSlide,

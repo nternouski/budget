@@ -1,8 +1,9 @@
 import 'dart:developer';
-import 'package:budget/common/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
+import '../common/error_handler.dart';
 import '../common/theme.dart';
 import '../components/daily_item.dart';
 import '../model/transaction.dart';
@@ -34,7 +35,7 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
     User? user = Provider.of<User>(context);
     if (user == null) return const Text('Not User');
     String token = user.integrations[IntegrationType.wise] ?? '';
-    if (token == '') HandlerError().setError('Api key not set.');
+    if (token == '') HandlerError().setError('Api key not set.'.i18n);
     WiseApi wiseApi = WiseApi(token);
 
     final theme = Theme.of(context);
@@ -50,7 +51,7 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
                 titleTextStyle: theme.textTheme.titleLarge,
                 pinned: true,
                 leading: getBackButton(context),
-                title: const Text('Wise Transactions'),
+                title: Text('Wise Transactions'.i18n),
                 actions: [
                   IconButton(
                     onPressed: () => _showDialog(context, selected.value.intervalStart),
@@ -58,40 +59,42 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
                   ),
                 ],
               ),
-              SliverToBoxAdapter(child: getSearch(wallets))
+              // SliverToBoxAdapter(child: getSearch(wallets))
             ],
           ),
         ),
-        Expanded(
-          child: RefreshIndicator(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: ValueListenableBuilder<StatementsRequest>(
-                    valueListenable: selected,
-                    builder: (context, value, _) {
-                      final wallet = value.wallet;
-                      if (wallet == null) return const Center(child: Text('Select Balance'));
-                      return FutureBuilder(
-                        future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
-                        builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {
-                          if (snapshot.hasError) inspect(snapshot.error);
-                          List<WiseTransactions>? data = snapshot.data;
-                          if (data == null || !snapshot.hasData) {
-                            return Column(children: [Progress.getLoadingProgress(context: context)]);
-                          }
-                          return getBody(context, data);
-                        },
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-            onRefresh: () async {},
-          ),
-        )
+        Image.asset('assets/images/construction.png', width: 300, height: 300),
+        Text('In Construction'.i18n, style: theme.textTheme.titleMedium)
+        // Expanded(
+        //   child: RefreshIndicator(
+        //     child: CustomScrollView(
+        //       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        //       slivers: [
+        //         SliverToBoxAdapter(
+        //           child: ValueListenableBuilder<StatementsRequest>(
+        //             valueListenable: selected,
+        //             builder: (context, value, _) {
+        //               final wallet = value.wallet;
+        //               if (wallet == null) return const Center(child: Text('Select Balance'));
+        //               return FutureBuilder(
+        //                 future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
+        //                 builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {
+        //                   if (snapshot.hasError) inspect(snapshot.error);
+        //                   List<WiseTransactions>? data = snapshot.data;
+        //                   if (data == null || !snapshot.hasData) {
+        //                     return Column(children: [Progress.getLoadingProgress(context: context)]);
+        //                   }
+        //                   return getBody(context, data);
+        //                 },
+        //               );
+        //             },
+        //           ),
+        //         )
+        //       ],
+        //     ),
+        //     onRefresh: () async {},
+        //   ),
+        // )
       ]),
     );
   }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import '../i18n/index.dart';
 import 'package:budget/common/error_handler.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -48,7 +49,7 @@ class AppVersionChecker {
       result = await _checkAppleStore(_currentVersion, _packageName);
     } else {
       result = AppCheckerResult(_currentVersion, null, '',
-          'The target platform "${Platform.operatingSystem}" is not yet supported by this package.');
+          'The target platform "%s" is not yet supported by this package.'.fill([Platform.operatingSystem]));
     }
 
     if (result.errorMessage != null) {
@@ -57,7 +58,7 @@ class AppVersionChecker {
       // ignore: use_build_context_synchronously
       Display.message(
         context,
-        'You have a new version available, please go to the store and update.',
+        'You have a new version available, please go to the store and update.'.i18n,
         seconds: 5,
       );
     }

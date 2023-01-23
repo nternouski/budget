@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../common/styles.dart';
 import '../common/error_handler.dart';
@@ -30,6 +31,7 @@ class _OnBoardingState extends State<OnBoarding> {
   bool _passwordVisible = true;
   bool _disclosureAcceptedSignUp = false;
 
+  final int PASSWORD_MIN = 6;
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
 
@@ -41,13 +43,13 @@ class _OnBoardingState extends State<OnBoarding> {
 
   Future<void> _signUp(AuthOption option) async {
     if (defaultCurrency == null) {
-      return HandlerError().setError('First you must set a default currency');
+      return HandlerError().setError('First you must set a default currency.'.i18n);
     }
     if (option == AuthOption.email && (!email.isValidEmail() || !password.isValidPassword())) {
-      return HandlerError().setError('First you must set a email and password');
+      return HandlerError().setError('First you must set a email and password.'.i18n);
     }
     if (!_disclosureAcceptedSignUp) {
-      return HandlerError().setError('You must accept the terms and conditions.');
+      return HandlerError().setError('You must accept the terms and conditions.'.i18n);
     }
     await userService.singUp(context, option, email, password, defaultCurrency!);
   }
@@ -57,8 +59,8 @@ class _OnBoardingState extends State<OnBoarding> {
       ListView(children: [
         BuildPage(
           urlImage: 'assets/images/bank-login.png',
-          title: 'Welcome to Budget App',
-          subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.',
+          title: 'Welcome to Budget App'.i18n,
+          subtitle: 'Login with your user created with the button below or keep the steps to Sign Up.'.i18n,
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 35, right: 35, top: 20),
@@ -66,13 +68,13 @@ class _OnBoardingState extends State<OnBoarding> {
                 if (authOption == null)
                   AuthButton(
                     option: AuthOption.google,
-                    text: 'Sign in with Google',
+                    text: 'Sign in with Google'.i18n,
                     onPressed: () => userService.login(context, AuthOption.google, email, password),
                   ),
                 if (authOption == null)
                   AuthButton(
                     option: AuthOption.email,
-                    text: ' Sign in with Email ',
+                    text: ' Sign in with Email '.i18n,
                     onPressed: () => setState(() => authOption = AuthOption.email),
                   ),
                 if (authOption == AuthOption.email)
@@ -82,19 +84,20 @@ class _OnBoardingState extends State<OnBoarding> {
                       keyboardType: TextInputType.emailAddress,
                       autovalidateMode: AutovalidateMode.always,
                       decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
-                      validator: (String? value) => value != null && value.isValidEmail() ? null : 'Email is Required.',
+                      validator: (String? value) => value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
                       onChanged: (String value) => email = value,
                     ),
                     TextFormField(
                       initialValue: password,
                       autovalidateMode: AutovalidateMode.always,
-                      validator: (String? value) =>
-                          value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
+                      validator: (String? value) => value != null && value.isValidPassword()
+                          ? null
+                          : 'Password min %d characters.'.plural(PASSWORD_MIN),
                       onChanged: (String value) => password = value,
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
+                        labelText: 'Password'.i18n,
+                        hintText: 'Enter your password'.i18n,
                         suffixIcon: IconButton(
                           icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
                           onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
@@ -107,16 +110,16 @@ class _OnBoardingState extends State<OnBoarding> {
                         TextButton(
                           style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                           onPressed: () => setState(() => authOption = null),
-                          child: const Text('Cancel'),
+                          child: Text('Cancel'.i18n),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             if (!email.isValidEmail() || !password.isValidPassword()) {
-                              return HandlerError().setError('First you must set a email and password');
+                              return HandlerError().setError('First you must set a email and password.'.i18n);
                             }
                             userService.login(context, AuthOption.email, email, password);
                           },
-                          child: const Text('LOGIN'),
+                          child: Text('LOGIN'.i18n),
                         )
                       ],
                     )
@@ -131,8 +134,8 @@ class _OnBoardingState extends State<OnBoarding> {
         children: [
           BuildPage(
             urlImage: 'assets/images/currencies.png',
-            title: 'Select Default Currency',
-            subtitle: 'Before start we need to know what will be the default currency, you can change later.',
+            title: 'Select Default Currency'.i18n,
+            subtitle: 'Before start we need to know what will be the default currency, you can change later.'.i18n,
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 35, right: 35),
@@ -145,13 +148,13 @@ class _OnBoardingState extends State<OnBoarding> {
                   if (authOption == null)
                     AuthButton(
                       option: AuthOption.google,
-                      text: 'Sign up with Google',
+                      text: 'Sign Up with Google'.i18n,
                       onPressed: () async => await _signUp(AuthOption.google),
                     ),
                   if (authOption == null)
                     AuthButton(
                       option: AuthOption.email,
-                      text: ' Sign Up with Email ',
+                      text: ' Sign Up with Email '.i18n,
                       onPressed: () => setState(() => authOption = AuthOption.email),
                     ),
                   if (authOption == AuthOption.email)
@@ -163,19 +166,20 @@ class _OnBoardingState extends State<OnBoarding> {
                           autovalidateMode: AutovalidateMode.always,
                           decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
                           validator: (String? value) =>
-                              value != null && value.isValidEmail() ? null : 'Email is Required.',
+                              value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
                           onChanged: (String value) => email = value,
                         ),
                         TextFormField(
                           initialValue: password,
                           autovalidateMode: AutovalidateMode.always,
-                          validator: (String? value) =>
-                              value != null && value.isValidPassword() ? null : 'Password min 6 characters.',
+                          validator: (String? value) => value != null && value.isValidPassword()
+                              ? null
+                              : 'Password min %d characters.'.plural(PASSWORD_MIN),
                           onChanged: (String value) => password = value,
                           obscureText: !_passwordVisible,
                           decoration: InputDecoration(
-                            labelText: 'Password',
-                            hintText: 'Enter your password',
+                            labelText: 'Password'.i18n,
+                            hintText: 'Enter your password.'.i18n,
                             suffixIcon: IconButton(
                               icon:
                                   Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
@@ -189,16 +193,16 @@ class _OnBoardingState extends State<OnBoarding> {
                             TextButton(
                               style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                               onPressed: () => setState(() => authOption = null),
-                              child: const Text('Cancel'),
+                              child: Text('Cancel'.i18n),
                             ),
                             ElevatedButton(
                               onPressed: () async {
                                 if (!email.isValidEmail() || !password.isValidPassword()) {
-                                  return HandlerError().setError('First you must set a email and password');
+                                  return HandlerError().setError('First you must set a email and password.'.i18n);
                                 }
                                 await _signUp(AuthOption.email);
                               },
-                              child: const Text('SIGN UP'),
+                              child: Text('SIGN UP'.i18n),
                             )
                           ],
                         )
@@ -208,9 +212,9 @@ class _OnBoardingState extends State<OnBoarding> {
                     title: RichText(
                       text: TextSpan(
                         children: [
-                          TextSpan(text: 'By continuing, I agree to ', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(text: 'By continuing, I agree to '.i18n, style: TextStyle(color: theme.hintColor)),
                           TextSpan(
-                            text: 'Terms & Conditions',
+                            text: 'Terms & Conditions'.i18n,
                             style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
@@ -222,9 +226,9 @@ class _OnBoardingState extends State<OnBoarding> {
                                 }
                               },
                           ),
-                          TextSpan(text: ' and ', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(text: ' and '.i18n, style: TextStyle(color: theme.hintColor)),
                           TextSpan(
-                            text: 'Privacy Policy',
+                            text: 'Privacy Policy'.i18n,
                             style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
@@ -236,7 +240,8 @@ class _OnBoardingState extends State<OnBoarding> {
                                 }
                               },
                           ),
-                          TextSpan(text: ' and allow to verify credentials.', style: TextStyle(color: theme.hintColor)),
+                          TextSpan(
+                              text: ' and allow to verify credentials.'.i18n, style: TextStyle(color: theme.hintColor)),
                         ],
                       ),
                     ),
@@ -270,10 +275,7 @@ class _OnBoardingState extends State<OnBoarding> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              onPressed: () => AboutDialogClass.show(context),
-              icon: const Icon(Icons.info),
-              color: Colors.grey,
-            ),
+                onPressed: () => AboutDialogClass.show(context), icon: const Icon(Icons.info), color: Colors.grey),
             Center(
               child: SmoothPageIndicator(
                 controller: controller,
@@ -295,7 +297,7 @@ class _OnBoardingState extends State<OnBoarding> {
                   controller.nextPage(duration: durationAnimation, curve: Curves.ease);
                 }
               },
-              child: Text(isLastPage ? 'BACK' : 'NEXT'),
+              child: Text(isLastPage ? 'BACK'.i18n : 'NEXT'.i18n),
             ),
           ],
         ),

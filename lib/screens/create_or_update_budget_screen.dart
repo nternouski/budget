@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../common/error_handler.dart';
 import '../common/period_stats.dart';
 import '../components/choose_category.dart';
@@ -26,9 +27,9 @@ class CreateOrUpdateBudgetScreen extends StatefulWidget {
 class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   final handlerError = HandlerError();
   static final List<PeriodStats> periodOptions = [
-    const PeriodStats(days: 7, humanize: '7 Days'),
-    const PeriodStats(days: 14, humanize: '14 Days'),
-    const PeriodStats(days: 30, humanize: '1 Month'),
+    PeriodStats(days: 7),
+    PeriodStats(days: 14),
+    PeriodStats(days: 30),
   ];
   static final minInitialDate = periodOptions.fold<DateTime>(now, (prev, period) {
     var pivote = now.subtract(Duration(days: period.days));
@@ -46,7 +47,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     initialDate: now,
     period: periodOptions[0].days,
   );
-  String title = 'Create Budget';
+  String title = '${'Create'.i18n} ${'Budget'.i18n}';
   Action action = Action.create;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -59,8 +60,8 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     final b = ModalRoute.of(context)!.settings.arguments as Budget?;
     if (b != null) {
       action = Action.update;
-      title = 'Update ${budget.name}';
       budget = b;
+      title = '${'Update'.i18n} ${budget.name}';
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(budget.initialDate);
     final theme = Theme.of(context);
@@ -87,14 +88,11 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
           decoration: InputStyle.inputDecoration(
-            labelTextStr: 'Budget Amount',
+            labelTextStr: 'Amount'.i18n,
             hintTextStr: '0',
             prefix: const Text('\$ '),
           ),
-          validator: (String? value) {
-            if (value!.isEmpty) return 'Amount is Required.';
-            return null;
-          },
+          validator: (String? value) => (value!.isEmpty) ? 'Is Required'.i18n : null,
           onSaved: (String? value) => budget.amount = double.parse(value!),
         ),
       ),
@@ -104,12 +102,9 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   Widget buildName() {
     return TextFormField(
       initialValue: budget.name,
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Budget Name', hintTextStr: 'Bank'),
+      decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
       inputFormatters: [LengthLimitingTextInputFormatter(Budget.MAX_LENGTH_NAME)],
-      validator: (String? value) {
-        if (value!.isEmpty) return 'Name is Required.';
-        return null;
-      },
+      validator: (String? value) => (value!.isEmpty) ? 'Is Required'.i18n : null,
       onSaved: (String? value) => budget.name = value!,
     );
   }
@@ -137,13 +132,13 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               }
               dateController.text = DateFormat(formatDate).format(budget.initialDate);
             },
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Date', hintTextStr: formatDate),
-            validator: (String? value) => value!.isEmpty ? 'Date is Required.' : null,
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Date'.i18n, hintTextStr: formatDate),
+            validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           ),
         ),
         Flexible(
           child: InputDecorator(
-            decoration: const InputDecoration(labelText: '  Period'),
+            decoration: InputDecoration(labelText: '  ${'Period'.i18n}'),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 isDense: true,
@@ -201,7 +196,9 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
-                if (budget.categories.isEmpty) return handlerError.setError('You need select at least one category.');
+                if (budget.categories.isEmpty) {
+                  return handlerError.setError('You need select at least one category.'.i18n);
+                }
                 action == Action.create ? budgetRx.create(budget, user.uid) : budgetRx.update(budget, user.uid);
                 Navigator.of(context).pop();
               },

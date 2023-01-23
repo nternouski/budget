@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n/index.dart';
 import '../server/database/transaction_rx.dart';
 import '../components/daily_item.dart';
 import '../components/bar_chart.dart';
@@ -76,7 +77,7 @@ class StatsScreenState extends State<StatsScreen> {
         appBar: AppBar(
           titleTextStyle: theme.textTheme.titleLarge,
           leading: getBackButton(context),
-          title: const Text('Stats'),
+          title: Text('Stats'.i18n),
         ),
         body: ValueListenableBuilder<PeriodStats>(
           valueListenable: periods.selected,
@@ -103,7 +104,7 @@ class StatsScreenState extends State<StatsScreen> {
               return CategorySelected(c, isSelected, totalAmount: acc);
             }).toList();
 
-            String maxPeriodBalance = '${(TransactionRx.windowFetchTransactions.inDays / 30).floor()} months';
+            int maxPeriodBalance = (TransactionRx.windowFetchTransactions.inDays / 30).floor();
             double balance = allTransactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
 
             return CustomScrollView(
@@ -128,7 +129,10 @@ class StatsScreenState extends State<StatsScreen> {
                                 color: balance.isNegative ? theme.errorColor : theme.primaryColor,
                               ),
                               Column(children: [
-                                Text('In the last $maxPeriodBalance', style: theme.textTheme.titleMedium),
+                                Text(
+                                  'In the last %d months'.plural(maxPeriodBalance),
+                                  style: theme.textTheme.titleMedium,
+                                ),
                                 Text(balance.prettier(withSymbol: true), style: theme.textTheme.titleLarge)
                               ]),
                             ],
@@ -138,7 +142,7 @@ class StatsScreenState extends State<StatsScreen> {
                     ),
                     if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
                     const SizedBox(height: 10),
-                    Text('Period: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
+                    Text('${'Period'.i18n}: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -263,15 +267,15 @@ class StatsScreenState extends State<StatsScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(right: 10),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Text('Category ${pieSliceSelected?.category.name}', style: theme.textTheme.titleLarge)]),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text('${'Category'.i18n} ${pieSliceSelected?.category.name}', style: theme.textTheme.titleLarge)
+                ]),
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: [Text('Currency $symbol ${totalSelected.prettier(withSymbol: true)}')]),
+                    children: [Text('${'Currency'.i18n} $symbol ${totalSelected.prettier(withSymbol: true)}')]),
               ),
               ...List.generate(
                 transactionSelected.length,

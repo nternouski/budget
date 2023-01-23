@@ -1,7 +1,13 @@
+import 'dart:ui' as ui;
+import 'package:budget/common/classes.dart';
+import 'package:budget/common/preference.dart';
 import 'package:flutter/material.dart';
+import 'package:i18n_extension/i18n_widget.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+import '../i18n/index.dart';
 import '../server/auth.dart';
 import '../components/profile_settings.dart';
 import '../components/current_rates_settings.dart';
@@ -19,20 +25,70 @@ class SettingsScreen extends StatefulWidget {
 }
 
 const SizedBox spacing = SizedBox(height: 20);
-UserService userService = UserService();
+final UserService userService = UserService();
+
+class LocaleOption {
+  final String title;
+  final Locale? locale;
+
+  const LocaleOption({required this.title, this.locale});
+}
 
 class SettingsScreenState extends State<SettingsScreen> {
+  final _titleStyle = const TextStyle(fontSize: 17, fontWeight: FontWeight.w500);
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    User? user = Provider.of<User>(context);
+
     return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: getBody(context),
-      ),
+      body: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+        SliverAppBar(
+          titleTextStyle: theme.textTheme.titleLarge,
+          pinned: true,
+          leading: getLadingButton(context),
+          title: Text('Settings'.i18n),
+        ),
+        SliverToBoxAdapter(
+          child: ValueListenableBuilder<PeriodStats>(
+            valueListenable: periods.selected,
+            builder: (context, periodStats, child) {
+              List<AbstractSettingsSection> sections = [];
+              if (user != null) {
+                sections = [
+                  ProfileSettings(user: user),
+                  getCommon(theme, periodStats),
+                  getIntegration(user),
+                  CurrentRatesSettings(user: user),
+                  DangerZone(userId: user.id),
+                ];
+              }
+              return SettingsList(
+                shrinkWrap: true,
+                contentPadding: const EdgeInsets.only(left: 20, right: 20),
+                physics: const BouncingScrollPhysics(),
+                lightTheme: SettingsThemeData(
+                  settingsListBackground: theme.scaffoldBackgroundColor,
+                  titleTextColor: theme.colorScheme.primary,
+                ),
+                darkTheme: SettingsThemeData(
+                  settingsListBackground: theme.scaffoldBackgroundColor,
+                  titleTextColor: theme.colorScheme.primary,
+                ),
+                sections: sections,
+              );
+            },
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 100))
+      ]),
     );
   }
 
-  _bottomSheetPeriodStats(PeriodStats periodStats) {
+  _bottomSheetPeriodStats(PeriodStats periodStats, BuildContext context) {
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
         child: Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -42,14 +98,14 @@ class SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Period of Time', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Period of Time'.i18n, style: theme.textTheme.titleLarge),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.info_outline),
-                SizedBox(width: 5),
-                Text('That will affect the budget and stats')
+              children: [
+                const Icon(Icons.info_outline),
+                const SizedBox(width: 5),
+                Text('That will affect the graphics and stats'.i18n)
               ],
             ),
             const SizedBox(height: 10),
@@ -70,55 +126,105 @@ class SettingsScreenState extends State<SettingsScreen> {
     ));
   }
 
+  _bottomSheetLanguage(BuildContext context, String languageCode) {
+    final theme = Theme.of(context);
+    final langNotifier = Provider.of<LanguageNotifier>(context);
+
+    return SingleChildScrollView(
+        child: Container(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Choose Language'.i18n, style: theme.textTheme.titleLarge),
+            const SizedBox(height: 10),
+            ...[
+              LocaleOption(title: 'System'.i18n),
+              const LocaleOption(title: 'Español', locale: Locale('es')),
+              const LocaleOption(title: 'English', locale: Locale('en')),
+            ].map(
+              (option) => ListTile(
+                title: Text(option.title),
+                onTap: () {
+                  final locale = option.locale ?? ui.window.locale;
+                  I18n.of(context).locale = locale;
+                  langNotifier.setLocale(locale);
+
+                  final String languageCode =
+                      option.locale != null ? Intl.shortLocale(option.locale!.languageCode) : '';
+                  Preferences().setString(PreferenceType.languageCode, languageCode);
+
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
   SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
     final theme = Provider.of<ThemeProvider>(context);
     final localAuth = Provider.of<LocalAuthProvider>(context);
+    final languageCode = I18n.of(context).locale.languageCode;
 
-    return SettingsSection(
-        title: const Text('Common', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
-        tiles: [
-          SettingsTile.navigation(
-            leading: const Icon(Icons.language),
-            title: const Text('Language - Coming soon'),
-            value: const Text('English'),
-            enabled: false,
+    return SettingsSection(title: Text('Common'.i18n, style: _titleStyle), tiles: [
+      SettingsTile.navigation(
+        leading: const Icon(Icons.language),
+        title: Text('Language'.i18n),
+        value: Text(languageCode.toUpperCase()),
+        onPressed: (context) => showModalBottomSheet(
+          enableDrag: true,
+          context: context,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          builder: (BuildContext context) => BottomSheet(
+            enableDrag: false,
+            onClosing: () {},
+            builder: (BuildContext context) => _bottomSheetLanguage(context, languageCode),
           ),
-          SettingsTile.navigation(
-            leading: const Icon(Icons.query_stats),
-            title: const Text('Period of Analytics'),
-            value: Text(periodStats.humanize),
-            onPressed: (context) => showModalBottomSheet(
-              enableDrag: true,
-              context: context,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              builder: (BuildContext context) => BottomSheet(
-                enableDrag: false,
-                onClosing: () {},
-                builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats),
-              ),
-            ),
+        ),
+      ),
+      SettingsTile.navigation(
+        leading: const Icon(Icons.query_stats),
+        title: Text('Period of Analytics'.i18n),
+        value: Text(periodStats.humanize),
+        onPressed: (context) => showModalBottomSheet(
+          enableDrag: true,
+          context: context,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          builder: (BuildContext context) => BottomSheet(
+            enableDrag: false,
+            onClosing: () {},
+            builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats, context),
           ),
-          SettingsTile.switchTile(
-            onToggle: (value) => localAuth.swapState(),
-            initialValue: localAuth.enable,
-            leading: const Icon(Icons.fingerprint),
-            activeSwitchColor: themeData.colorScheme.primary,
-            title: const Text('Auth With Biometric'),
-          ),
-          SettingsTile.switchTile(
-            onToggle: (value) => theme.swapTheme(),
-            initialValue: theme.themeMode == ThemeMode.dark,
-            leading: const Icon(Icons.brightness_auto),
-            activeSwitchColor: themeData.colorScheme.primary,
-            title: const Text('Dark Theme'),
-          ),
-        ]);
+        ),
+      ),
+      SettingsTile.switchTile(
+        onToggle: (value) => localAuth.swapState(),
+        initialValue: localAuth.enable,
+        leading: const Icon(Icons.fingerprint),
+        activeSwitchColor: themeData.colorScheme.primary,
+        title: Text('Auth With Biometric'.i18n),
+      ),
+      SettingsTile.switchTile(
+        onToggle: (value) => theme.swapTheme(),
+        initialValue: theme.themeMode == ThemeMode.dark,
+        leading: const Icon(Icons.brightness_auto),
+        activeSwitchColor: themeData.colorScheme.primary,
+        title: Text('Dark Theme'.i18n),
+      ),
+    ]);
   }
 
   SettingsSection getIntegration(User user) {
     return SettingsSection(
-      title: const Text('Integrations ', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+      title: Text('Integrations'.i18n, style: _titleStyle),
       tiles: [
         SettingsTile.navigation(
           leading: const Icon(Icons.wallet),
@@ -159,11 +265,14 @@ class SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Update Integration', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              '${'Update'.i18n} ${'Integrations'.i18n}',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             TextFormField(
               initialValue: apiKey,
               decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),
-              validator: (String? value) => value!.isEmpty ? 'Integration is Required.' : null,
+              validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
               onChanged: (String newApiKey) => apiKey = newApiKey,
             ),
             const SizedBox(height: 20),
@@ -172,7 +281,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               children: [
                 buttonCancelContext(context),
                 ElevatedButton(
-                  child: const Text('Update'),
+                  child: Text('Update'.i18n),
                   onPressed: () {
                     user.integrations.update(IntegrationType.wise, (value) => apiKey, ifAbsent: () => apiKey);
                     UserService().update(user);
@@ -186,52 +295,6 @@ class SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     ));
-  }
-
-  List<Widget> getBody(BuildContext context) {
-    final theme = Theme.of(context);
-    User? user = Provider.of<User>(context);
-
-    return [
-      SliverAppBar(
-        titleTextStyle: theme.textTheme.titleLarge,
-        pinned: true,
-        leading: getLadingButton(context),
-        title: const Text('Settings'),
-      ),
-      SliverToBoxAdapter(
-        child: ValueListenableBuilder<PeriodStats>(
-          valueListenable: periods.selected,
-          builder: (context, periodStats, child) {
-            List<AbstractSettingsSection> sections = [];
-            if (user != null) {
-              sections = [
-                ProfileSettings(user: user),
-                getCommon(theme, periodStats),
-                getIntegration(user),
-                CurrentRatesSettings(user: user),
-                DangerZone(userId: user.id),
-              ];
-            }
-            return SettingsList(
-              shrinkWrap: true,
-              contentPadding: const EdgeInsets.only(left: 20, right: 20),
-              physics: const BouncingScrollPhysics(),
-              lightTheme: SettingsThemeData(
-                settingsListBackground: theme.scaffoldBackgroundColor,
-                titleTextColor: theme.colorScheme.primary,
-              ),
-              darkTheme: SettingsThemeData(
-                settingsListBackground: theme.scaffoldBackgroundColor,
-                titleTextColor: theme.colorScheme.primary,
-              ),
-              sections: sections,
-            );
-          },
-        ),
-      ),
-      const SliverToBoxAdapter(child: SizedBox(height: 100))
-    ];
   }
 }
 
@@ -247,9 +310,9 @@ class DangerZone extends AbstractSettingsSection {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Please write \'$confirmationString\'..'),
+          title: Text('${'Please write'.i18n} \'$confirmationString\'..'),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('To delete permanently your user and all the data related to you.'),
+            Text('To delete permanently your user and all the data related to you.'.i18n),
             TextFormField(
               controller: confirmController,
               decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: confirmationString),
@@ -263,7 +326,7 @@ class DangerZone extends AbstractSettingsSection {
               builder: (BuildContext context, bool enabled, _) => ElevatedButton(
                 style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                 onPressed: enabled ? () => Navigator.pop(context, true) : null,
-                child: const Text('Delete'),
+                child: Text('Delete'.i18n),
               ),
             )
           ],
@@ -279,14 +342,14 @@ class DangerZone extends AbstractSettingsSection {
       children: [
         const Divider(thickness: 1.5),
         spacing,
-        Text('Danger Zone', style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.error)),
+        Text('Danger Zone'.i18n, style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.error)),
         spacing,
         ElevatedButton(
           style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
           onPressed: () async {
-            if (await _confirm(context, 'delete') == true) await userService.delete(userId);
+            if (await _confirm(context, 'Delete'.i18n) == true) await userService.delete(userId);
           },
-          child: const Text('DELETE USER'),
+          child: Text('DELETE USER'.i18n),
         ),
         spacing,
       ],

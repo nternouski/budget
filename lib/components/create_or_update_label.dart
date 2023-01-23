@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../server/database/label_rx.dart';
 import '../common/styles.dart';
 import '../model/label.dart';
@@ -43,7 +44,7 @@ class CreateOrUpdateLabel extends StatelessWidget {
           nameController = controller;
           return TextFormField(
             controller: nameController,
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Label search'),
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Label Search'.i18n),
             focusNode: focus,
           );
         },
@@ -52,7 +53,7 @@ class CreateOrUpdateLabel extends StatelessWidget {
           var options =
               labelsDB.where((option) => option.name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
           return options.isEmpty
-              ? [Label(id: '', name: 'Crear Label "${textEditingValue.text}"?', color: Colors.black)]
+              ? [Label(id: '', name: 'Create Label "${textEditingValue.text}"?', color: Colors.black)]
               : options;
         },
         onSelected: (selection) async {

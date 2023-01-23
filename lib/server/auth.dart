@@ -5,6 +5,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../common/error_handler.dart';
 import '../common/preference.dart';
 import '../screens/email_verification_screen.dart';
@@ -47,7 +48,7 @@ class LocalAuthProvider extends ChangeNotifier {
     if (!supported) return LocalAuthState.nonSupported;
     try {
       final authenticated = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to show account balance',
+        localizedReason: 'Please authenticate to show account balance'.i18n,
         options: const AuthenticationOptions(stickyAuth: true, useErrorDialogs: false),
       );
       return authenticated ? LocalAuthState.success : LocalAuthState.tryAgain;
@@ -102,10 +103,10 @@ class AuthError extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
 
     final localAuth = Provider.of<LocalAuthProvider>(context);
-    String message = 'Confirm fingerprint to continue.';
-    if (status == LocalAuthState.inProgress) message = 'Authentication In Progress.';
-    if (status == LocalAuthState.nonSupported) message = 'Authentication Not Supported.';
-    if (status == LocalAuthState.tryAgain) message = 'Error on authenticate with biometric.';
+    String message = 'Confirm fingerprint to continue.'.i18n;
+    if (status == LocalAuthState.inProgress) message = 'Authentication In Progress.'.i18n;
+    if (status == LocalAuthState.nonSupported) message = 'Authentication Not Supported.'.i18n;
+    if (status == LocalAuthState.tryAgain) message = 'Error on authenticate with biometric.'.i18n;
 
     return Scaffold(
       body: Column(
@@ -119,34 +120,35 @@ class AuthError extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               DecoratedBox(
-                  decoration: BoxDecoration(color: theme.cardColor),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Fingerprint Unlock', style: theme.textTheme.titleLarge),
-                        const SizedBox(height: 20),
-                        InkWell(
-                          onTap: () => localAuth.tryAgain(),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.fingerprint, size: 35),
-                              SizedBox(width: 15),
-                              Text('Touch Sensor')
-                            ],
-                          ),
+                decoration: BoxDecoration(color: theme.cardColor),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Fingerprint Unlock'.i18n, style: theme.textTheme.titleLarge),
+                      const SizedBox(height: 20),
+                      InkWell(
+                        onTap: () => localAuth.tryAgain(),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.fingerprint, size: 35),
+                            const SizedBox(width: 15),
+                            Text('Touch Sensor'.i18n)
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(message),
-                        if (status == LocalAuthState.tryAgain) const SizedBox(height: 10),
-                        if (status == LocalAuthState.tryAgain)
-                          ElevatedButton(child: const Text('Try again!'), onPressed: () => localAuth.tryAgain())
-                      ],
-                    ),
-                  ))
+                      ),
+                      const SizedBox(height: 20),
+                      Text(message),
+                      if (status == LocalAuthState.tryAgain) const SizedBox(height: 10),
+                      if (status == LocalAuthState.tryAgain)
+                        ElevatedButton(child: Text('Try again!'.i18n), onPressed: () => localAuth.tryAgain())
+                    ],
+                  ),
+                ),
+              )
             ],
           )
         ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
+import '../i18n/index.dart';
 import '../server/user_service.dart';
 import '../model/user.dart';
 import '../routes.dart';
@@ -34,17 +35,17 @@ class NavDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.phonelink_setup),
-            title: const Text('Mobile Calculator'),
+            title: Text('Mobile Calculator'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
           ),
           ListTile(
             leading: const Icon(Icons.query_stats),
-            title: const Text('Stats'),
+            title: Text('Stats'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
           ListTile(
             leading: const Icon(Icons.wallet),
-            title: const Text('Wise Sync'),
+            title: Text('Wise Sync'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.wiseSync),
           ),
           ListTile(
@@ -55,7 +56,7 @@ class NavDrawer extends StatelessWidget {
           const Divider(thickness: 1),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
-            title: const Text('Logout'),
+            title: Text('Logout'.i18n),
             onTap: () {
               userService.logout();
               Navigator.of(context).pop();
@@ -63,7 +64,7 @@ class NavDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.info),
-            title: const Text('About'),
+            title: Text('About'.i18n),
             onTap: () async {
               Navigator.of(context).pop();
               AboutDialogClass.show(context);
@@ -75,8 +76,8 @@ class NavDrawer extends StatelessWidget {
   }
 
   Widget buildProfile(ThemeData theme, auth.User user, User? dbUser) {
-    var name = dbUser != null && dbUser.name != '' ? dbUser.name : user.displayName ?? 'Name Not Set';
-    var email = user.email ?? 'No Email';
+    var name = dbUser != null && dbUser.name != '' ? dbUser.name : user.displayName ?? 'Name Not Set'.i18n;
+    var email = user.email ?? '';
     var photoURL = user.photoURL;
 
     return Column(
