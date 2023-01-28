@@ -3,7 +3,7 @@ import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  ThemeMode themeMode;
+  ThemeMode themeMode = ThemeMode.system;
   final Preferences _preferences = Preferences();
 
   static const Color _primary = Colors.teal;
@@ -67,7 +67,16 @@ class ThemeProvider extends ChangeNotifier {
     disabledColor: Colors.grey[600],
   );
 
-  ThemeProvider(this.themeMode);
+  ThemeProvider() {
+    _preferences.getBool(PreferenceType.darkTheme).then((darkTheme) {
+      if (darkTheme == null) {
+        themeMode = ThemeMode.system;
+      } else {
+        themeMode = darkTheme ? ThemeMode.dark : ThemeMode.light;
+      }
+      notifyListeners();
+    });
+  }
 
   Future<void> swapTheme() async {
     if (themeMode == ThemeMode.dark) {
@@ -77,7 +86,6 @@ class ThemeProvider extends ChangeNotifier {
       themeMode = ThemeMode.dark;
       await _preferences.setBool(PreferenceType.darkTheme, true);
     }
-
     notifyListeners();
   }
 }

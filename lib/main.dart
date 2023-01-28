@@ -1,7 +1,5 @@
 // @dart=2.9
 import 'dart:async';
-import 'dart:ui' as ui;
-import 'package:budget/common/classes.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -12,22 +10,26 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../screens/email_verification_screen.dart';
-import '../common/ad_helper.dart';
-import '../model/budget.dart';
-import '../model/category.dart';
-import '../model/currency.dart';
-import '../model/transaction.dart';
-import '../model/wallet.dart';
-import '../server/database/budget_rx.dart';
-import '../server/database/category_rx.dart';
-import '../server/database/currency_rate_rx.dart';
-import '../server/database/currency_rx.dart';
-import '../server/database/transaction_rx.dart';
-import '../server/database/wallet_rx.dart';
-import '../server/auth.dart';
-import './common/error_handler.dart';
+import './screens/email_verification_screen.dart';
+import './model/expense_prediction.dart';
+import './model/budget.dart';
+import './model/category.dart';
+import './model/currency.dart';
+import './model/transaction.dart';
+import './model/wallet.dart';
+import './server/database/expense_prediction_rx.dart';
+import './server/database/budget_rx.dart';
+import './server/database/category_rx.dart';
+import './server/database/currency_rate_rx.dart';
+import './server/database/currency_rx.dart';
+import './server/database/transaction_rx.dart';
+import './server/database/wallet_rx.dart';
+import './server/auth.dart';
 import './common/preference.dart';
+import './common/prediction_on_stats.dart';
+import './common/classes.dart';
+import './common/ad_helper.dart';
+import './common/error_handler.dart';
 import './common/theme.dart';
 import './routes.dart';
 import './model/user.dart';
@@ -40,32 +42,18 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await dotenv.load(fileName: '.env');
   final adsInitialization = MobileAds.instance.initialize();
-  final adState = AdState(initialization: adsInitialization);
+  final adState = AdStateNotifier(initialization: adsInitialization);
 
-  Preferences preferences = Preferences();
+  final preferences = Preferences();
 
   runZonedGuarded<Future<void>>(
     () async {
-      Future.wait([
-        preferences.getBool(PreferenceType.darkTheme),
-        preferences.getBool(PreferenceType.authLoginEnable),
-        preferences.getString(PreferenceType.languageCode),
-      ]).then(
-        (p) {
-          final darkTheme = p[0] as bool;
-          final authLoginEnable = p[1] as bool ?? false;
-          final String languageCode = p[2] ?? '';
-
-          ThemeMode themeMode = darkTheme == null
-              ? ThemeMode.system
-              : darkTheme
-                  ? ThemeMode.dark
-                  : ThemeMode.light;
-
-          return runApp(MyApp(
-              themeMode: themeMode, languageCode: languageCode, authLoginEnable: authLoginEnable, adState: adState));
-        },
-      );
+      Future.wait([preferences.getBool(PreferenceType.authLoginEnable)]).then((p) {
+        return runApp(MyApp(
+          adState: adState,
+          authLoginEnable: p[0] as bool ?? false,
+        ));
+      });
     },
     (dynamic error, StackTrace stackTrace) {
       HandlerError().setError(error.toString());
@@ -74,17 +62,13 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final ThemeMode themeMode;
-  final String languageCode;
+  final AdStateNotifier adState;
   final bool authLoginEnable;
-  final AdState adState;
 
-  const MyApp({Key key, this.themeMode, this.languageCode, this.authLoginEnable, this.adState}) : super(key: key);
+  const MyApp({Key key, this.adState, this.authLoginEnable}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Locale locale = Locale(languageCode == '' ? Intl.shortLocale(ui.window.locale.languageCode) : languageCode);
-
     return MultiProvider(
       providers: [
         StreamProvider<auth.User>(create: (context) => userService.userAuth, initialData: null),
@@ -117,18 +101,31 @@ class MyApp extends StatelessWidget {
               HandlerError().setError(error.toString());
               return [];
             }),
+        StreamProvider<List<ExpensePrediction>>(
+            create: (context) {
+              return expensePredictionRx.getExpensePredictions(Provider.of<auth.User>(context, listen: false).uid);
+            },
+            initialData: const [],
+            catchError: (context, error) {
+              HandlerError().setError(error.toString());
+              return [];
+            }),
         ChangeNotifierProvider<EmailVerificationNotifier>(create: (context) => EmailVerificationNotifier()),
-        ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider(themeMode)),
-        ChangeNotifierProvider<LocalAuthProvider>(create: (context) => LocalAuthProvider(authLoginEnable)),
-        ChangeNotifierProvider<AdState>(create: (context) => adState),
-        ChangeNotifierProvider<LanguageNotifier>(create: (context) => LanguageNotifier(locale)),
+        ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider<LocalAuthNotifier>(create: (context) => LocalAuthNotifier(authLoginEnable)),
+        ChangeNotifierProvider<AdStateNotifier>(create: (context) => adState),
+        ChangeNotifierProvider<LanguageNotifier>(create: (context) => LanguageNotifier()),
+        ChangeNotifierProvider<PredictionOnStatsNotifier>(create: (context) => PredictionOnStatsNotifier()),
       ],
       builder: (context, child) {
-        Intl.systemLocale = Provider.of<LanguageNotifier>(context).localeShort;
-        Intl.defaultLocale = Provider.of<LanguageNotifier>(context).localeShort;
+        LanguageNotifier langNotifier = Provider.of<LanguageNotifier>(context);
+
+        Intl.systemLocale = langNotifier.localeShort;
+        Intl.defaultLocale = langNotifier.localeShort;
 
         return I18n(
-          initialLocale: locale,
+          key: langNotifier.i18nUniqueKey,
+          initialLocale: langNotifier.locale,
           child: MaterialApp(
             title: 'Budget',
             debugShowCheckedModeBanner: false,

@@ -1,17 +1,17 @@
-import 'package:budget/common/ad_helper.dart';
-import 'package:budget/common/version_checker.dart';
-import 'package:budget/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
+import '../common/ad_helper.dart';
+import '../common/version_checker.dart';
 import '../common/error_handler.dart';
 import '../common/theme.dart';
 import '../common/convert.dart';
-import '../routes.dart';
 import '../common/footers.dart';
+import '../model/user.dart';
+import '../routes.dart';
 import './nav_draw.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
@@ -52,10 +52,10 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final adState = Provider.of<AdState>(context);
+    final adState = Provider.of<AdStateNotifier>(context);
     bool showAds = Provider.of<User>(context)?.showAds() ?? true;
 
-    if (showAds && banner == null && _bannerAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+    if (showAds && banner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
       _bannerAdRetry++;
       banner = BannerAd(
           size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),

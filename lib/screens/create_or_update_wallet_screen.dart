@@ -59,6 +59,16 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   Widget buildAmount(Action action) {
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Expanded(
+        child: SelectCurrency(
+          initialCurrencyId: wallet.currencyId,
+          onSelect: (c) => setState(() {
+            wallet.currencyId = c.id;
+            wallet.currency = c;
+          }),
+          disabled: action == Action.update,
+        ),
+      ),
+      Expanded(
         child: TextFormField(
           initialValue: wallet.initialAmount.toString(),
           keyboardType: TextInputType.number,
@@ -70,16 +80,6 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
           ),
           validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           onSaved: (String? value) => wallet.initialAmount = double.parse(value!),
-        ),
-      ),
-      Expanded(
-        child: SelectCurrency(
-          initialCurrencyId: wallet.currencyId,
-          onSelect: (c) => setState(() {
-            wallet.currencyId = c.id;
-            wallet.currency = c;
-          }),
-          disabled: action == Action.update,
         ),
       ),
     ]);

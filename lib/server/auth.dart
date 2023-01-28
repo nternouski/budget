@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
+import '../common/theme.dart';
 import '../common/error_handler.dart';
 import '../common/preference.dart';
 import '../screens/email_verification_screen.dart';
@@ -14,29 +15,42 @@ import '../screens/onboarding.dart';
 
 enum LocalAuthState { nonSupported, success, error, inProgress, tryAgain }
 
-class LocalAuthProvider extends ChangeNotifier {
+extension ParseToString on LocalAuthState? {
+  bool allow() {
+    return this == LocalAuthState.success || this == LocalAuthState.nonSupported;
+  }
+}
+
+class LocalAuthNotifier extends ChangeNotifier {
   bool enable;
+  bool _available = false;
   final Preferences _preferences = Preferences();
 
-  LocalAuthProvider(this.enable);
+  LocalAuthNotifier(this.enable) {
+    Future.wait([authenticateIsAvailable()]).then((promise) {
+      _available = promise[0];
+    });
+  }
+
+  bool get available => _available;
 
   static final LocalAuthentication _localAuth = LocalAuthentication();
 
-  static Future<bool> authenticateIsAvailable() async {
+  Future<bool> authenticateIsAvailable() async {
     final isAvailable = await _localAuth.canCheckBiometrics;
     final isDeviceSupported = await _localAuth.isDeviceSupported();
     return isAvailable && isDeviceSupported;
   }
 
   Future<void> swapState() async {
-    var available = await authenticateIsAvailable();
-    if (available) {
+    _available = await authenticateIsAvailable();
+    if (_available) {
       enable = !enable;
       await _preferences.setBool(PreferenceType.authLoginEnable, enable);
-      notifyListeners();
     } else {
       await _preferences.setBool(PreferenceType.authLoginEnable, false);
     }
+    notifyListeners();
   }
 
   void tryAgain() {
@@ -79,13 +93,12 @@ class AuthWrapper extends StatelessWidget {
       final emailVerification = Provider.of<EmailVerificationNotifier>(context);
       if (!emailVerification.isEmailVerified && !user.emailVerified) return const EmailVerificationScreen();
 
-      final localAuth = Provider.of<LocalAuthProvider>(context);
-      if (!localAuth.enable) return const BottomNavigationBarWidget();
+      final localAuth = Provider.of<LocalAuthNotifier>(context);
       return FutureBuilder<LocalAuthState>(
         future: localAuth.authenticate(),
         builder: (BuildContext context, snapshot) {
           var status = snapshot.data;
-          return status == LocalAuthState.success ? const BottomNavigationBarWidget() : AuthError(status: status);
+          return status.allow() ? const BottomNavigationBarWidget() : AuthError(status: status);
         },
       );
     } else {
@@ -102,7 +115,7 @@ class AuthError extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
-    final localAuth = Provider.of<LocalAuthProvider>(context);
+    final localAuth = Provider.of<LocalAuthNotifier>(context);
     String message = 'Confirm fingerprint to continue.'.i18n;
     if (status == LocalAuthState.inProgress) message = 'Authentication In Progress.'.i18n;
     if (status == LocalAuthState.nonSupported) message = 'Authentication Not Supported.'.i18n;
@@ -142,7 +155,14 @@ class AuthError extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
                       Text(message),
-                      if (status == LocalAuthState.tryAgain) const SizedBox(height: 10),
+                      if (status == LocalAuthState.tryAgain || status == LocalAuthState.nonSupported)
+                        const SizedBox(height: 10),
+                      if (status == LocalAuthState.nonSupported)
+                        ElevatedButton(
+                          style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                          onPressed: () => localAuth.swapState(),
+                          child: Text('Disable Fingerprint'.i18n),
+                        ),
                       if (status == LocalAuthState.tryAgain)
                         ElevatedButton(child: Text('Try again!'.i18n), onPressed: () => localAuth.tryAgain())
                     ],

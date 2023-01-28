@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'package:budget/screens/email_verification_screen.dart';
-import 'package:budget/screens/budgets_screen.dart';
-import 'package:budget/screens/create_or_update_budget_screen.dart';
-import 'package:budget/screens/create_or_update_transaction_screen.dart';
-import 'package:budget/screens/create_or_update_wallet_screen.dart';
-import 'package:budget/screens/faq_screen.dart';
-import 'package:budget/screens/mobile_calculator_screen.dart';
-import 'package:budget/screens/settings.dart';
-import 'package:budget/screens/stats_screen.dart';
-import 'package:budget/screens/wallets_screen.dart';
-import 'package:budget/screens/daily_screen.dart';
-import 'package:budget/screens/wise_sync.dart';
+import '../screens/email_verification_screen.dart';
+import '../screens/budgets_screen.dart';
+import '../screens/create_or_update_budget_screen.dart';
+import '../screens/create_or_update_transaction_screen.dart';
+import '../screens/create_or_update_wallet_screen.dart';
+import '../screens/faq_screen.dart';
+import '../screens/mobile_calculator_screen.dart';
+import '../screens/settings.dart';
+import '../screens/stats_screen.dart';
+import '../screens/wallets_screen.dart';
+import '../screens/daily_screen.dart';
+import '../screens/wise_sync.dart';
+import '../screens/expense_prediction_screen.dart';
 
 enum URLS {
   dailyTransactions,
@@ -25,7 +26,8 @@ enum URLS {
   createOrUpdateTransaction,
   mobileCalculator,
   faq,
-  emailVerification
+  emailVerification,
+  expensePrediction
 }
 
 class RouteApp {
@@ -42,6 +44,7 @@ class RouteApp {
     URLS.mobileCalculator.toString(): (context) => const MobileCalculatorScreen(),
     URLS.faq.toString(): (context) => const FAQScreen(),
     URLS.emailVerification.toString(): (context) => const EmailVerificationScreen(),
+    URLS.expensePrediction.toString(): (context) => const ExpensePredictionScreenState(),
   };
   static redirect({required BuildContext context, required URLS url, dynamic param, bool fromScaffold = true}) {
     if (fromScaffold) Scaffold.of(context).closeDrawer(); // Paca cerrar el mat menu.

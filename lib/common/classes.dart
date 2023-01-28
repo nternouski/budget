@@ -1,20 +1,24 @@
-import 'dart:developer';
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/intl_standalone.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
 import '../i18n/index.dart';
+import '../common/preference.dart';
 import '../common/theme.dart';
 
-abstract class ModelCommonInterface {
+abstract class ModelCommonFunctions {
+  ModelCommonFunctions.fromJson(Map<String, dynamic> json);
+  Map<String, dynamic> toJson();
+}
+
+abstract class ModelCommonInterface extends ModelCommonFunctions {
   late String id;
 
-  ModelCommonInterface.fromJson(Map<String, dynamic> json);
-  Map<String, dynamic> toJson();
+  ModelCommonInterface.fromJson(super.json) : super.fromJson();
 }
 
 class ScreenInit {
@@ -138,14 +142,25 @@ extension DateUtils on DateTime {
 }
 
 class LanguageNotifier extends ChangeNotifier {
-  Locale _locale;
+  Locale _locale = Locale(Intl.shortLocale(ui.window.locale.languageCode));
+  UniqueKey i18nUniqueKey = UniqueKey();
+  final Preferences _preferences = Preferences();
 
-  LanguageNotifier(this._locale);
+  LanguageNotifier() {
+    _preferences.getString(PreferenceType.languageCode).then((languageCode) {
+      if (languageCode != null && languageCode != '') _locale = Locale(languageCode);
+      i18nUniqueKey = UniqueKey();
+      notifyListeners();
+    });
+  }
 
-  void setLocale(Locale locale) {
+  Future<void> setLocale(Locale locale) async {
     _locale = locale;
+    final String languageCode = Intl.shortLocale(locale.languageCode);
+    await _preferences.setString(PreferenceType.languageCode, languageCode);
     notifyListeners();
   }
 
   String get localeShort => Intl.shortLocale(_locale.languageCode);
+  Locale get locale => _locale;
 }

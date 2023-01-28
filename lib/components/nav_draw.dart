@@ -44,6 +44,11 @@ class NavDrawer extends StatelessWidget {
             onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
           ListTile(
+            leading: const Icon(Icons.list),
+            title: Text('Expense Simulation'.i18n),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.expensePrediction),
+          ),
+          ListTile(
             leading: const Icon(Icons.wallet),
             title: Text('Wise Sync'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.wiseSync),

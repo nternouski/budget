@@ -32,8 +32,8 @@ class Periods {
     });
   }
 
-  update(int days) {
-    _preferences.setInt(PreferenceType.periodStats, days);
+  update(int days) async {
+    await _preferences.setInt(PreferenceType.periodStats, days);
     selected.value = options.firstWhere((element) => element.days == days, orElse: () => _defaultOption);
     selected.notifyListeners();
   }

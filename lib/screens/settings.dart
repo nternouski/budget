@@ -1,9 +1,6 @@
 import 'dart:ui' as ui;
-import 'package:budget/common/classes.dart';
-import 'package:budget/common/preference.dart';
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -11,6 +8,7 @@ import '../i18n/index.dart';
 import '../server/auth.dart';
 import '../components/profile_settings.dart';
 import '../components/current_rates_settings.dart';
+import '../common/classes.dart';
 import '../common/period_stats.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
@@ -142,21 +140,15 @@ class SettingsScreenState extends State<SettingsScreen> {
             Text('Choose Language'.i18n, style: theme.textTheme.titleLarge),
             const SizedBox(height: 10),
             ...[
-              LocaleOption(title: 'System'.i18n),
               const LocaleOption(title: 'Español', locale: Locale('es')),
               const LocaleOption(title: 'English', locale: Locale('en')),
             ].map(
               (option) => ListTile(
                 title: Text(option.title),
-                onTap: () {
+                onTap: () async {
                   final locale = option.locale ?? ui.window.locale;
+                  await langNotifier.setLocale(locale);
                   I18n.of(context).locale = locale;
-                  langNotifier.setLocale(locale);
-
-                  final String languageCode =
-                      option.locale != null ? Intl.shortLocale(option.locale!.languageCode) : '';
-                  Preferences().setString(PreferenceType.languageCode, languageCode);
-
                   Navigator.pop(context);
                 },
               ),
@@ -169,7 +161,7 @@ class SettingsScreenState extends State<SettingsScreen> {
 
   SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
     final theme = Provider.of<ThemeProvider>(context);
-    final localAuth = Provider.of<LocalAuthProvider>(context);
+    final localAuth = Provider.of<LocalAuthNotifier>(context);
     final languageCode = I18n.of(context).locale.languageCode;
 
     return SettingsSection(title: Text('Common'.i18n, style: _titleStyle), tiles: [
@@ -206,6 +198,7 @@ class SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       SettingsTile.switchTile(
+        enabled: localAuth.available,
         onToggle: (value) => localAuth.swapState(),
         initialValue: localAuth.enable,
         leading: const Icon(Icons.fingerprint),

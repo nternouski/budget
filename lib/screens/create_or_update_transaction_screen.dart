@@ -68,7 +68,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   final TextEditingController decimalAmountController = TextEditingController(text: '0');
   final decimalAmountFocusNode = FocusNode();
 
-  late List<PopupMenuItem<TransactionType>> types = TransactionType.values
+  final List<PopupMenuItem<TransactionType>> types = TransactionType.values
       .map((t) => PopupMenuItem(
           value: t,
           child: Center(
@@ -100,6 +100,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   @override
   void dispose() {
     if (_interstitialAd != null) _interstitialAd!.dispose();
+    dateController.dispose();
+    timeController.dispose();
+    decimalAmountController.dispose();
     super.dispose();
   }
 
@@ -114,7 +117,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         },
         onAdFailedToLoad: (err) {
           debugPrint('Failed to load an interstitial ad: ${err.toString()}');
-          if (_interstitialAdRetry <= AdState.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+          if (_interstitialAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
             debugPrint('=> RETRYING $_interstitialAdRetry load an interstitial ad');
             _interstitialAdRetry++;
             _loadInterstitialAd(interstitialAdUnitId);
@@ -147,7 +150,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final adState = Provider.of<AdState>(context);
+    final adState = Provider.of<AdStateNotifier>(context);
     interstitialAdUnitId = adState.interstitialAdUnitId;
     if (_interstitialAd == null) _loadInterstitialAd(interstitialAdUnitId);
 

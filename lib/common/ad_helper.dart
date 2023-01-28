@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AdState extends ChangeNotifier {
+class AdStateNotifier extends ChangeNotifier {
   // ignore: constant_identifier_names
   static const int MAXIMUM_NUMBER_OF_AD_REQUEST = 5;
   Future<InitializationStatus> initialization;
 
-  AdState({required this.initialization}) {
+  AdStateNotifier({required this.initialization}) {
     initialization.then((value) => notifyListeners());
   }
 

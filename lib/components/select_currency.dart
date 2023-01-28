@@ -20,28 +20,38 @@ class SelectCurrency extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     List<Currency> currencies = List.from(Provider.of<List<Currency>>(context));
+
     if (currencies.isEmpty) {
       return Text('No Currency by the moment.'.i18n);
     } else {
       currencies.insert(0, Currency(id: '', name: '', symbol: 'Select Currency'.i18n));
-      return InputDecorator(
-        decoration: InputDecoration(labelText: '  $labelText'),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            isDense: true,
-            value: initialCurrencyId,
-            onChanged: disabled
-                ? null
-                : (String? id) => id != '' && id != null ? onSelect(currencies.firstWhere((c) => c.id == id)) : null,
-            items: currencies
-                .map((c) => DropdownMenuItem(
-                      value: c.id,
-                      child: Center(
-                        child: Text('  ${c.symbol}', style: TextStyle(color: c.id == '' ? Colors.grey : null)),
-                      ),
-                    ))
-                .toList(),
+
+      Currency selected = currencies.firstWhere((c) => c.id == initialCurrencyId);
+      List<PopupMenuItem<Currency>> items = currencies
+          .map(
+            (c) => PopupMenuItem(value: c, child: Center(child: Text(c.symbol))),
+          )
+          .toList();
+
+      var textStyle = theme.textTheme.titleMedium!.copyWith(color: selected.id == '' ? Colors.grey : null);
+
+      return PopupMenuButton<Currency>(
+        onSelected: (Currency c) => c.id != '' ? onSelect(c) : c,
+        itemBuilder: (BuildContext context) => items,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (labelText != '') Padding(padding: const EdgeInsets.only(bottom: 2, left: 5), child: Text(labelText)),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: theme.cardColor),
+                child: Center(child: Text(selected.symbol, style: textStyle)),
+              )
+            ],
           ),
         ),
       );

@@ -55,10 +55,10 @@ class FAQPageState extends State<FAQScreen> {
 
   final List<FAQ> filtered = List.from(faqListData);
 
-  List<FAQ> getMatchSearch(String text) {
-    String search = text.toLowerCase().trim();
-    searchFn(faq) => faq.question.toLowerCase().contains(search) || faq.answer.toLowerCase().contains(search);
-    return List.from(faqListData.where(searchFn));
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,29 +102,7 @@ class FAQPageState extends State<FAQScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   child: Column(
-                    children: List.generate(
-                      filtered.length,
-                      (index) => Card(
-                        elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 5),
-                        child: ExpansionTile(
-                          key: Key(index.toString()),
-                          initiallyExpanded: index == selected,
-                          iconColor: theme.disabledColor,
-                          title: Text(filtered[index].question, style: theme.textTheme.titleMedium),
-                          onExpansionChanged: (newState) {
-                            isExpand = newState;
-                            setState(() => selected = newState ? index : -1 /* isExpand=newState; */);
-                          },
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 17),
-                              child: Row(children: [Expanded(child: Text(filtered[index].answer))]),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
+                    children: List.generate(filtered.length, (index) => getCardFaq(theme, index)),
                   ),
                 ),
               )
@@ -133,5 +111,34 @@ class FAQPageState extends State<FAQScreen> {
         )
       ]),
     );
+  }
+
+  getCardFaq(ThemeData theme, int index) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 5),
+      child: ExpansionTile(
+        key: Key(index.toString()),
+        initiallyExpanded: index == selected,
+        iconColor: theme.disabledColor,
+        title: Text(filtered[index].question, style: theme.textTheme.titleMedium),
+        onExpansionChanged: (newState) {
+          isExpand = newState;
+          setState(() => selected = newState ? index : -1 /* isExpand=newState; */);
+        },
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 17),
+            child: Row(children: [Expanded(child: Text(filtered[index].answer))]),
+          )
+        ],
+      ),
+    );
+  }
+
+  List<FAQ> getMatchSearch(String text) {
+    String search = text.toLowerCase().trim();
+    searchFn(faq) => faq.question.toLowerCase().contains(search) || faq.answer.toLowerCase().contains(search);
+    return List.from(faqListData.where(searchFn));
   }
 }

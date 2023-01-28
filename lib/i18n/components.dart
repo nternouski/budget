@@ -25,6 +25,7 @@ final components = Translations('en') +
     // nav_draw
     {'en': 'Mobile Calculator', 'es': 'Calculadora de Plan'} +
     {'en': 'Stats', 'es': 'Estadísticas'} +
+    {'en': 'Expense Simulation', 'es': 'Simulación'} +
     {'en': 'Wise Sync', 'es': 'Wise Sync'} +
     {'en': 'Logout', 'es': 'Cerrar Sesión'} +
     {'en': 'About', 'es': 'Sobre la App'} +

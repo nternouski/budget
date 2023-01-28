@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../i18n/index.dart';
 import '../common/theme.dart';
 import '../components/icon_circle.dart';
+import '../components/background_dismissible.dart';
 import '../server/database/transaction_rx.dart';
 import '../routes.dart';
 import '../common/styles.dart';
@@ -23,7 +24,6 @@ class DailyItem extends StatefulWidget {
 }
 
 class DailyItemState extends State<DailyItem> {
-  final double opacitySlide = 0.25;
   final paddingSlide = const SizedBox(width: 10);
 
   @override
@@ -35,81 +35,41 @@ class DailyItemState extends State<DailyItem> {
 
     return Dismissible(
       key: Key(widget.transaction.id),
-      background: slideRightBackground(theme.colorScheme.primary),
-      secondaryBackground: slideLeftBackground(theme.colorScheme.error),
+      background: const BackgroundDeleteDismissible(),
+      direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          final bool res = await showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(widget.transaction.name, style: theme.textTheme.titleLarge),
-                  content: Text('Are you sure you want to delete?'.i18n),
-                  actions: <Widget>[
-                    buttonCancelContext(context),
-                    ElevatedButton(
-                      style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                      child: Text('Delete'.i18n),
-                      onPressed: () => transactionRx
-                          .delete(widget.transaction, user.uid, currencyRates, currencies)
-                          .then((value) => Navigator.of(context).pop()),
-                    ),
-                  ],
-                );
-              });
-          return res;
-        } else {
-          RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: widget.transaction);
-        }
-        return null;
+        return showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(widget.transaction.name, style: theme.textTheme.titleLarge),
+                content: Text('Are you sure you want to delete?'.i18n),
+                actions: <Widget>[
+                  buttonCancelContext(context),
+                  ElevatedButton(
+                    style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                    child: Text('Delete'.i18n),
+                    onPressed: () => transactionRx
+                        .delete(widget.transaction, user.uid, currencyRates, currencies)
+                        .then((value) => Navigator.of(context).pop()),
+                  ),
+                ],
+              );
+            });
       },
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 10),
-        child: getItem(theme, widget.transaction),
-      ),
-    );
-  }
-
-  Widget slideRightBackground(Color primary) {
-    return Container(
-      color: primary.withOpacity(opacitySlide),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            paddingSlide,
-            Icon(widget.actionIcon ?? Icons.edit, color: primary),
-            Text(
-              widget.action ?? ' ${'Edit'.i18n}',
-              style: TextStyle(color: primary, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.left,
-            ),
-          ],
+      child: InkWell(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 10),
+          child: getItems(theme, widget.transaction),
         ),
+        onLongPress: () {
+          RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: widget.transaction);
+        },
       ),
     );
   }
 
-  Widget slideLeftBackground(Color errorColor) {
-    return Container(
-      color: errorColor.withOpacity(opacitySlide),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(' ${'Delete'.i18n}',
-                style: TextStyle(color: errorColor, fontWeight: FontWeight.w700), textAlign: TextAlign.right),
-            Icon(Icons.delete, color: errorColor),
-            paddingSlide,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getItem(ThemeData theme, Transaction transaction) {
+  Widget getItems(ThemeData theme, Transaction transaction) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,

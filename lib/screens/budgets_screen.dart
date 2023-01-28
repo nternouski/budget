@@ -11,6 +11,7 @@ import '../common/convert.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
 import '../components/empty_list.dart';
+import '../components/background_dismissible.dart';
 import '../model/budget.dart';
 import '../routes.dart';
 
@@ -117,95 +118,96 @@ class BudgetItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Dismissible(
+      key: Key(budget.id),
+      background: const BackgroundDeleteDismissible(),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        return showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                content: Text('Are you sure you want to delete?'.i18n),
+                actions: <Widget>[
+                  buttonCancelContext(context),
+                  ElevatedButton(
+                    style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                    child: Text('Delete'.i18n),
+                    onPressed: () {
+                      budgetRx.delete(budget.id, userId);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            });
+      },
+      child: InkWell(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 8, top: 8, left: widthPaddingValue, right: widthPaddingValue),
+          child: getItems(context),
+        ),
+        onLongPress: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateBudgets, param: budget),
+      ),
+    );
+  }
+
+  getItems(BuildContext context) {
     final theme = Theme.of(context);
     double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
     Control control = Control.playFromStart;
 
     int daysLeft = budget.initialDate.add(Duration(days: budget.period)).difference(DateTime.now()).inDays;
-    return Dismissible(
-      key: Key(budget.id),
-      background: slideRightBackground(theme.colorScheme.primary),
-      secondaryBackground: slideLeftBackground(theme.colorScheme.error),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          final bool res = await showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  content: Text('Are you sure you want to delete?'.i18n),
-                  actions: <Widget>[
-                    buttonCancelContext(context),
-                    ElevatedButton(
-                      style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                      child: Text('Delete'.i18n),
-                      onPressed: () {
-                        budgetRx.delete(budget.id, userId);
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              });
-          return res;
-        } else {
-          RouteApp.redirect(context: context, url: URLS.createOrUpdateBudgets, param: budget);
-        }
-        return null;
-      },
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 8, top: 8, left: widthPaddingValue, right: widthPaddingValue),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(Convert.capitalize(budget.name), style: theme.textTheme.titleMedium),
-                Text(
-                  daysLeft <= 0 ? 'Finished'.i18n : '%d days left'.plural(daysLeft),
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
+            Text(Convert.capitalize(budget.name), style: theme.textTheme.titleMedium),
+            Text(
+              daysLeft <= 0 ? 'Finished'.i18n : '%d days left'.plural(daysLeft),
+              style: theme.textTheme.bodyMedium,
             ),
-            heightPadding,
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('BALANCE: ${budget.balance.prettier(withSymbol: true)}', style: theme.textTheme.bodyMedium),
-                Text('$porcentaje %', style: theme.textTheme.titleMedium),
-              ],
-            ),
-            heightPadding,
-            heightPadding,
-            Stack(
-              children: [
-                Container(
-                  width: sizeBar,
-                  height: 10,
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(3), color: Colors.grey.withOpacity(0.3)),
-                ),
-                CustomAnimationBuilder<double>(
-                  control: control,
-                  tween: Tween<double>(begin: 0.0, end: porcentaje > 0 ? sizeBar * (porcentaje / 100) : 0),
-                  duration: const Duration(microseconds: 1500),
-                  builder: (context, value, child) {
-                    return Container(
-                      width: value,
-                      height: 10,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
-                    );
-                  },
-                ),
-              ],
-            )
           ],
         ),
-      ),
+        heightPadding,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('BALANCE: ${budget.balance.prettier(withSymbol: true)}', style: theme.textTheme.bodyMedium),
+            Text('$porcentaje %', style: theme.textTheme.titleMedium),
+          ],
+        ),
+        heightPadding,
+        heightPadding,
+        Stack(
+          children: [
+            Container(
+              width: sizeBar,
+              height: 10,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: Colors.grey.withOpacity(0.3)),
+            ),
+            CustomAnimationBuilder<double>(
+              control: control,
+              tween: Tween<double>(begin: 0.0, end: porcentaje > 0 ? sizeBar * (porcentaje / 100) : 0),
+              duration: const Duration(microseconds: 1500),
+              builder: (context, value, child) {
+                return Container(
+                  width: value,
+                  height: 10,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color),
+                );
+              },
+            ),
+          ],
+        )
+      ],
     );
   }
 }

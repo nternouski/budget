@@ -56,6 +56,12 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   final sizedBoxHeight = const SizedBox(height: 20);
 
   @override
+  void dispose() {
+    dateController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final b = ModalRoute.of(context)!.settings.arguments as Budget?;
     if (b != null) {

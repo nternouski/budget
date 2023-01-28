@@ -140,37 +140,43 @@ class ProfileSettings extends AbstractSettingsSection {
                   onChanged: (String email) => user.email = email,
                 ),
                 sizedBoxHeight,
-                TextFormField(
-                  initialValue: user.initialAmount.toString(),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                  decoration: InputStyle.inputDecoration(
-                    labelTextStr: 'Initial Amount'.i18n,
-                    hintTextStr: '0',
-                    prefix: Text('${user.defaultCurrency.symbol} \$ '),
+                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  if (user.superUser)
+                    Expanded(
+                      child: SelectCurrency(
+                        initialCurrencyId: user.defaultCurrency.id,
+                        labelText: 'Default Currency'.i18n,
+                        onSelect: (selected) async {
+                          var confirm = await _confirm(
+                            context,
+                            '${'The new default currency will be'.i18n} ${selected.name}',
+                          );
+                          if (confirm == true) {
+                            await UserService()
+                                .updateCurrency(user, selected, currencyRates)
+                                .catchError((err) => HandlerError().setError(err.toString()));
+                            setStateBottomSheet(() {});
+                            setState(() {});
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                    ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: user.initialAmount.toString(),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                      decoration: InputStyle.inputDecoration(
+                        labelTextStr: 'Initial Amount'.i18n,
+                        hintTextStr: '',
+                        prefix: const Text('\$ '),
+                      ),
+                      validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+                      onChanged: (String value) => user.initialAmount = double.parse(value != '' ? value : '0'),
+                    ),
                   ),
-                  validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-                  onChanged: (String value) => user.initialAmount = double.parse(value != '' ? value : '0'),
-                ),
-                if (user.superUser)
-                  SelectCurrency(
-                    initialCurrencyId: user.defaultCurrency.id,
-                    labelText: '${'Update'.i18n} ${'Default Currency'.i18n}',
-                    onSelect: (selected) async {
-                      var confirm = await _confirm(
-                        context,
-                        '${'The new default currency will be'.i18n} ${selected.name}',
-                      );
-                      if (confirm == true) {
-                        await UserService()
-                            .updateCurrency(user, selected, currencyRates)
-                            .catchError((err) => HandlerError().setError(err.toString()));
-                        setStateBottomSheet(() {});
-                        setState(() {});
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
+                ]),
                 sizedBoxHeight,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -122,6 +122,23 @@ final screens = Translations('en') +
     {'en': 'Days reminder', 'es': 'Dias restantes'} +
     {'en': 'Start Date Plan', 'es': 'Inicio del Plan'} +
 
+    // expense_prediction_screen
+    {'en': 'Item', 'es': 'Registro'} +
+    {'en': 'Group', 'es': 'Grupo'} +
+    {'en': 'List', 'es': 'Lista'} +
+    {'en': 'Durations (Days)', 'es': 'Duración (Días)'} +
+    {
+      'en': '%d days'.zero('%d days').one('%d day').many('%d days'),
+      'es': '%d días'.zero('%d días').one('%d día').many('%d días')
+    } +
+    {
+      'en': 'in %d days '.zero('in %d days ').one('in %d day  ').many('in %d days '),
+      'es': 'en %d días '.zero('en %d días ').one('en %d día  ').many('en %d días ')
+    } +
+    {'en': 'Empty List', 'es': 'Lista vacía'} +
+    {'en': 'Prediction ON', 'es': 'Predicción Activada'} +
+    {'en': 'Prediction OFF', 'es': 'Predicción Desactivada'} +
+
     // onboarding
     {'en': 'First you must set a default currency.', 'es': 'Primero debes seleccionar una moneda'} +
     {'en': 'First you must set a email and password.', 'es': 'Primero debes seleccionar agregar email y contraseña'} +
@@ -165,7 +182,6 @@ final screens = Translations('en') +
     {'en': 'That will affect the graphics and stats', 'es': 'Esto afectará gráficos y las estadísticas'} +
     {'en': 'Choose Language', 'es': 'Elegir Idioma'} +
     {'en': 'Language', 'es': 'Idioma'} +
-    {'en': 'System', 'es': 'Sistema'} +
     {'en': 'Period of Analytics', 'es': 'Periodo de Análisis'} +
     {'en': 'Auth With Biometric', 'es': 'Autentificar con Huella'} +
     {'en': 'Dark Theme', 'es': 'Modo Oscuro'} +
