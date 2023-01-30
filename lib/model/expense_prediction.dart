@@ -1,3 +1,4 @@
+import '../model/currency.dart';
 import '../common/classes.dart';
 import '../common/convert.dart';
 
@@ -126,13 +127,15 @@ class ExpensePrediction<T extends ExpensePredictionGroup> implements ModelCommon
   late DateTime createdAt;
   String name;
   String currencyId;
+  Currency? currency;
   List<T> groups;
 
   ExpensePrediction({
     required this.id,
     required this.name,
     required this.groups,
-    required this.currencyId,
+    this.currencyId = '',
+    this.currency,
     DateTime? createdAt,
   }) {
     this.createdAt = createdAt ?? DateTime.now();

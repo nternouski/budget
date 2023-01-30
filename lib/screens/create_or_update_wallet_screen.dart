@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
-import '../common/error_handler.dart';
 import '../server/database/wallet_rx.dart';
 import '../common/icon_helper.dart';
 import '../components/select_currency.dart';
@@ -25,13 +24,32 @@ class CreateOrUpdateWalletScreen extends StatefulWidget {
 final now = DateTime.now();
 
 class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
-  HandlerError handlerError = HandlerError();
-
   Wallet wallet = defaultWallet.copy();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final decimalInitialAmountFocusNode = FocusNode();
+  final decimalInitialAmountController = TextEditingController(text: '0');
   final sizedBoxHeight = const SizedBox(height: 20);
+
+  @override
+  void initState() {
+    super.initState();
+    decimalInitialAmountFocusNode.addListener(() {
+      double? decimal = double.tryParse(decimalInitialAmountController.text);
+      if (decimalInitialAmountFocusNode.hasFocus) {
+        if (decimal != null && decimal == 0.0) decimalInitialAmountController.text = '';
+      } else {
+        if (decimal == null) decimalInitialAmountController.text = '0';
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    decimalInitialAmountController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +59,8 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     final action = wallet.id == '' ? Action.create : Action.update;
     final title = wallet.id == '' ? '${'Create'.i18n} ${'Wallet'.i18n}' : 'Update'.i18n;
     final textTheme = Theme.of(context).textTheme;
+    decimalInitialAmountController.text = wallet.initialAmount.toString();
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -59,18 +79,18 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   Widget buildAmount(Action action) {
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Expanded(
-        child: SelectCurrency(
-          initialCurrencyId: wallet.currencyId,
-          onSelect: (c) => setState(() {
-            wallet.currencyId = c.id;
+        child: SelectCurrencyFormField(
+          initialValue: wallet.currency,
+          onSaved: (c) {
+            wallet.currencyId = c?.id ?? '';
             wallet.currency = c;
-          }),
-          disabled: action == Action.update,
+          },
+          enabled: action != Action.update,
         ),
       ),
       Expanded(
         child: TextFormField(
-          initialValue: wallet.initialAmount.toString(),
+          controller: decimalInitialAmountController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
           decoration: InputStyle.inputDecoration(
@@ -78,6 +98,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             hintTextStr: '',
             prefix: const Text('\$ '),
           ),
+          focusNode: decimalInitialAmountFocusNode,
           validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           onSaved: (String? value) => wallet.initialAmount = double.parse(value!),
         ),
@@ -131,7 +152,6 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             onPressed: () {
               if (!_formKey.currentState!.validate()) return;
               _formKey.currentState!.save();
-              if (wallet.currency == null) return handlerError.setError('${'Currency'.i18n} ${'Is Required'.i18n}.');
 
               if (action == Action.create) {
                 walletRx.create(wallet, user.uid);

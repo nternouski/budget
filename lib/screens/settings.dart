@@ -64,7 +64,6 @@ class SettingsScreenState extends State<SettingsScreen> {
               }
               return SettingsList(
                 shrinkWrap: true,
-                contentPadding: const EdgeInsets.only(left: 20, right: 20),
                 physics: const BouncingScrollPhysics(),
                 lightTheme: SettingsThemeData(
                   settingsListBackground: theme.scaffoldBackgroundColor,

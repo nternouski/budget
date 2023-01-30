@@ -34,8 +34,8 @@ class ProfileSettings extends AbstractSettingsSection {
             title: Text('Name'.i18n),
             value: Text(name),
             onPressed: (context) => showModalBottomSheet(
-              enableDrag: true,
               context: context,
+              isScrollControlled: true,
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
               clipBehavior: Clip.antiAliasWithSaveLayer,
               builder: (BuildContext context) => BottomSheet(
@@ -50,8 +50,8 @@ class ProfileSettings extends AbstractSettingsSection {
             title: const Text('Email'),
             value: Text(email),
             onPressed: (context) => showModalBottomSheet(
-              enableDrag: true,
               context: context,
+              isScrollControlled: true,
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
               clipBehavior: Clip.antiAliasWithSaveLayer,
               builder: (BuildContext context) => BottomSheet(
@@ -66,8 +66,8 @@ class ProfileSettings extends AbstractSettingsSection {
             title: Text('Initial Amount'.i18n),
             value: Text(defaultCurrency),
             onPressed: (context) => showModalBottomSheet(
-              enableDrag: true,
               context: context,
+              isScrollControlled: true,
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
               clipBehavior: Clip.antiAliasWithSaveLayer,
               builder: (BuildContext context) => BottomSheet(
@@ -143,10 +143,11 @@ class ProfileSettings extends AbstractSettingsSection {
                 Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   if (user.superUser)
                     Expanded(
-                      child: SelectCurrency(
-                        initialCurrencyId: user.defaultCurrency.id,
+                      child: SelectCurrencyFormField(
+                        initialValue: user.defaultCurrency,
                         labelText: 'Default Currency'.i18n,
-                        onSelect: (selected) async {
+                        onChange: (selected) async {
+                          if (selected == null) return;
                           var confirm = await _confirm(
                             context,
                             '${'The new default currency will be'.i18n} ${selected.name}',

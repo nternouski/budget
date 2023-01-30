@@ -106,7 +106,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           activeColor: theme.colorScheme.primary,
           splashColor: theme.colorScheme.primary,
           backgroundColor: backgroundColor,
-          inactiveColor: theme.disabledColor,
+          inactiveColor: theme.hintColor.withOpacity(0.2),
           icons: footer.map((f) => f.icon).toList(),
           activeIndex: pageIndex,
           gapLocation: GapLocation.center,

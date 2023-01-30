@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 
 import '../i18n/index.dart';
 import '../common/styles.dart';
@@ -26,12 +28,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
   String userId = '';
   bool docChanged = false;
   bool init = true;
-  var prediction = ExpensePrediction<ExpensePredictionGroupTotal>(
-    id: defaultPredictionId,
-    name: '',
-    groups: [],
-    currencyId: '',
-  );
+  var prediction = ExpensePrediction<ExpensePredictionGroupTotal>(id: defaultPredictionId, name: '', groups: []);
 
   final _burgerSeparator = const SizedBox(width: 30);
   final ScrollController _scrollController = ScrollController();
@@ -60,10 +57,14 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
 
     if (temp.isNotEmpty && init) {
       init = false;
+      List<Currency> currencies = List.from(Provider.of<List<Currency>>(context));
+
+      var currencyId = temp[0].currencyId == '' ? user.defaultCurrency.id : temp[0].currencyId;
       prediction = ExpensePrediction<ExpensePredictionGroupTotal>(
         id: temp[0].id,
         name: temp[0].name,
-        currencyId: temp[0].currencyId == '' ? user.defaultCurrency.id : temp[0].currencyId,
+        currencyId: currencyId,
+        currency: currencies.firstWhereOrNull((c) => c.id == currencyId),
         groups: temp[0].groups.map((g) => ExpensePredictionGroupTotal.fromExpensePredictionGroup(g, period)).toList(),
         createdAt: temp[0].createdAt,
       );
@@ -82,11 +83,17 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         leading: getBackButton(context),
         title: Text('Expense Simulation'.i18n),
         actions: [
-          SelectCurrency(
-            initialCurrencyId: prediction.currencyId,
-            onSelect: (selected) {
+          SelectCurrencyFormField(
+            key: Key(Random().nextDouble().toString()),
+            initialValue: prediction.currency,
+            onChange: (selected) {
               docChanged = true;
-              return setState(() => prediction.currencyId = selected.id);
+              if (selected != null) {
+                setState(() {
+                  prediction.currencyId = selected.id;
+                  prediction.currency = selected;
+                });
+              }
             },
           ),
           IconButton(
@@ -220,18 +227,19 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             ),
             onTap: () => setState(() => item.check = !item.check),
             onLongPress: () => showModalBottomSheet(
-                enableDrag: true,
-                context: context,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                builder: (BuildContext context) {
-                  _updateItem = group.items[index];
-                  return BottomSheet(
-                    enableDrag: false,
-                    onClosing: () {},
-                    builder: (_) => _bottomSheetItem(group, index),
-                  );
-                }),
+              context: context,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              builder: (BuildContext context) {
+                _updateItem = group.items[index];
+                return BottomSheet(
+                  enableDrag: false,
+                  onClosing: () {},
+                  builder: (_) => _bottomSheetItem(group, index),
+                );
+              },
+            ),
           ),
         ),
       );
@@ -256,8 +264,8 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         onTap: () async {
           _updateItem = _updateItem.copyWith(name: '', amount: 0.0, days: 7, check: true);
           return showModalBottomSheet(
-            enableDrag: true,
             context: context,
+            isScrollControlled: true,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
             clipBehavior: Clip.antiAliasWithSaveLayer,
             builder: (BuildContext context) => BottomSheet(
@@ -351,68 +359,65 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     const sizedBoxHeight = SizedBox(height: 20);
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              TextFormField(
-                initialValue: _updateItem.name,
-                autofocus: true,
-                decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
-                inputFormatters: [LengthLimitingTextInputFormatter(25)],
-                validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
-                onChanged: (String name) => _updateItem.name = name,
-              ),
-              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: _updateItem.amount.toString(),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                    decoration: InputStyle.inputDecoration(
-                      labelTextStr: 'Amount'.i18n,
-                      hintTextStr: '0',
-                      prefix: const Text('\$ '),
-                    ),
-                    validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-                    onChanged: (String value) => _updateItem.amount = double.parse(value != '' ? value : '0'),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 20, right: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            TextFormField(
+              initialValue: _updateItem.name,
+              autofocus: true,
+              decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+              inputFormatters: [LengthLimitingTextInputFormatter(25)],
+              validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
+              onChanged: (String name) => _updateItem.name = name,
+            ),
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                child: TextFormField(
+                  initialValue: _updateItem.amount.toString(),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                  decoration: InputStyle.inputDecoration(
+                    labelTextStr: 'Amount'.i18n,
+                    hintTextStr: '0',
+                    prefix: const Text('\$ '),
                   ),
+                  validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+                  onChanged: (String value) => _updateItem.amount = double.parse(value != '' ? value : '0'),
                 ),
-                Expanded(
-                  child: TextFormField(
-                    initialValue: _updateItem.days.toString(),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                    decoration: InputStyle.inputDecoration(labelTextStr: 'Durations (Days)'.i18n, hintTextStr: '0'),
-                    validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-                    onChanged: (String value) => _updateItem.days = int.parse(value != '' ? value : '0'),
-                  ),
+              ),
+              Expanded(
+                child: TextFormField(
+                  initialValue: _updateItem.days.toString(),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                  decoration: InputStyle.inputDecoration(labelTextStr: 'Durations (Days)'.i18n, hintTextStr: '0'),
+                  validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+                  onChanged: (String value) => _updateItem.days = int.parse(value != '' ? value : '0'),
                 ),
-              ]),
-              sizedBoxHeight,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  buttonCancelContext(context),
-                  ElevatedButton(
-                    child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
-                    onPressed: () {
-                      if (index == -1) group.items.add(_updateItem.copyWith());
-                      setState(() {});
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              )
-            ],
-          ),
+              ),
+            ]),
+            sizedBoxHeight,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                buttonCancelContext(context),
+                ElevatedButton(
+                  child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
+                  onPressed: () {
+                    if (index == -1) group.items.add(_updateItem.copyWith());
+                    setState(() {});
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );
@@ -424,45 +429,42 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
 
     return SingleChildScrollView(
         child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${create ? 'Create'.i18n : 'Update'.i18n} ${'Group'.i18n}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            TextFormField(
-              autofocus: true,
-              initialValue: group.name,
-              decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z1-9  ]')),
-                LengthLimitingTextInputFormatter(25)
-              ],
-              validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
-              onChanged: (String name) => group.name = name,
-            ),
-            sizedBoxHeight,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                buttonCancelContext(context),
-                ElevatedButton(
-                  child: Text(create ? 'Create'.i18n : 'Update'.i18n),
-                  onPressed: () {
-                    if (create) prediction.groups.add(group.copyWith(period: period));
-                    setState(() {});
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            )
-          ],
-        ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 20, right: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${create ? 'Create'.i18n : 'Update'.i18n} ${'Group'.i18n}',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          TextFormField(
+            autofocus: true,
+            initialValue: group.name,
+            decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp('[a-zA-Z1-9  ]')),
+              LengthLimitingTextInputFormatter(25)
+            ],
+            validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
+            onChanged: (String name) => group.name = name,
+          ),
+          sizedBoxHeight,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              buttonCancelContext(context),
+              ElevatedButton(
+                child: Text(create ? 'Create'.i18n : 'Update'.i18n),
+                onPressed: () {
+                  if (create) prediction.groups.add(group.copyWith(period: period));
+                  setState(() {});
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          )
+        ],
       ),
     ));
   }

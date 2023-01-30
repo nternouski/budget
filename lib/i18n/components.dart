@@ -49,4 +49,5 @@ final components = Translations('en') +
 
     // select_currency
     {'en': 'No Currency by the moment.', 'es': 'No hay moneda por le momento'} +
+    {'en': 'No Currency', 'es': 'No hay moneda'} +
     {'en': 'Select Currency', 'es': 'Seleccionar'};

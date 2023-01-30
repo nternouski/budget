@@ -62,10 +62,10 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   );
   String title = '${'Create'.i18n} ${'Transaction'.i18n}';
   Action action = Action.create;
-  final ValueNotifier _showMoreField = ValueNotifier<bool>(false);
-  final TextEditingController dateController = TextEditingController(text: '');
-  final TextEditingController timeController = TextEditingController(text: '');
-  final TextEditingController decimalAmountController = TextEditingController(text: '0');
+  final _showMoreField = ValueNotifier<bool>(false);
+  final dateController = TextEditingController(text: '');
+  final timeController = TextEditingController(text: '');
+  final decimalAmountController = TextEditingController(text: '0');
   final decimalAmountFocusNode = FocusNode();
 
   final List<PopupMenuItem<TransactionType>> types = TransactionType.values
@@ -515,10 +515,6 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
-
-                if (transaction.name.isEmpty) {
-                  return handlerError.setError('The name must not be empty.'.i18n);
-                }
 
                 if (transaction.walletFromId == '' || walletFromSelected == null) {
                   return handlerError.setError('You must choice a wallet first.'.i18n);

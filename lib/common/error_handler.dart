@@ -36,12 +36,12 @@ class HandlerError {
     _data.notifyListeners();
   }
 
-  showError(BuildContext context) {
-    String? text = _data.value?.text;
+  void showError(BuildContext context, {String? text}) {
+    String? value = _data.value?.text ?? text;
     String? actionLabel = _data.value?.actionLabel;
     Function? actionCallback = _data.value?.actionCallback;
 
-    if (text != null) {
+    if (value != null) {
       final theme = Theme.of(context);
       Color textColor = theme.colorScheme.onError;
       SnackBarAction? action;
@@ -51,7 +51,7 @@ class HandlerError {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: theme.colorScheme.error,
-          content: Text(text, style: TextStyle(color: textColor)),
+          content: Text(value, style: TextStyle(color: textColor)),
           duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
           action: action,

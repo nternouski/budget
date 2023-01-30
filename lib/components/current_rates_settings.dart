@@ -79,8 +79,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 )
               ]),
               onPressed: (context) => showModalBottomSheet(
-                enableDrag: true,
                 context: context,
+                isScrollControlled: true,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
                 clipBehavior: Clip.antiAliasWithSaveLayer,
                 builder: (BuildContext context) => BottomSheet(
@@ -102,8 +102,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
             InkWell(
               child: const Icon(Icons.add),
               onTap: () => showModalBottomSheet(
-                enableDrag: true,
                 context: context,
+                isScrollControlled: true,
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
                 clipBehavior: Clip.antiAliasWithSaveLayer,
                 builder: (BuildContext context) => BottomSheet(
@@ -122,8 +122,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
         bool notExist = currencyRates.notExist(rate.currencyFrom, rate.currencyTo);
-
-        bool differentCurrency = rate.currencyFrom.id != rate.currencyTo.id;
+        bool differentCurrency =
+            rate.currencyFrom.id != rate.currencyTo.id && rate.currencyFrom.id != '' && rate.currencyTo.id != '';
         return SingleChildScrollView(
             child: Container(
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -139,16 +139,20 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
-                      child: SelectCurrency(
-                        initialCurrencyId: rate.currencyFrom.id,
-                        onSelect: (c) => setStateBottomSheet(() => rate.currencyFrom = c),
+                      child: SelectCurrencyFormField(
+                        initialValue: rate.currencyFrom,
+                        onChange: (c) {
+                          if (c != null) setStateBottomSheet(() => rate.currencyFrom = c);
+                        },
                         labelText: 'From Rate'.i18n,
                       ),
                     ),
                     Flexible(
-                      child: SelectCurrency(
-                        initialCurrencyId: rate.currencyTo.id,
-                        onSelect: (c) => setStateBottomSheet(() => rate.currencyTo = c),
+                      child: SelectCurrencyFormField(
+                        initialValue: rate.currencyTo,
+                        onChange: (c) {
+                          if (c != null) setStateBottomSheet(() => rate.currencyTo = c);
+                        },
                         labelText: 'To Rate'.i18n,
                       ),
                     )

@@ -66,9 +66,11 @@ class _OnBoardingState extends State<OnBoarding> {
               Padding(
                 padding: const EdgeInsets.only(left: 35, right: 35),
                 child: Column(children: [
-                  SelectCurrency(
-                    initialCurrencyId: defaultCurrency?.id ?? '',
-                    onSelect: (c) => setState(() => defaultCurrency = c),
+                  SelectCurrencyFormField(
+                    initialValue: defaultCurrency,
+                    onChange: (c) {
+                      setState(() => defaultCurrency = c);
+                    },
                   ),
                   const SizedBox(height: 15),
                   if (authOption == null)

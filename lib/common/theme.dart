@@ -28,6 +28,7 @@ class ThemeProvider extends ChangeNotifier {
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
     ),
+    cardTheme: CardTheme(elevation: 4, color: Colors.grey[50]),
     colorScheme: const ColorScheme.light().copyWith(
       primary: _primary,
       onPrimary: _white,
