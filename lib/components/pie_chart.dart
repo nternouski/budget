@@ -80,7 +80,7 @@ class StatsPieChartState extends State<StatsPieChart> {
                 borderData: FlBorderData(show: false),
                 sectionsSpace: 0,
                 centerSpaceRadius: 30,
-                sections: showingSections(pie),
+                sections: showingSections(theme, pie),
               ),
             ),
           ),
@@ -113,7 +113,7 @@ class StatsPieChartState extends State<StatsPieChart> {
     );
   }
 
-  List<PieChartSectionData> showingSections(List<PieCategory> pie) {
+  List<PieChartSectionData> showingSections(ThemeData theme, List<PieCategory> pie) {
     final List fixedList = Iterable<int>.generate(pie.length).toList();
 
     return fixedList.map((index) {
@@ -121,20 +121,18 @@ class StatsPieChartState extends State<StatsPieChart> {
       double porcentaje = pie[index].porcentaje;
 
       final isTouched = pieSliceSelected?.category.id == category.id;
-      final fontSize = isTouched ? 20.0 : 16.0;
       final radius = isTouched ? 90.0 : 80.0;
       final widgetSize = isTouched ? 52.0 : 42.0;
+
+      final font = (isTouched ? theme.textTheme.titleLarge : theme.textTheme.bodyLarge)
+          ?.copyWith(color: TextColor.getContrastOf(category.color));
 
       return PieChartSectionData(
         color: category.color,
         value: porcentaje,
         title: porcentaje > 3 ? '${porcentaje.round()}%' : '',
         radius: radius,
-        titleStyle: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          color: TextColor.getContrastOf(category.color),
-        ),
+        titleStyle: font,
         badgeWidget: porcentaje > 5 ? _Badge(category.icon, size: widgetSize, borderColor: category.color) : null,
         badgePositionPercentageOffset: 1,
       );

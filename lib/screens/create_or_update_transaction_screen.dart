@@ -183,14 +183,12 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildWallet(BuildContext context, String userId, List<Wallet> wallets, Color disabledColor, bool fromWallet) {
+  Widget buildWallet(BuildContext context, ThemeData theme, String userId, List<Wallet> wallets, Color disabledColor,
+      bool fromWallet) {
     return Column(
       children: [
         Row(children: [
-          Text(
-            fromWallet ? 'Choose From Wallet'.i18n : 'Choose To Wallet'.i18n,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+          Text(fromWallet ? 'Choose From Wallet'.i18n : 'Choose To Wallet'.i18n, style: theme.textTheme.subtitle1),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
@@ -200,7 +198,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [const SizedBox(height: 60), Text('No wallets by the moment.'.i18n)],
+            children: [const SizedBox(height: 60), Text('No wallets at the moment.'.i18n)],
           ),
         if (wallets.isNotEmpty)
           SingleChildScrollView(
@@ -238,7 +236,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     );
   }
 
-  Widget buildAmount() {
+  Widget buildAmount(ThemeData theme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,7 +251,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
               ],
-              style: const TextStyle(fontSize: 45, fontWeight: FontWeight.bold),
+              style: theme.textTheme.headline2!.copyWith(fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: '\$0',
@@ -276,7 +274,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
             textAlign: TextAlign.start,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headline5!.copyWith(fontWeight: FontWeight.bold),
             decoration: const InputDecoration(border: InputBorder.none, hintText: '00'),
             focusNode: decimalAmountFocusNode,
             onSaved: (String? value) {
@@ -416,7 +414,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(flex: 7, child: buildAmount()),
+                Flexible(flex: 7, child: buildAmount(theme)),
                 Flexible(
                   flex: 3,
                   child: PopupMenuButton<TransactionType>(
@@ -440,9 +438,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                           child: Center(
                             child: Text(
                               Convert.capitalize(transaction.type.toShortString()),
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
+                              style: theme.textTheme.titleMedium!.copyWith(
                                 color: colorsTypeTransaction[transaction.type],
                               ),
                             ),
@@ -462,9 +458,9 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 validator: (String? value) => num.tryParse(value ?? '')?.toDouble() == null ? 'Is Required'.i18n : null,
                 onSaved: (String? value) => transaction.fee = double.parse(value!),
               ),
-            buildWallet(context, user.id, wallets, theme.disabledColor, true),
+            buildWallet(context, theme, user.id, wallets, theme.disabledColor, true),
             if (transaction.type == TransactionType.transfer)
-              buildWallet(context, user.id, wallets, theme.disabledColor, false),
+              buildWallet(context, theme, user.id, wallets, theme.disabledColor, false),
             ChooseCategory(
               selected: [transaction.category],
               multi: false,

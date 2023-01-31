@@ -46,10 +46,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
       children: [
         Row(
           children: [
-            Text(
-              'Choose Category'.i18n,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-            ),
+            Text('Choose Category'.i18n, style: theme.textTheme.subtitle1),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),
@@ -75,7 +72,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [Text('No categories by the moment.'.i18n)],
+              children: [Text('No categories at the moment..'.i18n)],
             ),
           ),
       ],
@@ -150,7 +147,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
                   children: [
                     IconCircle(icon: categories[index].icon, color: categories[index].color),
                     const SizedBox(width: 5),
-                    Text(categories[index].name, style: const TextStyle(fontWeight: FontWeight.w500))
+                    Text(categories[index].name)
                   ],
                 ),
               ),

@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
+import '../common/theme.dart';
+import '../server/wise_api/wise_api.dart';
 import '../server/currency_rates_service.dart';
 import '../server/database/currency_rate_rx.dart';
 import '../model/currency.dart';
@@ -36,10 +37,55 @@ class CurrentRatesSettings extends AbstractSettingsSection {
     );
   }
 
+  Future<Rate?> _ratesDialog(BuildContext context, User user, CurrencyRate cr) {
+    String token = user.integrations[IntegrationType.wise] ?? '';
+
+    return showDialog<Rate>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Choice rates'.i18n),
+          content: FutureBuilder(
+              future: currencyRateApi.fetchRates(cr, token != '' ? WiseApi(token) : null),
+              builder: (_, AsyncSnapshot<List<Rate?>> snapshot) {
+                if (snapshot.data == null) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [Progress.getLoadingProgress(context: context)],
+                  );
+                } else {
+                  final rates = snapshot.data!.where((r) => r != null).toList() as List<Rate>;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${'We found %d new rates'.plural(rates.length)}.'),
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text('Do you want to update the rate?'.i18n),
+                      ),
+                      ...rates.map(
+                        (rate) => ElevatedButton(
+                          child: Text('${rate.provider}: ${rate.rate}'),
+                          onPressed: () => Navigator.pop(context, rate),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              }),
+          actions: <Widget>[buttonCancelContext(context)],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     CurrencyRate newCurrencyRate = CurrencyRate.init();
-    auth.User user = Provider.of<auth.User>(context);
+    final user = Provider.of<User>(context) as User?;
+    if (user == null) return const Text('Not User');
 
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
     final List<SettingsTile> tiles = [];
@@ -58,14 +104,10 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 IconButton(
                   icon: const Icon(Icons.sync_alt),
                   onPressed: () async {
-                    final rate = await currencyRateApi.fetchRate(cr);
-                    final res = await _confirm(
-                      context,
-                      '${'We found a new rate.'.i18n} ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol}: \$$rate. ${'Update Currency Rate?'.i18n}',
-                    );
-                    if (res == true) {
-                      cr.rate = rate;
-                      await currencyRateRx.update(cr, user.uid);
+                    final selected = await _ratesDialog(context, user, cr);
+                    if (selected != null) {
+                      cr.rate = selected.rate;
+                      await currencyRateRx.update(cr, user.id);
                     }
                   },
                 ),
@@ -74,7 +116,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   onPressed: () async {
                     final res =
                         await _confirm(context, '${'Delete'.i18n} ${cr.currencyFrom.symbol}-${cr.currencyTo.symbol} ?');
-                    if (res == true) await currencyRateRx.delete(cr.id, user.uid);
+                    if (res == true) await currencyRateRx.delete(cr.id, user.id);
                   },
                 )
               ]),
@@ -86,7 +128,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 builder: (BuildContext context) => BottomSheet(
                   enableDrag: false,
                   onClosing: () {},
-                  builder: (BuildContext context) => _bottomSheet(cr, true, currencyRates, user.uid),
+                  builder: (BuildContext context) => _bottomSheet(theme, cr, true, currencyRates, user.id),
                 ),
               ),
             ),
@@ -98,7 +140,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Currency Rates'.i18n, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+            Text('Currency Rates'.i18n, style: theme.textTheme.subtitle1!.copyWith(color: theme.colorScheme.primary)),
             InkWell(
               child: const Icon(Icons.add),
               onTap: () => showModalBottomSheet(
@@ -109,7 +151,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 builder: (BuildContext context) => BottomSheet(
                   enableDrag: false,
                   onClosing: () {},
-                  builder: (BuildContext context) => _bottomSheet(newCurrencyRate, false, currencyRates, user.uid),
+                  builder: (BuildContext context) =>
+                      _bottomSheet(theme, newCurrencyRate, false, currencyRates, user.id),
                 ),
               ),
             )
@@ -118,7 +161,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
     );
   }
 
-  _bottomSheet(CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, String userId) {
+  _bottomSheet(ThemeData theme, CurrencyRate rate, bool update, List<CurrencyRate> currencyRates, String userId) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setStateBottomSheet) {
         bool notExist = currencyRates.notExist(rate.currencyFrom, rate.currencyTo);
@@ -133,8 +176,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(update ? 'Update'.i18n : 'Create'.i18n,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(update ? 'Update'.i18n : 'Create'.i18n, style: theme.textTheme.titleLarge),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -162,7 +204,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 TextFormField(
                   initialValue: rate.rate.toString(),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,4}'))],
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Rate', hintTextStr: '0'),
                   onChanged: (String value) => rate.rate = double.parse(value != '' ? value : '0.0'),
                 ),

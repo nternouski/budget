@@ -147,7 +147,8 @@ class StatsScreenState extends State<StatsScreen> {
                                               shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
                                         ),
                                         const SizedBox(width: 5),
-                                        Text(Convert.capitalize(e.key.toShortString()))
+                                        Text(Convert.capitalize(e.key.toShortString()),
+                                            style: theme.textTheme.bodyLarge)
                                       ],
                                     ),
                                   ),
@@ -221,6 +222,8 @@ class _Indicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: () => onTap(!isSelected, category.id),
       child: Container(
@@ -239,7 +242,7 @@ class _Indicator extends StatelessWidget {
                 decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
               ),
               const SizedBox(width: 5),
-              Text(category.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+              Text(category.name, style: theme.textTheme.bodyLarge)
             ],
           ),
         ),

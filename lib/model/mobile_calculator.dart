@@ -19,6 +19,7 @@ class PlanData extends _PlanData {
 
 List<PlanData> plans = [
   _PlanData(50, 28, PlanId.p50),
+  _PlanData(40, 28, PlanId.p30),
   _PlanData(30, 28, PlanId.p30),
 ]
     .map((plan) => PlanData(plan.gb, plan.totalDays, plan.planId, '${plan.gb}Gb Pre-Paid | ${plan.totalDays} days'))

@@ -26,7 +26,7 @@ class BackgroundEditDismissible extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               action ?? ' ${'Edit'.i18n}',
-              style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
+              style: theme.textTheme.bodyLarge!.copyWith(color: theme.colorScheme.primary),
               textAlign: TextAlign.left,
             ),
           ],
@@ -55,7 +55,7 @@ class BackgroundDeleteDismissible extends StatelessWidget {
             children: [
               Text(
                 ' ${'Delete'.i18n}',
-                style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.w700),
+                style: theme.textTheme.bodyLarge!.copyWith(color: theme.colorScheme.error),
                 textAlign: TextAlign.right,
               ),
               const SizedBox(width: 10),

@@ -45,7 +45,7 @@ class BudgetsScreenState extends State<BudgetsScreen> {
             ),
             if (budgets.isEmpty)
               SliverToBoxAdapter(
-                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets by the moment.'.i18n),
+                child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets at the moment..'.i18n),
               ),
             if (budgets.isNotEmpty)
               SliverToBoxAdapter(
@@ -77,47 +77,10 @@ class BudgetItem extends StatelessWidget {
 
   const BudgetItem({Key? key, required this.budget, required this.userId}) : super(key: key);
 
-  Widget slideRightBackground(Color primary) {
-    return Container(
-      color: primary.withOpacity(opacitySlide),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(width: widthPaddingValue),
-            Icon(Icons.edit, color: primary),
-            Text(' ${'Edit'.i18n}',
-                style: TextStyle(color: primary, fontWeight: FontWeight.w700), textAlign: TextAlign.left),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget slideLeftBackground(Color errorColor) {
-    return Container(
-      color: errorColor.withOpacity(opacitySlide),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              ' ${'Delete'.i18n}',
-              style: TextStyle(color: errorColor, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.right,
-            ),
-            Icon(Icons.delete, color: errorColor),
-            SizedBox(width: widthPaddingValue),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Dismissible(
       key: Key(budget.id),
       background: const BackgroundDeleteDismissible(),
@@ -127,7 +90,7 @@ class BudgetItem extends StatelessWidget {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text(budget.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                title: Text(budget.name, style: theme.textTheme.bodyMedium),
                 content: Text('Are you sure you want to delete?'.i18n),
                 actions: <Widget>[
                   buttonCancelContext(context),

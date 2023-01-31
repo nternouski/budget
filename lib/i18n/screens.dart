@@ -9,11 +9,11 @@ final screens = Translations('en') +
     {'en': 'Are you sure you want to delete?', 'es': '¿Esta seguro de eliminarlo?'} +
     {'en': 'Is Required', 'es': 'Es Requerido'} +
     {'en': 'Date', 'es': 'Fecha'} +
-    {'en': 'No wallets by the moment.', 'es': 'No hay billeteras'} +
+    {'en': 'No wallets at the moment.', 'es': 'No hay billeteras'} +
 
     // budgets_screen
     {'en': 'Budgets', 'es': 'Presupuesto'} +
-    {'en': 'No budgets by the moment.', 'es': 'No hay presupuestos'} +
+    {'en': 'No budgets at the moment..', 'es': 'No hay presupuestos'} +
     {'en': 'Finished', 'es': 'Finalizado'} +
     {
       'en': '%d days left'.zero('%d days left').one('%d day left').many('%d days left'),
@@ -211,7 +211,7 @@ final screens = Translations('en') +
     {'en': 'Currency', 'es': 'Total'} +
 
     // wallets_screen
-    {'en': 'No wallets by the moment.', 'es': 'No hay billeteras por el momento'} +
+    {'en': 'No wallets at the moment.', 'es': 'No hay billeteras por el momento'} +
     {'en': 'Wallets', 'es': 'Billetera'} +
     {'en': 'Re calculate Wallets', 'es': 'Re-calcular billetera'} +
     {

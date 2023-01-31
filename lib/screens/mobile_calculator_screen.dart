@@ -28,6 +28,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   final sizedBoxHeight = const SizedBox(height: 15);
 
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(now));
   final mobileDataFormFields = MobileDataFormFields(now, plans[0], 0);
   MobileCalculatorScreenState();
 
@@ -38,26 +39,8 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     final form = Form(
       key: _formKey,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        buildSelectPlan(),
-        buildDateField(),
-        TextFormField(
-          decoration: InputDecoration(labelText: 'Data Spent'.i18n, hintText: '0', suffix: const Text('Mb')),
-          validator: (value) {
-            final int? spentDataMb = int.tryParse(value!);
-            if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {
-              return null;
-            } else {
-              return '${'Please enter your a value grater than'.i18n} $SPENT_DATE_MB_MIN.';
-            }
-          },
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onSaved: (value) {
-            final int? spentDataMb = int.tryParse(value!);
-            if (spentDataMb != null && spentDataMb != mobileDataFormFields.spentDataMb) {
-              setState(() => mobileDataFormFields.spentDataMb = spentDataMb);
-            }
-          },
-        ),
+        _buildSelectPlan(),
+        _buildDateAndDataField(theme),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
           child: ElevatedButton(
@@ -96,7 +79,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     );
   }
 
-  Widget buildSelectPlan() {
+  Widget _buildSelectPlan() {
     return InputDecorator(
       decoration: InputDecoration(labelText: 'Select Plan'.i18n),
       child: DropdownButtonHideUnderline(
@@ -153,20 +136,16 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
     );
   }
 
-  final TextEditingController _dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(now));
-  Widget buildDateField() {
+  Widget _buildDateAndDataField(ThemeData theme) {
     const formatDate = 'dd/MM/yyyy';
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Flexible(
-          child: TextFormField(
-            controller: _dateController,
-            decoration: InputDecoration(
-              labelText: 'Start Date Plan'.i18n,
-              suffixIcon: const Icon(Icons.calendar_today),
-              hintText: 'Search'.i18n,
-            ),
+          fit: FlexFit.tight,
+          child: InkWell(
             onTap: () async {
+              FocusScope.of(context).requestFocus(FocusNode());
               final DateTime? picked = await showDatePicker(
                 context: context,
                 initialDate: mobileDataFormFields.startDate,
@@ -180,7 +159,40 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
               }
               _dateController.text = DateFormat(formatDate).format(mobileDataFormFields.startDate);
             },
-            validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Icon(Icons.edit_calendar_rounded),
+                  const SizedBox(width: 10),
+                  Text(_dateController.text, style: theme.textTheme.titleMedium)
+                ]),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          fit: FlexFit.tight,
+          child: TextFormField(
+            initialValue: mobileDataFormFields.spentDataMb.toString(),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Data Spent'.i18n, hintText: '0', suffix: const Text('Mb')),
+            validator: (value) {
+              final int? spentDataMb = int.tryParse(value!);
+              if (spentDataMb != null && spentDataMb > SPENT_DATE_MB_MIN) {
+                return null;
+              } else {
+                return '${'Please enter your a value grater than'.i18n} $SPENT_DATE_MB_MIN.';
+              }
+            },
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onSaved: (value) {
+              final int? spentDataMb = int.tryParse(value!);
+              if (spentDataMb != null && spentDataMb != mobileDataFormFields.spentDataMb) {
+                setState(() => mobileDataFormFields.spentDataMb = spentDataMb);
+              }
+            },
           ),
         ),
       ],

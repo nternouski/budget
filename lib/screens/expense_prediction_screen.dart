@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:budget/components/expense_prediction_widget.dart';
 import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +31,6 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
   bool init = true;
   var prediction = ExpensePrediction<ExpensePredictionGroupTotal>(id: defaultPredictionId, name: '', groups: []);
 
-  final _burgerSeparator = const SizedBox(width: 30);
   final ScrollController _scrollController = ScrollController();
   var _updateItem = ExpensePredictionItem(name: '', amount: 0, days: 7, check: true);
 
@@ -114,10 +114,11 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         ],
       ),
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         controller: _scrollController,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+            padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
             sliver: DragAndDropLists(
               children: List.generate(prediction.groups.length, (index) => _getListGroup(context, theme, index)),
               sliverList: true,
@@ -125,7 +126,10 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               onItemReorder: _onItemReorder,
               onListReorder: _onListReorder,
               itemDivider: const Divider(thickness: 2, height: 2),
-              itemDecorationWhileDragging: BoxDecoration(color: theme.backgroundColor),
+              itemDecorationWhileDragging: BoxDecoration(
+                color: theme.backgroundColor,
+                borderRadius: const BorderRadius.all(Radius.circular(6)),
+              ),
               listInnerDecoration: BoxDecoration(
                 color: theme.canvasColor,
                 borderRadius: const BorderRadius.all(Radius.circular(6)),
@@ -180,7 +184,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             builder: (BuildContext context) => BottomSheet(
               enableDrag: false,
               onClosing: () {},
-              builder: (BuildContext context) => _bottomSheetGroup(group),
+              builder: (BuildContext context) => _bottomSheetGroup(theme, group),
             ),
           );
         },
@@ -192,40 +196,19 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
   }
 
   DragAndDropList _getListGroup(BuildContext context, ThemeData theme, int index) {
-    var titleColor = theme.textTheme.titleMedium?.color;
     ExpensePredictionGroupTotal group = prediction.groups[index];
 
     var items = List.generate(group.items.length, (index) {
-      final item = group.items[index];
-      final itemColor = item.check ? titleColor : theme.hintColor;
-      final textStyle = theme.textTheme.titleMedium?.copyWith(color: itemColor);
       return DragAndDropItem(
+        canDrag: group.items[index].check,
         child: Dismissible(
           key: UniqueKey(),
           onDismissed: (direction) => setState(() => group.items.removeAt(index)),
           background: const BackgroundDeleteDismissible(padding: EdgeInsets.only(right: 30)),
           direction: DismissDirection.endToStart,
           child: InkWell(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    fit: FlexFit.tight,
-                    child: Text(item.name, overflow: TextOverflow.ellipsis, style: textStyle),
-                  ),
-                  Row(children: [
-                    const Text('  '),
-                    Text('in %d days '.plural(item.days), style: TextStyle(color: itemColor)),
-                    Text(item.amount.prettier(withSymbol: true), style: textStyle),
-                    _burgerSeparator
-                  ]),
-                ],
-              ),
-            ),
-            onTap: () => setState(() => item.check = !item.check),
+            child: ItemWidget(item: group.items[index]),
+            onTap: () => setState(() => group.items[index].check = !group.items[index].check),
             onLongPress: () => showModalBottomSheet(
               context: context,
               isScrollControlled: true,
@@ -236,7 +219,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                 return BottomSheet(
                   enableDrag: false,
                   onClosing: () {},
-                  builder: (_) => _bottomSheetItem(group, index),
+                  builder: (_) => _bottomSheetItem(theme, group, index),
                 );
               },
             ),
@@ -271,7 +254,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             builder: (BuildContext context) => BottomSheet(
               enableDrag: false,
               onClosing: () {},
-              builder: (BuildContext context) => _bottomSheetItem(group, -1),
+              builder: (BuildContext context) => _bottomSheetItem(theme, group, -1),
             ),
           );
         },
@@ -311,7 +294,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                     builder: (BuildContext context) => BottomSheet(
                       enableDrag: false,
                       onClosing: () {},
-                      builder: (BuildContext context) => _bottomSheetGroup(group, create: false),
+                      builder: (BuildContext context) => _bottomSheetGroup(theme, group, create: false),
                     ),
                   ),
                 ),
@@ -331,7 +314,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text('Total: ${group.total.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
-            _burgerSeparator
+            const SizedBox(width: 30)
           ],
         ),
       ),
@@ -354,7 +337,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     });
   }
 
-  _bottomSheetItem(ExpensePredictionGroupTotal group, int index) {
+  _bottomSheetItem(ThemeData theme, ExpensePredictionGroupTotal group, int index) {
     docChanged = true;
     const sizedBoxHeight = SizedBox(height: 20);
     return SingleChildScrollView(
@@ -366,7 +349,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           children: [
             Text(
               '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: theme.textTheme.bodyLarge,
             ),
             TextFormField(
               initialValue: _updateItem.name,
@@ -423,7 +406,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     );
   }
 
-  _bottomSheetGroup(ExpensePredictionGroupTotal group, {bool create = true}) {
+  _bottomSheetGroup(ThemeData theme, ExpensePredictionGroupTotal group, {bool create = true}) {
     docChanged = true;
     const sizedBoxHeight = SizedBox(height: 20);
 
@@ -436,7 +419,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         children: [
           Text(
             '${create ? 'Create'.i18n : 'Update'.i18n} ${'Group'.i18n}',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.bodyLarge,
           ),
           TextFormField(
             autofocus: true,

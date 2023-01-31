@@ -36,7 +36,7 @@ class WalletsScreenState extends State<WalletsScreen> {
     Widget? component;
     if (wallets.isEmpty) {
       component = SliverToBoxAdapter(
-        child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets by the moment.'.i18n),
+        child: EmptyList(urlImage: 'assets/images/wallet.png', text: 'No wallets at the moment.'.i18n),
       );
     } else {
       component = SliverList(

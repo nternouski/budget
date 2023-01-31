@@ -217,3 +217,23 @@ class WiseTransactions extends Transaction {
     );
   }
 }
+
+// ---------------------------
+//         WiseRate
+// ---------------------------
+class WiseRate {
+  final String source;
+  final String target;
+  final double rate;
+  final DateTime time;
+  WiseRate({required this.source, required this.target, required this.rate, required this.time});
+
+  factory WiseRate.fromJson(Map<String, dynamic> json) {
+    return WiseRate(
+      source: json['source'],
+      target: json['target'],
+      rate: Convert.currencyToDouble(json['rate'], json),
+      time: Convert.parseDate(json['time'], json),
+    );
+  }
+}

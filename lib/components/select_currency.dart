@@ -15,14 +15,13 @@ class SelectCurrencyFormField extends FormField<Currency> {
   SelectCurrencyFormField({
     super.key,
     super.enabled = true,
-    FormFieldSetter<Currency>? onSaved,
+    super.onSaved,
     FormFieldSetter<Currency>? onChange,
     FormFieldValidator<Currency>? validator,
     Currency? initialValue,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     this.labelText = '',
   }) : super(
-          onSaved: onSaved,
           validator: validator ?? _defaultValidator,
           initialValue: initialValue ?? _defaultCurrency,
           autovalidateMode: AutovalidateMode.disabled,
@@ -31,7 +30,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
 
             List<Currency> currencies = List.from(Provider.of<List<Currency>>(state.context));
             if (currencies.isEmpty) {
-              return Text('No Currency by the moment.'.i18n);
+              return Text('No Currency at the moment..'.i18n);
             } else {
               currencies.insert(0, Currency(id: '', name: '', symbol: 'Select Currency'.i18n));
 

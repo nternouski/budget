@@ -23,13 +23,14 @@ abstract class ModelCommonInterface extends ModelCommonFunctions {
 
 class ScreenInit {
   static Widget getScreenInit(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
         body: Center(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Initializing..'.i18n, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+          Text('Initializing..'.i18n, style: theme.textTheme.titleMedium),
           const SizedBox(height: 30),
           Progress.getLoadingProgress(context: context)
         ],

@@ -19,6 +19,8 @@ class ProfileSettings extends AbstractSettingsSection {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return StatefulBuilder(builder: (context, setState) {
       var emailExceded = user.email.length > textLimit;
       var nameExceded = user.name.length > textLimit;
@@ -27,7 +29,7 @@ class ProfileSettings extends AbstractSettingsSection {
 
       String defaultCurrency = '${user.defaultCurrency.symbol} \$ ${user.initialAmount}';
       return SettingsSection(
-        title: Text('Profile'.i18n, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+        title: Text('Profile'.i18n, style: theme.textTheme.subtitle1!.copyWith(color: theme.colorScheme.primary)),
         tiles: [
           SettingsTile.navigation(
             leading: const Icon(Icons.person),
@@ -102,6 +104,7 @@ class ProfileSettings extends AbstractSettingsSection {
   }
 
   _bottomSheet(BuildContext context, StateSetter setState) {
+    final theme = Theme.of(context);
     const sizedBoxHeight = SizedBox(height: 20);
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
@@ -116,10 +119,7 @@ class ProfileSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '${'Update'.i18n} ${'Profile'.i18n}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                Text('${'Update'.i18n} ${'Profile'.i18n}', style: theme.textTheme.titleLarge),
                 TextFormField(
                   initialValue: user.name,
                   decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),

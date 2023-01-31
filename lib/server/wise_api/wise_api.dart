@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:budget/model/currency.dart';
 import 'package:intl/intl.dart';
 
 import 'package:budget/model/wallet.dart';
@@ -27,8 +28,17 @@ class WiseApi extends HttpService {
     return result;
   }
 
-  Future<dynamic> fetchRates(String source, String target) async {
-    return await get(endpoint: '/v1/rates', queryParams: {'source': source, 'target': target});
+  Future<WiseRate?> fetchRates(CurrencyRate cr) async {
+    try {
+      final res = await get(
+        endpoint: '/v1/rates',
+        queryParams: {'source': cr.currencyTo.symbol, 'target': cr.currencyFrom.symbol},
+      );
+      final wiseRate = WiseRate.fromJson(List.from(res)[0]);
+      return wiseRate.rate == -1 ? null : wiseRate;
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<List<WiseStatementTransactions>> fetchBalanceStatements({

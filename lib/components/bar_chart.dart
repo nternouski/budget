@@ -147,11 +147,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
         tooltipBgColor: theme.dialogBackgroundColor,
         getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
           '',
-          TextStyle(
-            color: theme.textTheme.bodyLarge!.color,
-            fontWeight: FontWeight.bold,
-            fontSize: theme.textTheme.bodyLarge!.fontSize,
-          ),
+          theme.textTheme.bodyLarge!,
           children: rod.rodStackItems.fold<List<TextSpan>>([], (acc, item) {
             if (item.toY.compareTo(0.0) > 0) {
               acc.add(TextSpan(text: item.toY.prettier(withSymbol: true), style: TextStyle(color: item.color)));

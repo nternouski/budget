@@ -33,8 +33,6 @@ class LocaleOption {
 }
 
 class SettingsScreenState extends State<SettingsScreen> {
-  final _titleStyle = const TextStyle(fontSize: 17, fontWeight: FontWeight.w500);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -57,7 +55,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 sections = [
                   ProfileSettings(user: user),
                   getCommon(theme, periodStats),
-                  getIntegration(user),
+                  getIntegration(theme, user),
                   CurrentRatesSettings(user: user),
                   DangerZone(userId: user.id),
                 ];
@@ -163,60 +161,68 @@ class SettingsScreenState extends State<SettingsScreen> {
     final localAuth = Provider.of<LocalAuthNotifier>(context);
     final languageCode = I18n.of(context).locale.languageCode;
 
-    return SettingsSection(title: Text('Common'.i18n, style: _titleStyle), tiles: [
-      SettingsTile.navigation(
-        leading: const Icon(Icons.language),
-        title: Text('Language'.i18n),
-        value: Text(languageCode.toUpperCase()),
-        onPressed: (context) => showModalBottomSheet(
-          enableDrag: true,
-          context: context,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          builder: (BuildContext context) => BottomSheet(
-            enableDrag: false,
-            onClosing: () {},
-            builder: (BuildContext context) => _bottomSheetLanguage(context, languageCode),
-          ),
+    return SettingsSection(
+        title: Text(
+          'Common'.i18n,
+          style: themeData.textTheme.subtitle1!.copyWith(color: themeData.colorScheme.primary),
         ),
-      ),
-      SettingsTile.navigation(
-        leading: const Icon(Icons.query_stats),
-        title: Text('Period of Analytics'.i18n),
-        value: Text(periodStats.humanize),
-        onPressed: (context) => showModalBottomSheet(
-          enableDrag: true,
-          context: context,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          builder: (BuildContext context) => BottomSheet(
-            enableDrag: false,
-            onClosing: () {},
-            builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats, context),
+        tiles: [
+          SettingsTile.navigation(
+            leading: const Icon(Icons.language),
+            title: Text('Language'.i18n),
+            value: Text(languageCode.toUpperCase()),
+            onPressed: (context) => showModalBottomSheet(
+              enableDrag: true,
+              context: context,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              builder: (BuildContext context) => BottomSheet(
+                enableDrag: false,
+                onClosing: () {},
+                builder: (BuildContext context) => _bottomSheetLanguage(context, languageCode),
+              ),
+            ),
           ),
-        ),
-      ),
-      SettingsTile.switchTile(
-        enabled: localAuth.available,
-        onToggle: (value) => localAuth.swapState(),
-        initialValue: localAuth.enable,
-        leading: const Icon(Icons.fingerprint),
-        activeSwitchColor: themeData.colorScheme.primary,
-        title: Text('Auth With Biometric'.i18n),
-      ),
-      SettingsTile.switchTile(
-        onToggle: (value) => theme.swapTheme(),
-        initialValue: theme.themeMode == ThemeMode.dark,
-        leading: const Icon(Icons.brightness_auto),
-        activeSwitchColor: themeData.colorScheme.primary,
-        title: Text('Dark Theme'.i18n),
-      ),
-    ]);
+          SettingsTile.navigation(
+            leading: const Icon(Icons.query_stats),
+            title: Text('Period of Analytics'.i18n),
+            value: Text(periodStats.humanize),
+            onPressed: (context) => showModalBottomSheet(
+              enableDrag: true,
+              context: context,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              builder: (BuildContext context) => BottomSheet(
+                enableDrag: false,
+                onClosing: () {},
+                builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats, context),
+              ),
+            ),
+          ),
+          SettingsTile.switchTile(
+            enabled: localAuth.available,
+            onToggle: (value) => localAuth.swapState(),
+            initialValue: localAuth.enable,
+            leading: const Icon(Icons.fingerprint),
+            activeSwitchColor: themeData.colorScheme.primary,
+            title: Text('Auth With Biometric'.i18n),
+          ),
+          SettingsTile.switchTile(
+            onToggle: (value) => theme.swapTheme(),
+            initialValue: theme.themeMode == ThemeMode.dark,
+            leading: const Icon(Icons.brightness_auto),
+            activeSwitchColor: themeData.colorScheme.primary,
+            title: Text('Dark Theme'.i18n),
+          ),
+        ]);
   }
 
-  SettingsSection getIntegration(User user) {
+  SettingsSection getIntegration(ThemeData themeData, User user) {
     return SettingsSection(
-      title: Text('Integrations'.i18n, style: _titleStyle),
+      title: Text(
+        'Integrations'.i18n,
+        style: themeData.textTheme.subtitle1!.copyWith(color: themeData.colorScheme.primary),
+      ),
       tiles: [
         SettingsTile.navigation(
           leading: const Icon(Icons.wallet),
@@ -248,6 +254,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   }
 
   _wiseBottomSheetBody(String apiKey, User user, BuildContext context) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
         child: Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -257,10 +264,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${'Update'.i18n} ${'Integrations'.i18n}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            Text('${'Update'.i18n} ${'Integrations'.i18n}', style: theme.textTheme.titleLarge),
             TextFormField(
               initialValue: apiKey,
               decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),

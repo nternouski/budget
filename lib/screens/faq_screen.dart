@@ -71,28 +71,25 @@ class FAQPageState extends State<FAQScreen> {
         title: const Text('FAQ'),
       ),
       body: Column(children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const SizedBox(width: 15),
-            Expanded(
-              child: TextFormField(
-                controller: search,
-                decoration: InputStyle.inputDecoration(labelTextStr: 'Search'.i18n),
-                onFieldSubmitted: (input) {
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: TextFormField(
+            controller: search,
+            decoration: InputStyle.inputDecoration(
+              labelTextStr: 'Search'.i18n,
+              suffixIcon: IconButton(
+                onPressed: () {
                   filtered.clear();
                   setState(() => filtered.addAll(getMatchSearch(search.text)));
                 },
+                icon: const Icon(Icons.search),
               ),
             ),
-            IconButton(
-              onPressed: () {
-                filtered.clear();
-                setState(() => filtered.addAll(getMatchSearch(search.text)));
-              },
-              icon: const Icon(Icons.search),
-            )
-          ],
+            onFieldSubmitted: (input) {
+              filtered.clear();
+              setState(() => filtered.addAll(getMatchSearch(search.text)));
+            },
+          ),
         ),
         Expanded(
           child: CustomScrollView(

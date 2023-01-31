@@ -12,7 +12,7 @@ final components = Translations('en') +
     // create_or_update_category
     {'en': 'Choose Category', 'es': 'Elegir Categoría'} +
     {'en': 'Long press on category to edit it.', 'es': 'Mantén presionado para editar.'} +
-    {'en': 'No categories by the moment.', 'es': 'No hay categoría por el momento.'} +
+    {'en': 'No categories at the moment..', 'es': 'No hay categoría por el momento.'} +
     {'en': 'Select Category', 'es': 'Elegir Categoría'} +
 
     // create_or_update_label
@@ -32,8 +32,16 @@ final components = Translations('en') +
     {'en': 'Name Not Set', 'es': 'Sin nombre'} +
 
     // current_rates_settings
-    {'en': 'Confirm', 'es': 'Confirmar'} +
-    {'en': 'We found a new rate.', 'es': 'Encontramos un nuevo valor.'} +
+    {'en': 'Choice rates', 'es': 'Elegir rate'} +
+    {
+      'en':
+          'We found %d new rates'.zero('We not found rates').one('We found %d new rate').many('We found %d new rates'),
+      'es': 'Encontramos %d nuevos rates'
+          .zero('No encontramos ningún %d rate')
+          .one('Encontramos %d un rate')
+          .many('Encontramos %d nuevos rates')
+    } +
+    {'en': 'Do you want to update the rate?', 'es': 'Quieres actualizar el rate?'} +
     {'en': 'Update Currency Rate?', 'es': '¿Quieres Actualizar?'} +
     {'en': 'Currency Rates', 'es': 'Cambio de Moneda'} +
     {'en': 'From Rate', 'es': 'Desde'} +
@@ -48,6 +56,6 @@ final components = Translations('en') +
     {'en': 'The default currency must be set', 'es': 'Debes agregar una moneda por defecto'} +
 
     // select_currency
-    {'en': 'No Currency by the moment.', 'es': 'No hay moneda por le momento'} +
+    {'en': 'No Currency at the moment..', 'es': 'No hay moneda por le momento'} +
     {'en': 'No Currency', 'es': 'No hay moneda'} +
     {'en': 'Select Currency', 'es': 'Seleccionar'};
