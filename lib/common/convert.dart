@@ -42,11 +42,6 @@ class Convert {
     return color.value.toRadixString(16);
   }
 
-  static String roundMoney(double money) {
-    if (money > 1000) return '${(money ~/ 1000)}k'.toString();
-    return money.toInt().toString();
-  }
-
   static double roundDouble(double value, int decimal) {
     return double.parse(value.toStringAsFixed(decimal));
   }

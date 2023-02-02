@@ -31,6 +31,29 @@ class DailyScreenState extends State<DailyScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final gradientPrimary = BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        stops: const [0, 0.15],
+        colors: [
+          theme.colorScheme.primary.withOpacity(OPACITY),
+          theme.colorScheme.primary.withOpacity(0.0),
+        ],
+      ),
+    );
+    final gradientDisappear = BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        stops: const [0, 0.15],
+        colors: [
+          theme.scaffoldBackgroundColor,
+          theme.scaffoldBackgroundColor.withOpacity(0.0),
+        ],
+      ),
+    );
+
     User? user = Provider.of<User>(context) as dynamic;
     List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
     if (user == null) return ScreenInit.getScreenInit(context);
@@ -51,12 +74,19 @@ class DailyScreenState extends State<DailyScreen> {
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: [getBody(theme, user, wallets)],
+          child: Container(
+            foregroundDecoration: gradientPrimary,
+            child: Container(
+              padding: const EdgeInsets.only(top: 20),
+              foregroundDecoration: gradientDisappear,
+              child: RefreshIndicator(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  slivers: [getBody(theme, user, wallets)],
+                ),
+                onRefresh: () async => setState(() {}),
+              ),
             ),
-            onRefresh: () async => setState(() {}),
           ),
         )
       ]),

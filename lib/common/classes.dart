@@ -2,6 +2,7 @@
 
 import 'dart:ui' as ui;
 
+import 'package:budget/common/version_checker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -55,48 +56,54 @@ class AboutDialogClass {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 15),
-          child: Column(children: [
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(text: '$additionalInfo You can read more about, '),
-                  TextSpan(
-                    text: 'Terms & Conditions'.i18n,
-                    style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        try {
-                          launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
-                              mode: LaunchMode.inAppWebView);
-                        } catch (e) {
-                          debugPrint(e.toString());
-                        }
-                      },
-                  ),
-                  const TextSpan(text: ' or '),
-                  TextSpan(
-                    text: 'Privacy Policy'.i18n,
-                    style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        try {
-                          launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
-                              mode: LaunchMode.inAppWebView);
-                        } catch (e) {
-                          debugPrint(e.toString());
-                        }
-                      },
-                  ),
-                ],
+          child: Column(
+            children: [
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(text: '$additionalInfo\nYou can read more about, '),
+                    TextSpan(
+                      text: 'Privacy Policy'.i18n,
+                      style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          try {
+                            launchUrl(Uri.https('nternouski.web.app', '/apps/budget/privacy-policy'),
+                                mode: LaunchMode.inAppWebView);
+                          } catch (e) {
+                            debugPrint(e.toString());
+                          }
+                        },
+                    ),
+                    const TextSpan(text: ' or '),
+                    TextSpan(
+                      text: 'Terms & Conditions'.i18n,
+                      style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          try {
+                            launchUrl(Uri.https('nternouski.web.app', '/apps/budget/terms'),
+                                mode: LaunchMode.inAppWebView);
+                          } catch (e) {
+                            debugPrint(e.toString());
+                          }
+                        },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () => _redirect(Uri.https('www.freepik.com', '/author/stories')),
-              child:
-                  Text('Special thanks to "stories" on freepik for the pictures.', style: theme.textTheme.bodyMedium),
-            ),
-          ]),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () => AppVersionChecker().openStore(),
+                child: const Text('Open Store'),
+              ),
+              TextButton(
+                onPressed: () => _redirect(Uri.https('www.freepik.com', '/author/stories')),
+                child:
+                    Text('Special thanks to "stories" on freepik for the pictures.', style: theme.textTheme.bodyMedium),
+              ),
+            ],
+          ),
         )
       ],
     );

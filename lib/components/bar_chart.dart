@@ -110,7 +110,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                       interval: maxBalance / 3 + 1,
                       reservedSize: 22,
                       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
-                        axis == 0.0 ? '' : Convert.roundMoney(axis),
+                        axis == 0.0 ? '' : axis.prettier(withSymbol: false, simplify: true),
                         style: labelTextStyle,
                       ),
                     ),

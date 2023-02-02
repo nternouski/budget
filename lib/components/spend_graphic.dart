@@ -6,9 +6,15 @@ import 'package:provider/provider.dart';
 import '../common/classes.dart';
 import '../common/theme.dart';
 import '../server/database/transaction_rx.dart';
+import '../model/currency.dart';
 import '../model/wallet.dart';
 import '../model/user.dart';
 import '../model/transaction.dart';
+
+// ignore: constant_identifier_names
+const OPACITY = 0.2;
+// ignore: constant_identifier_names
+const HEIGHT_GRAPHIC = 180.0;
 
 DateTime nowZero = DateTime.now().copyWith(toZeroHours: true);
 
@@ -74,30 +80,10 @@ class _SpendGraphicState extends State<SpendGraphic> {
     return SideTitles(
       showTitles: true,
       interval: widget.frameRange / 4,
-      getTitlesWidget: (double axis, TitleMeta titleMeta) {
-        return const SizedBox();
-        // DateTime date = frame[axis.toInt()].date;
-        // return SideTitleWidget(
-        //   axisSide: AxisSide.left,
-        //   space: 30,
-        //   child: Text(DateFormat(DateFormat.ABBR_MONTH_DAY).format(date), style: labelTextStyle),
-        // );
-      },
-      // reservedSize: 25,
+      reservedSize: 7,
+      getTitlesWidget: (double axis, TitleMeta titleMeta) => const SizedBox(),
     );
   }
-
-  // _getLeftTitles() {
-  //   return SideTitles(
-  //     showTitles: true,
-  //     interval: maxBalance / 3 + 1,
-  //     reservedSize: 22,
-  //     getTitlesWidget: (double axis, TitleMeta titleMeta) {
-  //       double value = axis + minBalance;
-  //       return Text(value == 0.0 ? '' : Convert.roundMoney(value), style: labelTextStyle);
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +96,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
       builder: (BuildContext context, snapshot) {
         if (snapshot.connectionState.name == 'waiting') {
           return SizedBox(
-            height: 200,
+            height: HEIGHT_GRAPHIC,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -148,27 +134,44 @@ class _SpendGraphicState extends State<SpendGraphic> {
 
     final color = theme.colorScheme.primary;
     final gradient = LinearGradient(
-      begin: Alignment.bottomCenter,
-      end: Alignment.topCenter,
-      colors: [color.withOpacity(0.0), color.withOpacity(0.6)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [color.withOpacity(0.7), color.withOpacity(OPACITY)],
     );
+    List<HorizontalLine> hLines = [maxBalance / 1.5, maxBalance / 4.5]
+        .map(
+          (y) => HorizontalLine(
+            y: y,
+            color: color,
+            strokeWidth: 0.5,
+            dashArray: [4, 7],
+            label: HorizontalLineLabel(
+              show: true,
+              padding: const EdgeInsets.only(right: 5, bottom: 5),
+              style: theme.textTheme.bodyMedium!.copyWith(color: color),
+              labelResolver: (line) => line.y.prettier(withSymbol: true, simplify: true),
+            ),
+          ),
+        )
+        .toList();
 
     return Container(
       padding: const EdgeInsets.all(0),
       width: double.infinity,
-      height: 200,
+      height: HEIGHT_GRAPHIC,
       child: LineChart(
         LineChartData(
           minY: 0,
-          gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 3 + 1),
+          gridData: FlGridData(show: false),
+          extraLinesData: ExtraLinesData(horizontalLines: hLines),
           titlesData: FlTitlesData(
             topTitles: AxisTitles(sideTitles: _getTopTitles()),
             bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            // leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: _getLeftTitles()),
           ),
           lineTouchData: LineTouchData(
+            getTouchLineEnd: (_, __) => 0,
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
               fitInsideVertically: true,

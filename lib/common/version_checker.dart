@@ -67,7 +67,7 @@ class AppVersionChecker {
         'You have a new version available, please go to the store and update.'.i18n,
         seconds: 5,
         actionLabel: 'Open Store',
-        actionOnPress: () => _inAppReview.openStoreListing(appStoreId: 'com.nternouski.budget'),
+        actionOnPress: () => openStore(),
       );
     }
   }
@@ -146,6 +146,10 @@ class AppVersionChecker {
         await UserService().update(user);
       }
     }
+  }
+
+  Future<void> openStore() {
+    return _inAppReview.openStoreListing(appStoreId: 'com.nternouski.budget');
   }
 }
 
