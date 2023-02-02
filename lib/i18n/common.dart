@@ -3,7 +3,7 @@ import 'package:i18n_extension/i18n_extension.dart';
 final common = Translations('en') +
     // classes
     {'en': 'Initializing..', 'es': 'Inicializando..'} +
-    {'en': 'Is created by', 'es': 'Es creado por'} +
+    {'en': 'Stable version', 'es': 'Version estable'} +
     {
       'en': 'Special thanks to "stories" on freepik for the pictures.',
       'es': 'Gracias por "stories" en freepik por las imágenes.'

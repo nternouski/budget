@@ -34,7 +34,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
   }
 
   bool _notSelected() {
-    return selectedCategories.isEmpty || (selectedCategories[0] != null && selectedCategories[0].id == '');
+    return selectedCategories.isEmpty || (selectedCategories.isNotEmpty && selectedCategories[0].id == '');
   }
 
   @override
@@ -46,7 +46,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
       children: [
         Row(
           children: [
-            Text('Choose Category'.i18n, style: theme.textTheme.subtitle1),
+            Text('Choose Category'.i18n, style: theme.textTheme.titleMedium),
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () => CreateOrUpdateCategory.showButtonSheet(context, null),

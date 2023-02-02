@@ -188,7 +188,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     return Column(
       children: [
         Row(children: [
-          Text(fromWallet ? 'Choose From Wallet'.i18n : 'Choose To Wallet'.i18n, style: theme.textTheme.subtitle1),
+          Text(fromWallet ? 'Choose From Wallet'.i18n : 'Choose To Wallet'.i18n, style: theme.textTheme.titleMedium),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => RouteApp.redirect(context: context, url: URLS.createOrUpdateWallet, fromScaffold: false),
@@ -251,7 +251,10 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
               ],
-              style: theme.textTheme.headline2!.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.displayMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.textTheme.titleLarge!.color,
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: '\$0',
@@ -274,10 +277,10 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
             textAlign: TextAlign.start,
-            style: theme.textTheme.headline5!.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
             decoration: const InputDecoration(border: InputBorder.none, hintText: '00'),
             focusNode: decimalAmountFocusNode,
-            onSaved: (String? value) {
+            onChanged: (String? value) {
               final intValue = transaction.amount.toString().split('.')[0];
               transaction.amount = double.parse('$intValue.$value');
             },
@@ -329,7 +332,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
 
   // DATE PICKER //
 
-  Widget buildDateField(ThemeData theme) {
+  Widget buildDateField(ThemeData theme, User user) {
     const formatDate = 'dd/MM/yyyy';
     const formatTime = 'HH:mm';
     return Row(
@@ -338,6 +341,8 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         Flexible(
           child: InkWell(
             onTap: () async {
+              var lastDate = DateTime.now();
+              if (user.superUser) lastDate = lastDate.add(const Duration(days: 60));
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
               // Show Date Picker Here
@@ -345,7 +350,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 context: context,
                 initialDate: transaction.date,
                 firstDate: DateTime(2010),
-                lastDate: DateTime.now(),
+                lastDate: lastDate,
               );
               if (picked != null && picked != transaction.date) {
                 setState(() => transaction.date = picked);
@@ -505,7 +510,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               ),
             ),
             const SizedBox(height: 10),
-            buildDateField(theme),
+            buildDateField(theme, user),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () async {
@@ -513,25 +518,28 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 _formKey.currentState!.save();
 
                 if (transaction.walletFromId == '' || walletFromSelected == null) {
-                  return handlerError.setError('You must choice a wallet first.'.i18n);
+                  return handlerError.showError(context, text: 'You must choice a wallet first.'.i18n);
                 }
                 if (transaction.type == TransactionType.transfer) {
                   if (transaction.walletToId == '' || walletToSelected == null) {
-                    return handlerError.setError('You must choice the wallet of from and to transaction is made.'.i18n);
+                    return handlerError.showError(context,
+                        text: 'You must choice the wallet of from and to transaction is made.'.i18n);
                   }
                   if (transaction.walletFromId == transaction.walletToId) {
-                    return handlerError.setError('Wallet must not be the same.'.i18n);
+                    return handlerError.showError(context, text: 'Wallet must not be the same.'.i18n);
                   }
                 } else {
                   transaction.walletToId = '';
                   transaction.fee = 0.0;
                 }
                 if (user.defaultCurrency.id == '') {
-                  return handlerError.setError('You must have a default currency first.'.i18n);
+                  return handlerError.showError(context, text: 'You must have a default currency first.'.i18n);
                 }
-                if (transaction.categoryId == '') return handlerError.setError('You must choice a category first'.i18n);
+                if (transaction.categoryId == '') {
+                  return handlerError.showError(context, text: 'You must choice a category first.'.i18n);
+                }
                 if (transaction.amount <= 0.0) {
-                  return handlerError.setError('Amount is required and must be grater than 0.'.i18n);
+                  return handlerError.showError(context, text: 'Amount is required and must be grater than 0.'.i18n);
                 }
                 Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletFromId);
                 transaction.updateBalance();

@@ -45,9 +45,12 @@ class BarChartWidgetState extends State<BarChartWidget> {
   List<BarChartGroup> rawBarGroups = [];
   double maxBalance = 0;
 
+  TextStyle? labelTextStyle;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    labelTextStyle = theme.textTheme.labelMedium;
 
     int index = 0;
     rawBarGroups = [];
@@ -98,18 +101,17 @@ class BarChartWidgetState extends State<BarChartWidget> {
                   show: true,
                   rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: true, getTitlesWidget: bottomTitles, reservedSize: 30),
-                  ),
+                  bottomTitles: AxisTitles(sideTitles: bottomTitles()),
                   leftTitles: AxisTitles(
                     axisNameWidget: const Text(''),
                     axisNameSize: 4,
                     sideTitles: SideTitles(
                       showTitles: true,
                       interval: maxBalance / 3 + 1,
-                      reservedSize: 30,
+                      reservedSize: 22,
                       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
                         axis == 0.0 ? '' : Convert.roundMoney(axis),
+                        style: labelTextStyle,
                       ),
                     ),
                   ),
@@ -166,12 +168,28 @@ class BarChartWidgetState extends State<BarChartWidget> {
     });
   }
 
-  Widget bottomTitles(double value, TitleMeta meta) {
-    DateTime date = rawBarGroups[value.toInt()].y;
-    final format = nowZero.month != date.month ? 'dMMM' : 'd';
-    // If the precision is less than 1 month show
-    final showText = nowZero.difference(widget.frameDate).inDays < 30 || value.toInt() % 2 == 0;
-    var text = showText ? DateFormat(format).format(date) : '';
-    return SideTitleWidget(axisSide: meta.axisSide, space: 5, child: Text(text));
+  bottomTitles() {
+    return SideTitles(
+      showTitles: true,
+      getTitlesWidget: (double value, TitleMeta meta) {
+        DateTime date = rawBarGroups[value.toInt()].y;
+        if (nowZero.difference(widget.frameDate).inDays < 30) {
+          final format = nowZero.month != date.month ? 'dMMM' : 'd';
+          return SideTitleWidget(
+            axisSide: meta.axisSide,
+            space: 5,
+            child: Text(DateFormat(format).format(date), style: labelTextStyle),
+          );
+        } else {
+          return SideTitleWidget(
+            axisSide: AxisSide.right,
+            space: 15,
+            angle: 1.57,
+            child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
+          );
+        }
+      },
+      reservedSize: 30,
+    );
   }
 }

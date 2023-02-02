@@ -203,7 +203,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();
                 if (budget.categories.isEmpty) {
-                  return handlerError.setError('You need select at least one category.'.i18n);
+                  return handlerError.showError(context, text: 'You need select at least one category.'.i18n);
                 }
                 action == Action.create ? budgetRx.create(budget, user.uid) : budgetRx.update(budget, user.uid);
                 Navigator.of(context).pop();

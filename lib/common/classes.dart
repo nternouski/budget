@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
@@ -40,7 +42,7 @@ class ScreenInit {
 }
 
 class AboutDialogClass {
-  static show(BuildContext context) async {
+  static show(BuildContext context, {String additionalInfo = ''}) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final theme = Theme.of(context);
 
@@ -49,16 +51,15 @@ class AboutDialogClass {
       applicationIcon: Image.asset('assets/logo.png', width: 40, height: 40),
       applicationName: packageInfo.appName,
       applicationVersion: packageInfo.version,
-      applicationLegalese: '© 2023 ${packageInfo.appName}',
+      applicationLegalese: '© 2023 ${packageInfo.appName} - Sebastian Ternouski.',
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 15),
           child: Column(children: [
-            Text('${'Is created by'.i18n} Sebastian Ternouski', style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 10),
             RichText(
               text: TextSpan(
                 children: [
+                  TextSpan(text: '$additionalInfo You can read more about, '),
                   TextSpan(
                     text: 'Terms & Conditions'.i18n,
                     style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
@@ -72,7 +73,7 @@ class AboutDialogClass {
                         }
                       },
                   ),
-                  const TextSpan(text: '\n'),
+                  const TextSpan(text: ' or '),
                   TextSpan(
                     text: 'Privacy Policy'.i18n,
                     style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),

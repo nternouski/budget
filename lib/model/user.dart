@@ -31,6 +31,7 @@ class User implements ModelCommonInterface {
   Currency defaultCurrency;
   double initialAmount;
   bool superUser;
+  bool reviewRequested;
   DateTime? hideAdsUntil;
 
   User({
@@ -40,6 +41,7 @@ class User implements ModelCommonInterface {
     required this.email,
     required this.integrations,
     required this.defaultCurrency,
+    this.reviewRequested = false,
     this.superUser = false,
     this.initialAmount = 0.0,
     this.hideAdsUntil,
@@ -60,6 +62,7 @@ class User implements ModelCommonInterface {
       integrations: integrations,
       defaultCurrency: defaultCurrency,
       superUser: superUser,
+      reviewRequested: json['reviewRequested'] == true,
       initialAmount: Convert.currencyToDouble(json['initialAmount'] ?? 0, json),
       hideAdsUntil: json['hideAdsUntil'] != null ? Convert.parseDate(json['hideAdsUntil'], json) : null,
     );
@@ -79,6 +82,7 @@ class User implements ModelCommonInterface {
         return acc;
       }),
       'hideAdsUntil': hideAdsUntil,
+      'reviewRequested': reviewRequested,
     };
     return data;
   }

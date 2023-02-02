@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 
 class Display {
-  static message(BuildContext context, String text, {int seconds = 2}) {
+  static message(
+    BuildContext context,
+    String text, {
+    int seconds = 2,
+    String? actionLabel,
+    Function? actionOnPress,
+  }) {
     return ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
         duration: Duration(seconds: seconds),
         behavior: SnackBarBehavior.floating,
+        action: actionLabel != null && actionOnPress != null
+            ? SnackBarAction(label: actionLabel, onPressed: () => actionOnPress())
+            : null,
       ),
     );
   }

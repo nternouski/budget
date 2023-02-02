@@ -84,6 +84,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
     final theme = Theme.of(context);
 
     CurrencyRate newCurrencyRate = CurrencyRate.init();
+    // ignore: unnecessary_cast
     final user = Provider.of<User>(context) as User?;
     if (user == null) return const Text('Not User');
 
@@ -140,7 +141,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Currency Rates'.i18n, style: theme.textTheme.subtitle1!.copyWith(color: theme.colorScheme.primary)),
+            Text('Currency Rates'.i18n, style: theme.textTheme.titleMedium!.copyWith(color: theme.colorScheme.primary)),
             InkWell(
               child: const Icon(Icons.add),
               onTap: () => showModalBottomSheet(

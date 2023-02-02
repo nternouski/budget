@@ -1,16 +1,14 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
 import '../common/error_handler.dart';
-import '../common/theme.dart';
 import '../components/daily_item.dart';
 import '../model/transaction.dart';
 import '../model/user.dart';
 import '../model/wallet.dart';
 import '../server/wise_api/helper.dart';
-import '../server/wise_api/wise_api.dart';
+// import '../server/wise_api/wise_api.dart';
 import '../common/styles.dart';
 
 class WiseSyncScreen extends StatefulWidget {
@@ -32,14 +30,15 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
 
   @override
   Widget build(BuildContext context) {
-    User? user = Provider.of<User>(context);
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
     if (user == null) return const Text('Not User');
     String token = user.integrations[IntegrationType.wise] ?? '';
     if (token == '') HandlerError().setError('Api key not set.'.i18n);
-    WiseApi wiseApi = WiseApi(token);
+    // WiseApi wiseApi = WiseApi(token);
 
     final theme = Theme.of(context);
-    final List<Wallet> wallets = Provider.of<List<Wallet>>(context);
+    // final List<Wallet> wallets = Provider.of<List<Wallet>>(context);
 
     return Scaffold(
       body: Column(children: [

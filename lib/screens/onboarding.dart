@@ -334,7 +334,7 @@ class BuildPage extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: theme.textTheme.headline6?.copyWith(color: theme.colorScheme.primary),
+          style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.primary),
         ),
         const SizedBox(height: 10),
         Container(

@@ -53,7 +53,8 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     final theme = Theme.of(context);
 
     final adState = Provider.of<AdStateNotifier>(context);
-    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+    // ignore: unnecessary_cast
+    bool showAds = (Provider.of<User>(context) as User?)?.showAds() ?? true;
 
     if (showAds && banner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
       _bannerAdRetry++;
@@ -92,10 +93,10 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget getFooter(BuildContext context, ThemeData theme) {
     Color backgroundColor;
     if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
-      var temp = Convert.increaseColorLightness(theme.backgroundColor, 0.55);
+      var temp = Convert.increaseColorLightness(theme.colorScheme.primary, 0.55);
       backgroundColor = Convert.increaseColorSaturation(temp, -0.5);
     } else {
-      backgroundColor = Convert.increaseColorLightness(theme.backgroundColor, -0.18);
+      backgroundColor = Convert.increaseColorLightness(theme.colorScheme.primary, -0.18);
     }
 
     return Column(

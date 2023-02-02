@@ -127,7 +127,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               onListReorder: _onListReorder,
               itemDivider: const Divider(thickness: 2, height: 2),
               itemDecorationWhileDragging: BoxDecoration(
-                color: theme.backgroundColor,
+                color: theme.colorScheme.primary,
                 borderRadius: const BorderRadius.all(Radius.circular(6)),
               ),
               listInnerDecoration: BoxDecoration(

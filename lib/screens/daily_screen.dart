@@ -8,7 +8,6 @@ import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../components/empty_list.dart';
 import '../model/wallet.dart';
-import '../model/currency.dart';
 import '../model/user.dart';
 import '../server/database/transaction_rx.dart';
 import '../common/styles.dart';
@@ -75,19 +74,11 @@ class DailyScreenState extends State<DailyScreen> {
             child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'.i18n),
           );
         } else {
-          String symbol = user.defaultCurrency.symbol;
-          double total = wallets.fold(user.initialAmount, (prev, w) => prev + w.initialAmount + w.balanceFixed);
           return SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 15, bottom: 130),
+              padding: const EdgeInsets.only(bottom: 130, left: 5, right: 5),
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [Text('${'Total Currency'.i18n} $symbol ${total.prettier(withSymbol: true)}')]),
-                  ),
                   ...List.generate(
                     transactions.length,
                     (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),

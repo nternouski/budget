@@ -28,8 +28,8 @@ class BudgetsScreenState extends State<BudgetsScreen> {
     List<Budget> budgets = Provider.of<List<Budget>>(context);
     final theme = Theme.of(context);
 
-    User? user = Provider.of<User>(context);
-
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
     if (user == null) return ScreenInit.getScreenInit(context);
 
     return Scaffold(

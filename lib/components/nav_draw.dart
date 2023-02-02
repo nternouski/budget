@@ -1,4 +1,5 @@
 import 'package:budget/common/classes.dart';
+import 'package:budget/common/version_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
@@ -19,6 +20,7 @@ class NavDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ignore: unnecessary_cast
     var dbUser = Provider.of<User>(context) as User?;
 
     return Drawer(
@@ -71,8 +73,9 @@ class NavDrawer extends StatelessWidget {
             leading: const Icon(Icons.info),
             title: Text('About'.i18n),
             onTap: () async {
+              final status = await AppVersionChecker().getStatus();
               Navigator.of(context).pop();
-              AboutDialogClass.show(context);
+              AboutDialogClass.show(context, additionalInfo: '${'Stable version'.i18n} ${status.newVersion}. ');
             },
           ),
         ],

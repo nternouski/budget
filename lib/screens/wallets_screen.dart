@@ -31,7 +31,8 @@ class WalletsScreenState extends State<WalletsScreen> {
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     auth.User authUser = Provider.of<auth.User>(context, listen: false);
-    User? user = Provider.of<User>(context);
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
 
     Widget? component;
     if (wallets.isEmpty) {

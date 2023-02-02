@@ -36,7 +36,8 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    User? user = Provider.of<User>(context);
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
 
     return Scaffold(
       body: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
@@ -106,6 +107,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             ...Periods.options.map(
               (option) => CheckboxListTile(
+                activeColor: theme.primaryColor,
                 title: Text(option.humanize),
                 value: option.days == periodStats.days,
                 onChanged: (check) {
@@ -164,7 +166,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     return SettingsSection(
         title: Text(
           'Common'.i18n,
-          style: themeData.textTheme.subtitle1!.copyWith(color: themeData.colorScheme.primary),
+          style: themeData.textTheme.titleMedium!.copyWith(color: themeData.colorScheme.primary),
         ),
         tiles: [
           SettingsTile.navigation(
@@ -221,7 +223,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     return SettingsSection(
       title: Text(
         'Integrations'.i18n,
-        style: themeData.textTheme.subtitle1!.copyWith(color: themeData.colorScheme.primary),
+        style: themeData.textTheme.titleMedium!.copyWith(color: themeData.colorScheme.primary),
       ),
       tiles: [
         SettingsTile.navigation(

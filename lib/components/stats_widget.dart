@@ -44,7 +44,7 @@ class StatsPrediction extends StatelessWidget {
     }
 
     var colorBalance = theme.textTheme.titleMedium!.copyWith(
-      color: balancePrediction.isNegative ? theme.errorColor : theme.primaryColor,
+      color: balancePrediction.isNegative ? theme.colorScheme.error : theme.primaryColor,
     );
 
     return Padding(
@@ -92,7 +92,7 @@ class StatsBalance extends StatelessWidget {
               Icon(
                 balance.isNegative ? Icons.keyboard_double_arrow_down_rounded : Icons.keyboard_double_arrow_up_rounded,
                 size: 45,
-                color: balance.isNegative ? theme.errorColor : theme.primaryColor,
+                color: balance.isNegative ? theme.colorScheme.error : theme.primaryColor,
               ),
               Column(children: [
                 Text(

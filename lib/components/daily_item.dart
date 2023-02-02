@@ -107,7 +107,7 @@ class DailyItemState extends State<DailyItem> {
                   ),
                 Text(
                   transaction.balanceFixed.prettier(withSymbol: true),
-                  style: theme.textTheme.subtitle1?.copyWith(color: colorsTypeTransaction[transaction.type]),
+                  style: theme.textTheme.titleMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
                 )
               ],
             ),

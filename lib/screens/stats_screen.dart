@@ -14,7 +14,7 @@ import '../common/convert.dart';
 import '../common/period_stats.dart';
 import '../common/preference.dart';
 import '../common/styles.dart';
-import '../model/expense_prediction.dart';
+import '../common/version_checker.dart';
 import '../model/user.dart';
 import '../model/category.dart';
 import '../model/transaction.dart';
@@ -50,8 +50,11 @@ class StatsScreenState extends State<StatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     List<Transaction> allTransactions = Provider.of<List<Transaction>>(context);
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
+
     final adState = Provider.of<AdStateNotifier>(context);
-    bool showAds = Provider.of<User>(context)?.showAds() ?? true;
+    bool showAds = user?.showAds() ?? true;
 
     if (showAds && banner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
       _bannerAdRetry++;
@@ -75,7 +78,8 @@ class StatsScreenState extends State<StatsScreen> {
         actions: [
           IconButton(
             icon: Icon(predictionOnStats.enable ? Icons.auto_graph : Icons.visibility_off),
-            onPressed: () {
+            onPressed: () async {
+              if (user != null) await AppVersionChecker().askReview(user, allTransactions);
               predictionOnStats.toggleState();
               Display.message(context, 'Prediction ${predictionOnStats.enable ? 'ON' : 'OFF'}'.i18n);
             },

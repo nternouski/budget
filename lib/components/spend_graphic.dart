@@ -8,7 +8,6 @@ import '../common/theme.dart';
 import '../server/database/transaction_rx.dart';
 import '../model/wallet.dart';
 import '../model/user.dart';
-import '../common/convert.dart';
 import '../model/transaction.dart';
 
 DateTime nowZero = DateTime.now().copyWith(toZeroHours: true);
@@ -38,6 +37,8 @@ class _SpendGraphicState extends State<SpendGraphic> {
   double minBalance = 0.0;
   double? firstBalanceOfFrame;
   List<Balance> frame = [];
+
+  TextStyle? labelTextStyle;
 
   final _formatKey = DateFormat('y/M/d');
 
@@ -69,34 +70,40 @@ class _SpendGraphicState extends State<SpendGraphic> {
     return frame;
   }
 
-  getBottomTitles() {
+  SideTitles _getTopTitles() {
     return SideTitles(
       showTitles: true,
-      interval: widget.frameRange / 5,
+      interval: widget.frameRange / 4,
       getTitlesWidget: (double axis, TitleMeta titleMeta) {
-        DateTime date = frame[axis.toInt()].date;
-        var format = nowZero.month != date.month ? DateFormat.ABBR_MONTH_DAY : 'd';
-        return Text(DateFormat(format).format(date), style: const TextStyle(height: 2));
+        return const SizedBox();
+        // DateTime date = frame[axis.toInt()].date;
+        // return SideTitleWidget(
+        //   axisSide: AxisSide.left,
+        //   space: 30,
+        //   child: Text(DateFormat(DateFormat.ABBR_MONTH_DAY).format(date), style: labelTextStyle),
+        // );
       },
-      reservedSize: 25,
+      // reservedSize: 25,
     );
   }
 
-  getLeftTitles() {
-    return SideTitles(
-      showTitles: true,
-      interval: maxBalance / 3 + 1,
-      reservedSize: 25,
-      getTitlesWidget: (double axis, TitleMeta titleMeta) {
-        double value = axis + minBalance;
-        return Text(value == 0.0 ? '' : Convert.roundMoney(value));
-      },
-    );
-  }
+  // _getLeftTitles() {
+  //   return SideTitles(
+  //     showTitles: true,
+  //     interval: maxBalance / 3 + 1,
+  //     reservedSize: 22,
+  //     getTitlesWidget: (double axis, TitleMeta titleMeta) {
+  //       double value = axis + minBalance;
+  //       return Text(value == 0.0 ? '' : Convert.roundMoney(value), style: labelTextStyle);
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     final DateTime frameDate = nowZero.subtract(Duration(days: widget.frameRange));
+    final theme = Theme.of(context);
+    labelTextStyle = theme.textTheme.labelMedium;
 
     return StreamBuilder<List<Transaction>>(
       stream: transactionRx.getTransactions(widget.user.id),
@@ -124,12 +131,12 @@ class _SpendGraphicState extends State<SpendGraphic> {
             .fold<double>(total, (prev, element) => prev - element.getBalanceFromType());
         frame = [];
 
-        return getGraph(context, frameDate, transactions);
+        return getGraph(theme, frameDate, transactions);
       },
     );
   }
 
-  Widget getGraph(BuildContext context, DateTime frameDate, List<Transaction> transactions) {
+  Widget getGraph(ThemeData theme, DateTime frameDate, List<Transaction> transactions) {
     transactions.sort((a, b) => b.date.compareTo(a.date));
     frame = calcFrame(transactions, firstBalanceOfFrame ?? 0, frameDate);
     spots = List.generate(widget.frameRange + 1, (index) {
@@ -139,7 +146,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
       return FlSpot(index.toDouble(), balance);
     });
 
-    final color = Theme.of(context).colorScheme.primary;
+    final color = theme.colorScheme.primary;
     final gradient = LinearGradient(
       begin: Alignment.bottomCenter,
       end: Alignment.topCenter,
@@ -155,17 +162,21 @@ class _SpendGraphicState extends State<SpendGraphic> {
           minY: 0,
           gridData: FlGridData(drawVerticalLine: false, horizontalInterval: maxBalance / 3 + 1),
           titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(sideTitles: getBottomTitles()),
-            topTitles: AxisTitles(axisNameWidget: const Text(''), sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: _getTopTitles()),
+            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: getLeftTitles()),
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            // leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: _getLeftTitles()),
           ),
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
               fitInsideVertically: true,
               getTooltipItems: (value) => value.map((e) {
-                return LineTooltipItem('Balance: \$ ${e.y.toInt()}', const TextStyle());
+                return LineTooltipItem(
+                  '\$ ${e.y.toInt()} - ${DateFormat(DateFormat.ABBR_MONTH_DAY).format(frame[e.x.toInt()].date)}',
+                  const TextStyle(),
+                );
               }).toList(),
               tooltipBgColor: color.withOpacity(0.5),
             ),

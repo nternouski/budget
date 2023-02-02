@@ -13,7 +13,6 @@ class ThemeProvider extends ChangeNotifier {
 
   static final light = ThemeData(
     primaryColor: _primary,
-    backgroundColor: _primary,
     scaffoldBackgroundColor: _white,
     appBarTheme: const AppBarTheme(
       color: _white,
@@ -35,13 +34,11 @@ class ThemeProvider extends ChangeNotifier {
       secondary: Colors.pink,
     ),
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
-    toggleableActiveColor: _primary,
     disabledColor: const Color.fromARGB(255, 145, 145, 145),
   );
 
   static final dark = ThemeData(
     primaryColor: _primary,
-    backgroundColor: _primary,
     scaffoldBackgroundColor: _darkGrey,
     appBarTheme: AppBarTheme(
       color: _darkGrey,
@@ -64,7 +61,6 @@ class ThemeProvider extends ChangeNotifier {
       onError: _white,
     ),
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
-    toggleableActiveColor: _primary,
     disabledColor: Colors.grey[600],
   );
 
@@ -98,25 +94,22 @@ enum ThemeTypes {
 }
 
 class ButtonThemeStyle {
-  static getStyle(ThemeTypes type, BuildContext context) {
+  static ButtonStyle? getStyle(ThemeTypes type, BuildContext context) {
+    Color? foregroundColor;
+    Color? backgroundColor;
     if (type == ThemeTypes.primary) {
-      return ElevatedButton.styleFrom(
-        onPrimary: Theme.of(context).colorScheme.onPrimary,
-        primary: Theme.of(context).colorScheme.primary,
-      ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0));
+      foregroundColor = Theme.of(context).colorScheme.onPrimary;
+      backgroundColor = Theme.of(context).colorScheme.primary;
     }
     if (type == ThemeTypes.accent) {
-      return ElevatedButton.styleFrom(
-        onPrimary: Theme.of(context).colorScheme.onSecondary,
-        primary: Theme.of(context).colorScheme.secondary,
-      ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0));
+      foregroundColor = Theme.of(context).colorScheme.onSecondary;
+      backgroundColor = Theme.of(context).colorScheme.secondary;
     }
     if (type == ThemeTypes.warn) {
-      return ElevatedButton.styleFrom(
-        onPrimary: Theme.of(context).colorScheme.onError,
-        primary: Theme.of(context).colorScheme.error,
-      ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0));
+      foregroundColor = Theme.of(context).colorScheme.onError;
+      backgroundColor = Theme.of(context).colorScheme.error;
     }
+    return ElevatedButton.styleFrom(foregroundColor: foregroundColor, backgroundColor: backgroundColor, elevation: 0.0);
   }
 }
 

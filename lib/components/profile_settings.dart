@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,7 @@ class ProfileSettings extends AbstractSettingsSection {
 
       String defaultCurrency = '${user.defaultCurrency.symbol} \$ ${user.initialAmount}';
       return SettingsSection(
-        title: Text('Profile'.i18n, style: theme.textTheme.subtitle1!.copyWith(color: theme.colorScheme.primary)),
+        title: Text('Profile'.i18n, style: theme.textTheme.titleMedium!.copyWith(color: theme.colorScheme.primary)),
         tiles: [
           SettingsTile.navigation(
             leading: const Icon(Icons.person),
@@ -144,6 +145,7 @@ class ProfileSettings extends AbstractSettingsSection {
                   if (user.superUser)
                     Expanded(
                       child: SelectCurrencyFormField(
+                        key: Key(Random().nextDouble().toString()),
                         initialValue: user.defaultCurrency,
                         labelText: 'Default Currency'.i18n,
                         onChange: (selected) async {
@@ -159,6 +161,10 @@ class ProfileSettings extends AbstractSettingsSection {
                             setStateBottomSheet(() {});
                             setState(() {});
                             Navigator.pop(context);
+                          } else {
+                            setStateBottomSheet(() {
+                              user.defaultCurrency = user.defaultCurrency;
+                            });
                           }
                         },
                       ),
@@ -187,7 +193,7 @@ class ProfileSettings extends AbstractSettingsSection {
                       child: Text('Update'.i18n),
                       onPressed: () {
                         if (user.defaultCurrency.id == '') {
-                          return HandlerError().setError('The default currency must be set'.i18n);
+                          return HandlerError().showError(context, text: 'The default currency must be set'.i18n);
                         }
                         UserService().update(user);
                         setState(() {});

@@ -51,6 +51,7 @@ Future<void> main() async {
       Future.wait([preferences.getBool(PreferenceType.authLoginEnable)]).then((p) {
         return runApp(MyApp(
           adState: adState,
+          // ignore: unnecessary_cast
           authLoginEnable: p[0] as bool ?? false,
         ));
       });

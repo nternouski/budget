@@ -58,7 +58,7 @@ class UserService extends UserRx {
       try {
         if (option == AuthOption.google) {
           auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
-          auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+          auth.UserCredential result = await _auth.signInWithProvider(googleAuth);
           userAuth = result.user;
         } else if (option == AuthOption.email) {
           auth.UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
@@ -101,7 +101,7 @@ class UserService extends UserRx {
       try {
         if (option == AuthOption.google) {
           auth.GoogleAuthProvider googleAuth = auth.GoogleAuthProvider();
-          auth.UserCredential result = await _auth.signInWithAuthProvider(googleAuth);
+          auth.UserCredential result = await _auth.signInWithProvider(googleAuth);
           user = result.user;
         } else if (option == AuthOption.email) {
           auth.UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
