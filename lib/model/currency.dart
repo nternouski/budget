@@ -12,15 +12,15 @@ extension CurrencyPrettier on double {
   String prettier({bool withSymbol = false, bool simplify = false}) {
     String amount;
     if (simplify) {
-      amount = this > 1000 ? '${(_removeZeros(this / 1000))}k' : toInt().toString();
+      amount = this > 1000 ? '${(_removeZeros(this / 1000, 1))}k' : toInt().toString();
     } else {
-      amount = _removeZeros(this);
+      amount = _removeZeros(this, 2);
     }
     return '${isNegative ? '-' : ''}${withSymbol ? '\$' : ''}$amount';
   }
 
-  String _removeZeros(double num) {
-    return num.abs().toStringAsFixed(2).replaceFirst(RegExp(r'\.?0*$'), '');
+  String _removeZeros(double num, int fixed) {
+    return num.abs().toStringAsFixed(fixed).replaceFirst(RegExp(r'\.?0*$'), '');
   }
 }
 

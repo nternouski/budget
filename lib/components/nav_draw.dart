@@ -41,14 +41,14 @@ class NavDrawer extends StatelessWidget {
             onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
           ),
           ListTile(
-            leading: const Icon(Icons.query_stats),
-            title: Text('Stats'.i18n),
-            onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
-          ),
-          ListTile(
             leading: const Icon(Icons.list),
             title: Text('Expense Simulation'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.expensePrediction),
+          ),
+          ListTile(
+            leading: const Icon(Icons.query_stats),
+            title: Text('Stats'.i18n),
+            onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
           ListTile(
             leading: const Icon(Icons.wallet),
@@ -85,7 +85,6 @@ class NavDrawer extends StatelessWidget {
 
   Widget buildProfile(ThemeData theme, auth.User user, User? dbUser) {
     var name = dbUser != null && dbUser.name != '' ? dbUser.name : user.displayName ?? 'Name Not Set'.i18n;
-    var email = user.email ?? '';
     var photoURL = user.photoURL;
 
     return Column(
@@ -96,13 +95,16 @@ class NavDrawer extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.4),
+              width: 4,
+              strokeAlign: BorderSide.strokeAlignOutside,
+            ),
             image: photoURL != null ? DecorationImage(fit: BoxFit.fill, image: NetworkImage(photoURL)) : null,
           ),
         ),
         const SizedBox(height: 15),
         Text(name.length > nameLimit ? '${name.substring(0, nameLimit)}..' : name, style: theme.textTheme.titleLarge),
-        const SizedBox(height: 5),
-        Text(email.length > emailLimit ? '${email.substring(0, emailLimit)}..' : email),
       ],
     );
   }

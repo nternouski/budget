@@ -62,6 +62,12 @@ class StatsPieChartState extends State<StatsPieChart> {
     User user = Provider.of<User>(context);
     double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.balanceFixed + acc);
     String symbol = user.defaultCurrency.symbol;
+
+    String title = 'Select Category'.i18n;
+    if (pieSliceSelected != null) {
+      title = '${'Category'.i18n} ${pieSliceSelected?.category.name}';
+    }
+
     return Column(
       children: [
         Padding(
@@ -89,14 +95,9 @@ class StatsPieChartState extends State<StatsPieChart> {
           padding: const EdgeInsets.only(top: 15, bottom: 100),
           child: Column(
             children: [
+              Text(title, style: theme.textTheme.titleLarge),
               Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text('${'Category'.i18n} ${pieSliceSelected?.category.name}', style: theme.textTheme.titleLarge)
-                ]),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.only(right: 10, top: 20),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [Text('${'Currency'.i18n} $symbol ${totalSelected.prettier(withSymbol: true)}')]),
@@ -164,7 +165,7 @@ class _Badge extends StatelessWidget {
           ),
         ],
       ),
-      child: IconCircle(icon: icon, color: borderColor),
+      child: IconCircle(icon: icon, color: borderColor, size: size - 10),
     );
   }
 }

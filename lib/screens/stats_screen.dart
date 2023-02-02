@@ -89,9 +89,9 @@ class StatsScreenState extends State<StatsScreen> {
       body: ValueListenableBuilder<PeriodStats>(
         valueListenable: periods.selected,
         builder: (context, periodStats, child) {
-          // Calc frame but respect window and start week from today
+          // Calc frame but respect window and start week from today, the -1 is to start today not yesterday
           final DateTime frameDate =
-              nowZero.subtract(Duration(days: frameWindow * (periodStats.days / frameWindow).round()));
+              nowZero.subtract(Duration(days: frameWindow * (periodStats.days / frameWindow).round() - 1));
           List<Category> categories = Provider.of<List<Category>>(context)
               .where((c) => allTransactions.any((t) => t.categoryId == c.id))
               .toList();

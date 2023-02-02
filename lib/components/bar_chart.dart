@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../i18n/index.dart';
 import '../components/spend_graphic.dart';
 import '../model/currency.dart';
-import '../common/convert.dart';
 import '../model/transaction.dart';
 
 class BarChartGroup {
@@ -58,6 +57,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
     final step = Duration(days: widget.frameWindow);
     final frameWindowDate = Duration(days: widget.frameWindow, microseconds: -1);
     for (var time = widget.frameDate; time.isBefore(nowZero); time = time.add(step)) {
+      // By each type get the the amount of money and add as bar.
       final rodStackItems = TransactionType.values.fold<List<BarChartRodStackItem>>([], (acc, type) {
         double values = getBalanceOf(widget.transactions, type, time, time.add(frameWindowDate));
         if (values > maxBalance) maxBalance = values;
@@ -93,7 +93,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
         AspectRatio(
           aspectRatio: 1.4,
           child: Padding(
-            padding: const EdgeInsets.all(5),
+            padding: const EdgeInsets.only(top: 15),
             child: BarChart(
               BarChartData(
                 maxY: maxBalance,
@@ -108,7 +108,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       interval: maxBalance / 3 + 1,
-                      reservedSize: 22,
+                      reservedSize: 25,
                       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
                         axis == 0.0 ? '' : axis.prettier(withSymbol: false, simplify: true),
                         style: labelTextStyle,
@@ -174,7 +174,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
       getTitlesWidget: (double value, TitleMeta meta) {
         DateTime date = rawBarGroups[value.toInt()].y;
         if (nowZero.difference(widget.frameDate).inDays < 30) {
-          final format = nowZero.month != date.month ? 'dMMM' : 'd';
+          final format = nowZero.month != date.month ? 'd MMM' : 'd';
           return SideTitleWidget(
             axisSide: meta.axisSide,
             space: 5,

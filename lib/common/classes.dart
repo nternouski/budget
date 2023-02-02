@@ -56,12 +56,16 @@ class AboutDialogClass {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 15),
-          child: Column(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              ElevatedButton(
+                onPressed: () => AppVersionChecker().openStore(),
+                child: const Text('Open Store'),
+              ),
               RichText(
                 text: TextSpan(
                   children: [
-                    TextSpan(text: '$additionalInfo\nYou can read more about, '),
                     TextSpan(
                       text: 'Privacy Policy'.i18n,
                       style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
@@ -75,9 +79,8 @@ class AboutDialogClass {
                           }
                         },
                     ),
-                    const TextSpan(text: ' or '),
                     TextSpan(
-                      text: 'Terms & Conditions'.i18n,
+                      text: '\n${'Terms & Conditions'.i18n}',
                       style: TextStyle(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
@@ -93,18 +96,13 @@ class AboutDialogClass {
                 ),
               ),
               const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => AppVersionChecker().openStore(),
-                child: const Text('Open Store'),
-              ),
-              TextButton(
-                onPressed: () => _redirect(Uri.https('www.freepik.com', '/author/stories')),
-                child:
-                    Text('Special thanks to "stories" on freepik for the pictures.', style: theme.textTheme.bodyMedium),
-              ),
             ],
           ),
-        )
+        ),
+        TextButton(
+          onPressed: () => _redirect(Uri.https('www.freepik.com', '/author/stories')),
+          child: Text('Special thanks to "stories" on freepik for the pictures.', style: theme.textTheme.bodyMedium),
+        ),
       ],
     );
   }
