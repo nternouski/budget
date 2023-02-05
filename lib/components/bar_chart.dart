@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
-import '../i18n/index.dart';
 import '../components/spend_graphic.dart';
 import '../model/currency.dart';
 import '../model/transaction.dart';
@@ -13,24 +12,14 @@ class BarChartGroup {
   BarChartGroup({required this.y, required this.data}) : super();
 }
 
-class ResumeAcc {
-  double expense;
-  double income;
-  double transfer;
-
-  ResumeAcc({this.expense = 0.0, this.income = 0.0, this.transfer = 0.0});
-}
-
 class BarChartWidget extends StatefulWidget {
   final List<Transaction> transactions;
   final DateTime frameDate;
-  final Map<TransactionType, bool> selectedTypes;
   final int frameWindow;
 
   const BarChartWidget({
     Key? key,
     required this.transactions,
-    required this.selectedTypes,
     required this.frameDate,
     required this.frameWindow,
   }) : super(key: key);
@@ -49,7 +38,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    labelTextStyle = theme.textTheme.labelMedium;
+    labelTextStyle = theme.textTheme.bodyLarge;
 
     int index = 0;
     rawBarGroups = [];
@@ -68,24 +57,14 @@ class BarChartWidgetState extends State<BarChartWidget> {
       rawBarGroups.add(BarChartGroup(
         y: time,
         data: BarChartGroupData(
-            barsSpace: 3,
-            x: index++,
-            barRods: rodStackItems
-                .map((item) => BarChartRodData(toY: item.toY, rodStackItems: [item], width: width, color: item.color))
-                .toList()),
+          barsSpace: 0,
+          x: index++,
+          barRods: rodStackItems
+              .map((item) => BarChartRodData(toY: item.toY, rodStackItems: [item], width: width, color: item.color))
+              .toList(),
+        ),
       ));
     }
-
-    ResumeAcc resume = widget.transactions.fold(ResumeAcc(), (r, t) {
-      if (t.type == TransactionType.income) {
-        r.income += t.balanceFixed;
-      } else if (t.type == TransactionType.expense) {
-        r.expense += t.balanceFixed;
-      } else if (t.type == TransactionType.transfer) {
-        r.transfer += t.balanceFixed;
-      }
-      return r;
-    });
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -108,7 +87,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       interval: maxBalance / 3 + 1,
-                      reservedSize: 25,
+                      reservedSize: 28,
                       getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
                         axis == 0.0 ? '' : axis.prettier(withSymbol: false, simplify: true),
                         style: labelTextStyle,
@@ -123,21 +102,6 @@ class BarChartWidgetState extends State<BarChartWidget> {
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (widget.selectedTypes[TransactionType.income] == true)
-              Text('${'Total Income'.i18n}: ${resume.income.prettier(withSymbol: true)}',
-                  style: theme.textTheme.titleMedium),
-            if (widget.selectedTypes[TransactionType.expense] == true)
-              Text('${'Total Expense'.i18n}: ${resume.expense.prettier(withSymbol: true)}',
-                  style: theme.textTheme.titleMedium),
-            if (widget.selectedTypes[TransactionType.transfer] == true)
-              Text('${'Total Transfer'.i18n}: ${resume.transfer.prettier(withSymbol: true)}',
-                  style: theme.textTheme.titleMedium)
-          ],
         ),
       ],
     );

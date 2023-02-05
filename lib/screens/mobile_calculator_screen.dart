@@ -57,25 +57,21 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
       ]),
     );
     return Scaffold(
-      body: CustomScrollView(slivers: [
-        SliverAppBar(
-          titleTextStyle: theme.textTheme.titleLarge,
-          pinned: true,
-          leading: getBackButton(context),
-          title: Text('Mobile Data Calculator'.i18n),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                child: Builder(builder: (context) => form),
-              )
-            ]),
-          ),
-        ),
-      ]),
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getBackButton(context),
+        title: Text('Mobile Data Calculator'.i18n),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              child: Builder(builder: (context) => form),
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -111,16 +107,16 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${'Avg reminding'.i18n}:', style: theme.textTheme.bodyMedium),
-                  Text('$dataRemaining ${'Gb/day'.i18n}', style: theme.textTheme.bodySmall)
+                  Text('${'Avg reminding'.i18n}:', style: theme.textTheme.titleMedium),
+                  Text('$dataRemaining ${'Gb/day'.i18n}', style: theme.textTheme.bodyMedium)
                 ],
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${'Days reminder'.i18n}:', style: theme.textTheme.bodyMedium),
-                  Text('$daysRemaining', style: theme.textTheme.bodySmall)
+                  Text('${'Days reminder'.i18n}:', style: theme.textTheme.titleMedium),
+                  Text('$daysRemaining', style: theme.textTheme.bodyMedium)
                 ],
               ),
             ],

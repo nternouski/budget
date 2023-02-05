@@ -14,7 +14,7 @@ import '../model/transaction.dart';
 // ignore: constant_identifier_names
 const OPACITY = 0.2;
 // ignore: constant_identifier_names
-const HEIGHT_GRAPHIC = 180.0;
+const HEIGHT_GRAPHIC = 190.0;
 
 DateTime nowZero = DateTime.now().copyWith(toZeroHours: true);
 
@@ -43,8 +43,6 @@ class _SpendGraphicState extends State<SpendGraphic> {
   double minBalance = 0.0;
   double? firstBalanceOfFrame;
   List<Balance> frame = [];
-
-  TextStyle? labelTextStyle;
 
   final _formatKey = DateFormat('y/M/d');
 
@@ -89,7 +87,6 @@ class _SpendGraphicState extends State<SpendGraphic> {
   Widget build(BuildContext context) {
     final DateTime frameDate = nowZero.subtract(Duration(days: widget.frameRange));
     final theme = Theme.of(context);
-    labelTextStyle = theme.textTheme.labelMedium;
 
     return StreamBuilder<List<Transaction>>(
       stream: transactionRx.getTransactions(widget.user.id),
@@ -149,7 +146,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
               show: true,
               padding: const EdgeInsets.only(right: 5, bottom: 5),
               style: theme.textTheme.bodyMedium!.copyWith(color: color),
-              labelResolver: (line) => line.y.prettier(withSymbol: true, simplify: true),
+              labelResolver: (line) => '  ${line.y.prettier(withSymbol: true, simplify: true)}',
             ),
           ),
         )

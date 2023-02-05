@@ -95,12 +95,15 @@ class CurrentRatesSettings extends AbstractSettingsSection {
         SettingsTile.navigation(leading: const Icon(Icons.currency_exchange), title: const Text('No Currency rates')),
       );
     } else {
+      final titleStyle = theme.textTheme.titleMedium;
+      final dataStyle = theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor);
+
       tiles.addAll(currencyRates
           .map(
             (cr) => SettingsTile.navigation(
               leading: const Icon(Icons.currency_exchange),
-              title: Text('${cr.currencyFrom.symbol} - ${cr.currencyTo.symbol}'),
-              value: Text('\$ ${cr.rate}'),
+              title: Text('${cr.currencyFrom.symbol} - ${cr.currencyTo.symbol}', style: titleStyle),
+              value: Text('\$ ${cr.rate}', style: dataStyle),
               trailing: Row(children: [
                 IconButton(
                   icon: const Icon(Icons.sync_alt),

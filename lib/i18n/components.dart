@@ -2,9 +2,9 @@ import 'package:i18n_extension/i18n_extension.dart';
 
 final components = Translations('en') +
     // classes
-    {'en': 'Total Income', 'es': 'Ingreso Total'} +
-    {'en': 'Total Expense', 'es': 'Gasto Total'} +
-    {'en': 'Total Transfer', 'es': 'Transf. Total'} +
+    {'en': 'Income', 'es': 'Ingreso'} +
+    {'en': 'Expense', 'es': 'Gasto'} +
+    {'en': 'Transfer', 'es': 'Transferencia'} +
 
     // bottom_navigation_bar_widget
     {'en': 'Double Tap to Exit', 'es': 'Doble toque para salir'} +
@@ -24,7 +24,7 @@ final components = Translations('en') +
 
     // nav_draw
     {'en': 'Mobile Calculator', 'es': 'Calculadora de Plan'} +
-    {'en': 'Stats', 'es': 'Estadísticas'} +
+    {'en': 'Statistics', 'es': 'Estadísticas'} +
     {'en': 'Expense Simulation', 'es': 'Simulación'} +
     {'en': 'Wise Sync', 'es': 'Wise Sync'} +
     {'en': 'Logout', 'es': 'Cerrar Sesión'} +

@@ -16,7 +16,7 @@ extension CurrencyPrettier on double {
     } else {
       amount = _removeZeros(this, 2);
     }
-    return '${isNegative ? '-' : ''}${withSymbol ? '\$' : ''}$amount';
+    return '${isNegative ? '- ' : ''}${withSymbol ? '\$' : ''}$amount';
   }
 
   String _removeZeros(double num, int fixed) {

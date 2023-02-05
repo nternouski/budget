@@ -57,16 +57,15 @@ class WalletsScreenState extends State<WalletsScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: textTheme.titleLarge,
+        leading: getLadingButton(context),
+        title: Text('Wallets'.i18n),
+      ),
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
-            SliverAppBar(
-              titleTextStyle: textTheme.titleLarge,
-              pinned: true,
-              leading: getLadingButton(context),
-              title: Text('Wallets'.i18n),
-            ),
             component,
             if (user != null && user.superUser == true)
               SliverToBoxAdapter(

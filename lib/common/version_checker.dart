@@ -112,6 +112,7 @@ class AppVersionChecker {
       }
     } catch (e) {
       errorMsg = '$e';
+      debugPrint('$uri');
     }
     return AppCheckerResult(currentVersion, newVersion, url, errorMsg);
   }

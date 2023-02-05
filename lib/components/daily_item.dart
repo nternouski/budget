@@ -87,7 +87,10 @@ class DailyItemState extends State<DailyItem> {
                   children: [
                     Text(transaction.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium),
                     const SizedBox(height: 7),
-                    Text(transaction.getDateFormat(), style: theme.textTheme.bodyMedium),
+                    Text(
+                      transaction.getDateFormat(),
+                      style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
+                    ),
                   ],
                 ),
               )
@@ -103,7 +106,7 @@ class DailyItemState extends State<DailyItem> {
                 if (transaction.type == TransactionType.transfer)
                   Text(
                     '(${transaction.balanceConverted?.prettier(withSymbol: true)}) ',
-                    style: theme.textTheme.labelMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
                   ),
                 Text(
                   transaction.balanceFixed.prettier(withSymbol: true),

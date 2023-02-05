@@ -6,12 +6,15 @@ class ThemeProvider extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
   final Preferences _preferences = Preferences();
 
+  static const String? fontFamily = null;
+
   static const Color _primary = Colors.teal;
   static const Color _white = Colors.white;
   static const Color _black = Colors.black;
   static final Color _darkGrey = Colors.grey[900] ?? _black;
 
   static final light = ThemeData(
+    fontFamily: fontFamily,
     primaryColor: _primary,
     scaffoldBackgroundColor: _white,
     appBarTheme: const AppBarTheme(
@@ -20,12 +23,23 @@ class ThemeProvider extends ChangeNotifier {
       elevation: 0,
       shadowColor: Colors.transparent,
     ),
-    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+    textTheme: const TextTheme(
+      displayMedium: TextStyle(fontSize: 56.0, fontWeight: FontWeight.w400, color: _black),
+      headlineSmall: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w400, color: _black),
+      titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w500, color: _black),
+      titleMedium: TextStyle(fontSize: 17.0, fontWeight: FontWeight.w500, color: _black),
+      bodyLarge: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w500, color: _black),
+      bodyMedium: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w400, color: _black),
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
     ),
     cardTheme: CardTheme(elevation: 4, color: Colors.grey[50]),
     colorScheme: const ColorScheme.light().copyWith(
@@ -38,6 +52,7 @@ class ThemeProvider extends ChangeNotifier {
   );
 
   static final dark = ThemeData(
+    fontFamily: fontFamily,
     primaryColor: _primary,
     scaffoldBackgroundColor: _darkGrey,
     appBarTheme: AppBarTheme(
@@ -46,12 +61,23 @@ class ThemeProvider extends ChangeNotifier {
       elevation: 0,
       shadowColor: Colors.transparent,
     ),
-    textTheme: const TextTheme(titleMedium: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+    textTheme: const TextTheme(
+      displayMedium: TextStyle(fontSize: 56.0, fontWeight: FontWeight.w400, color: _white),
+      headlineSmall: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w400, color: _white),
+      titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w500, color: _white),
+      titleMedium: TextStyle(fontSize: 17.0, fontWeight: FontWeight.w500, color: _white),
+      bodyLarge: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w500, color: _white),
+      bodyMedium: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w400, color: _white),
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16))),
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
     ),
     colorScheme: const ColorScheme.dark().copyWith(
       primary: _primary,

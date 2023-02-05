@@ -40,13 +40,12 @@ class SettingsScreenState extends State<SettingsScreen> {
     final user = Provider.of<User>(context) as User?;
 
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getLadingButton(context),
+        title: Text('Settings'.i18n),
+      ),
       body: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
-        SliverAppBar(
-          titleTextStyle: theme.textTheme.titleLarge,
-          pinned: true,
-          leading: getLadingButton(context),
-          title: Text('Settings'.i18n),
-        ),
         SliverToBoxAdapter(
           child: ValueListenableBuilder<PeriodStats>(
             valueListenable: periods.selected,
@@ -163,6 +162,9 @@ class SettingsScreenState extends State<SettingsScreen> {
     final localAuth = Provider.of<LocalAuthNotifier>(context);
     final languageCode = I18n.of(context).locale.languageCode;
 
+    final titleStyle = themeData.textTheme.titleMedium;
+    final dataStyle = themeData.textTheme.bodyMedium!.copyWith(color: themeData.hintColor);
+
     return SettingsSection(
         title: Text(
           'Common'.i18n,
@@ -171,8 +173,8 @@ class SettingsScreenState extends State<SettingsScreen> {
         tiles: [
           SettingsTile.navigation(
             leading: const Icon(Icons.language),
-            title: Text('Language'.i18n),
-            value: Text(languageCode.toUpperCase()),
+            title: Text('Language'.i18n, style: titleStyle),
+            value: Text(languageCode.toUpperCase(), style: dataStyle),
             onPressed: (context) => showModalBottomSheet(
               enableDrag: true,
               context: context,
@@ -187,8 +189,8 @@ class SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsTile.navigation(
             leading: const Icon(Icons.query_stats),
-            title: Text('Period of Analytics'.i18n),
-            value: Text(periodStats.humanize),
+            title: Text('Period of Analytics'.i18n, style: titleStyle),
+            value: Text(periodStats.humanize, style: dataStyle),
             onPressed: (context) => showModalBottomSheet(
               enableDrag: true,
               context: context,
@@ -207,14 +209,14 @@ class SettingsScreenState extends State<SettingsScreen> {
             initialValue: localAuth.enable,
             leading: const Icon(Icons.fingerprint),
             activeSwitchColor: themeData.colorScheme.primary,
-            title: Text('Auth With Biometric'.i18n),
+            title: Text('Auth With Biometric'.i18n, style: titleStyle),
           ),
           SettingsTile.switchTile(
             onToggle: (value) => theme.swapTheme(),
             initialValue: theme.themeMode == ThemeMode.dark,
             leading: const Icon(Icons.brightness_auto),
             activeSwitchColor: themeData.colorScheme.primary,
-            title: Text('Dark Theme'.i18n),
+            title: Text('Dark Theme'.i18n, style: titleStyle),
           ),
         ]);
   }
@@ -228,7 +230,7 @@ class SettingsScreenState extends State<SettingsScreen> {
       tiles: [
         SettingsTile.navigation(
           leading: const Icon(Icons.wallet),
-          title: const Text('Wise'),
+          title: Text('Wise', style: themeData.textTheme.titleMedium),
           onPressed: (_) => showBottomSheetWiseIntegration(user),
           trailing: IconButton(
             icon: const Icon(Icons.edit),

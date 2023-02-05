@@ -72,16 +72,13 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     dateController.text = DateFormat('dd/MM/yyyy').format(budget.initialDate);
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getBackButton(context),
+        title: Text(title),
+      ),
       body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            titleTextStyle: theme.textTheme.titleLarge,
-            pinned: true,
-            leading: getBackButton(context),
-            title: Text(title),
-          ),
-          SliverToBoxAdapter(child: getForm(context, theme))
-        ],
+        slivers: [SliverToBoxAdapter(child: getForm(context, theme))],
       ),
     );
   }

@@ -62,16 +62,13 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     decimalInitialAmountController.text = wallet.initialAmount.toString();
 
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: textTheme.titleLarge,
+        leading: getBackButton(context),
+        title: Text('$title ${wallet.name}'),
+      ),
       body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            titleTextStyle: textTheme.titleLarge,
-            pinned: true,
-            leading: getBackButton(context),
-            title: Text('$title ${wallet.name}'),
-          ),
-          SliverToBoxAdapter(child: getForm(action, title, context))
-        ],
+        slivers: [SliverToBoxAdapter(child: getForm(action, title, context))],
       ),
     );
   }

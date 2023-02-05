@@ -23,19 +23,21 @@ class ProfileSettings extends AbstractSettingsSection {
     final theme = Theme.of(context);
 
     return StatefulBuilder(builder: (context, setState) {
-      var emailExceded = user.email.length > textLimit;
-      var nameExceded = user.name.length > textLimit;
-      var email = emailExceded ? '${user.email.substring(0, textLimit)}..' : user.email;
-      var name = nameExceded ? '${user.name.substring(0, textLimit)}..' : user.name;
+      final emailExceded = user.email.length > textLimit;
+      final nameExceded = user.name.length > textLimit;
+      final email = emailExceded ? '${user.email.substring(0, textLimit)}..' : user.email;
+      final name = nameExceded ? '${user.name.substring(0, textLimit)}..' : user.name;
 
+      final titleStyle = theme.textTheme.titleMedium;
+      final dataStyle = theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor);
       String defaultCurrency = '${user.defaultCurrency.symbol} \$ ${user.initialAmount}';
       return SettingsSection(
         title: Text('Profile'.i18n, style: theme.textTheme.titleMedium!.copyWith(color: theme.colorScheme.primary)),
         tiles: [
           SettingsTile.navigation(
             leading: const Icon(Icons.person),
-            title: Text('Name'.i18n),
-            value: Text(name),
+            title: Text('Name'.i18n, style: titleStyle),
+            value: Text(name, style: dataStyle),
             onPressed: (context) => showModalBottomSheet(
               context: context,
               isScrollControlled: true,
@@ -50,8 +52,8 @@ class ProfileSettings extends AbstractSettingsSection {
           ),
           SettingsTile.navigation(
             leading: const Icon(Icons.email),
-            title: const Text('Email'),
-            value: Text(email),
+            title: Text('Email', style: titleStyle),
+            value: Text(email, style: dataStyle),
             onPressed: (context) => showModalBottomSheet(
               context: context,
               isScrollControlled: true,
@@ -66,8 +68,8 @@ class ProfileSettings extends AbstractSettingsSection {
           ),
           SettingsTile.navigation(
             leading: const Icon(Icons.currency_exchange),
-            title: Text('Initial Amount'.i18n),
-            value: Text(defaultCurrency),
+            title: Text('Initial Amount'.i18n, style: titleStyle),
+            value: Text(defaultCurrency, style: dataStyle),
             onPressed: (context) => showModalBottomSheet(
               context: context,
               isScrollControlled: true,

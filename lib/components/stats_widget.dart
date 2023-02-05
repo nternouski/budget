@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
+import '../common/convert.dart';
 import '../common/period_stats.dart';
 import '../common/prediction_on_stats.dart';
 import '../common/styles.dart';
@@ -43,26 +44,37 @@ class StatsPrediction extends StatelessWidget {
       balancePrediction = prediction - totalExpensePeriod;
     }
 
-    var colorBalance = theme.textTheme.titleMedium!.copyWith(
-      color: balancePrediction.isNegative ? theme.colorScheme.error : theme.primaryColor,
-    );
+    var color = balancePrediction.isNegative ? theme.colorScheme.error : theme.primaryColor;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
-      child: Card(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(children: [
-            Text('Expense Simulation'.i18n, style: theme.textTheme.titleMedium),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Balance ${'Expense Simulation'.i18n}',
+              style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Balance: ', style: theme.textTheme.titleMedium),
-                Text(balancePrediction.prettier(withSymbol: true), style: colorBalance)
+                Icon(
+                  balancePrediction.isNegative ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                  size: 30,
+                  color: color,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  balancePrediction.prettier(withSymbol: true),
+                  style: theme.textTheme.headlineSmall!.copyWith(color: color),
+                  textAlign: TextAlign.center,
+                )
               ],
             ),
-          ]),
+          ],
         ),
       ),
     );
@@ -79,30 +91,101 @@ class StatsBalance extends StatelessWidget {
 
     int maxPeriodBalance = (TransactionRx.windowFetchTransactions.inDays / 30).floor();
     double balance = transactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
+    Color color = balance.isNegative ? theme.colorScheme.error : theme.primaryColor;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
-      child: Card(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Icon(
-                balance.isNegative ? Icons.keyboard_double_arrow_down_rounded : Icons.keyboard_double_arrow_up_rounded,
-                size: 45,
-                color: balance.isNegative ? theme.colorScheme.error : theme.primaryColor,
-              ),
-              Column(children: [
-                Text(
-                  'In the last %d months'.plural(maxPeriodBalance),
-                  style: theme.textTheme.titleMedium,
+    return Card(
+      margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'In the last %d months'.plural(maxPeriodBalance),
+              style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  balance.isNegative ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                  size: 30,
+                  color: color,
                 ),
-                Text(balance.prettier(withSymbol: true), style: theme.textTheme.titleLarge)
-              ]),
-            ],
-          ),
+                const SizedBox(width: 5),
+                Text(balance.prettier(withSymbol: true), style: theme.textTheme.headlineSmall!.copyWith(color: color))
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ResumeAcc {
+  double expense;
+  double income;
+  double transfer;
+
+  ResumeAcc({this.expense = 0.0, this.income = 0.0, this.transfer = 0.0});
+
+  double byType(TransactionType type) {
+    if (type == TransactionType.expense) {
+      return expense;
+    } else if (type == TransactionType.income) {
+      return income;
+    } else {
+      return transfer;
+    }
+  }
+}
+
+class TotalBalance extends StatelessWidget {
+  final List<Transaction> transactions;
+  final Map<TransactionType, bool> selectedTypes;
+  const TotalBalance({required this.transactions, required this.selectedTypes, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    ResumeAcc resume = transactions.fold(ResumeAcc(), (r, t) {
+      if (t.type == TransactionType.income) {
+        r.income += t.balanceFixed;
+      } else if (t.type == TransactionType.expense) {
+        r.expense += t.balanceFixed;
+      } else if (t.type == TransactionType.transfer) {
+        r.transfer += t.balanceFixed;
+      }
+      return r;
+    });
+
+    return Card(
+      margin: const EdgeInsets.only(left: 30, right: 30),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Total', style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: TransactionType.values.fold<List<Widget>>([], (acc, type) {
+                if (selectedTypes[type] == true) {
+                  acc.add(Column(
+                    children: [
+                      Text(Convert.capitalize(type.toShortString()).i18n),
+                      Text(resume.byType(type).prettier(withSymbol: true), style: theme.textTheme.titleMedium)
+                    ],
+                  ));
+                }
+                return acc;
+              }).toList(),
+            ),
+          ],
         ),
       ),
     );

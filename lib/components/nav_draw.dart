@@ -1,10 +1,9 @@
-import 'package:budget/common/classes.dart';
-import 'package:budget/common/version_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
+import '../common/classes.dart';
 import '../server/user_service.dart';
 import '../model/user.dart';
 import '../routes.dart';
@@ -47,7 +46,7 @@ class NavDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.query_stats),
-            title: Text('Stats'.i18n),
+            title: Text('Statistics'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.stats),
           ),
           ListTile(
@@ -73,9 +72,8 @@ class NavDrawer extends StatelessWidget {
             leading: const Icon(Icons.info),
             title: Text('About'.i18n),
             onTap: () async {
-              final status = await AppVersionChecker().getStatus();
               Navigator.of(context).pop();
-              AboutDialogClass.show(context, additionalInfo: '${'Stable version'.i18n} ${status.newVersion}. ');
+              AboutDialogClass.show(context);
             },
           ),
         ],
@@ -95,16 +93,11 @@ class NavDrawer extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.4),
-              width: 4,
-              strokeAlign: BorderSide.strokeAlignOutside,
-            ),
             image: photoURL != null ? DecorationImage(fit: BoxFit.fill, image: NetworkImage(photoURL)) : null,
           ),
         ),
         const SizedBox(height: 15),
-        Text(name.length > nameLimit ? '${name.substring(0, nameLimit)}..' : name, style: theme.textTheme.titleLarge),
+        Text(name.length > nameLimit ? '${name.substring(0, nameLimit)}..' : name, style: theme.textTheme.titleMedium),
       ],
     );
   }

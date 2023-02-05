@@ -72,7 +72,8 @@ class SelectCurrencyFormField extends FormField<Currency> {
                           padding: const EdgeInsets.only(bottom: 2, left: 5),
                           child: Text(
                             labelText,
-                            style: theme.textTheme.labelLarge!.copyWith(color: theme.hintColor),
+                            style: theme.textTheme.bodyMedium!
+                                .copyWith(color: theme.hintColor, fontWeight: FontWeight.w600),
                           ),
                         ),
                       valueWidget

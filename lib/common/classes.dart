@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'dart:ui' as ui;
 
-import 'package:budget/common/version_checker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -10,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
 import '../i18n/index.dart';
+import '../common/version_checker.dart';
 import '../common/preference.dart';
 import '../common/theme.dart';
 
@@ -43,7 +42,7 @@ class ScreenInit {
 }
 
 class AboutDialogClass {
-  static show(BuildContext context, {String additionalInfo = ''}) async {
+  static show(BuildContext context) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final theme = Theme.of(context);
 

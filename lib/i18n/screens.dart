@@ -194,7 +194,7 @@ final screens = Translations('en') +
     {'en': 'DELETE USER', 'es': 'ELIMINAR USUARIO'} +
 
     // stats_screen
-    {'en': 'Stats', 'es': 'Estadísticas'} +
+    {'en': 'Statistics', 'es': 'Estadísticas'} +
     {
       'en': 'In the last %d months'
           .zero('In the last %d months')

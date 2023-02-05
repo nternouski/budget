@@ -169,16 +169,13 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     decimalAmountController.text = transaction.amount.toString().split('.')[1];
 
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getBackButton(context),
+        title: Text('$title ${transaction.name}'),
+      ),
       body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            titleTextStyle: theme.textTheme.titleLarge,
-            pinned: true,
-            leading: getBackButton(context),
-            title: Text('$title ${transaction.name}'),
-          ),
-          SliverToBoxAdapter(child: getForm(context, wallets, theme))
-        ],
+        slivers: [SliverToBoxAdapter(child: getForm(context, wallets, theme))],
       ),
     );
   }
@@ -251,10 +248,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
               ],
-              style: theme.textTheme.displayMedium!.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.titleLarge!.color,
-              ),
+              style: theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: '\$0',

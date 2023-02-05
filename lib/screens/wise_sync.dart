@@ -41,60 +41,67 @@ class WiseSyncScreenState extends State<WiseSyncScreen> {
     // final List<Wallet> wallets = Provider.of<List<Wallet>>(context);
 
     return Scaffold(
-      body: Column(children: [
-        SizedBox(
-          height: 190,
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                titleTextStyle: theme.textTheme.titleLarge,
-                pinned: true,
-                leading: getBackButton(context),
-                title: Text('Wise Transactions'.i18n),
-                actions: [
-                  IconButton(
-                    onPressed: () => _showDialog(context, selected.value.intervalStart),
-                    icon: const Icon(Icons.date_range),
-                  ),
-                ],
-              ),
-              // SliverToBoxAdapter(child: getSearch(wallets))
-            ],
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getBackButton(context),
+        title: Text('Wise Transactions'.i18n),
+        actions: [
+          IconButton(
+            onPressed: () => _showDialog(context, selected.value.intervalStart),
+            icon: const Icon(Icons.date_range),
           ),
-        ),
-        Image.asset('assets/images/construction.png', width: 300, height: 300),
-        Text('In Construction'.i18n, style: theme.textTheme.titleMedium)
-        // Expanded(
-        //   child: RefreshIndicator(
-        //     child: CustomScrollView(
-        //       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        //       slivers: [
-        //         SliverToBoxAdapter(
-        //           child: ValueListenableBuilder<StatementsRequest>(
-        //             valueListenable: selected,
-        //             builder: (context, value, _) {
-        //               final wallet = value.wallet;
-        //               if (wallet == null) return const Center(child: Text('Select Balance'));
-        //               return FutureBuilder(
-        //                 future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
-        //                 builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {
-        //                   if (snapshot.hasError) inspect(snapshot.error);
-        //                   List<WiseTransactions>? data = snapshot.data;
-        //                   if (data == null || !snapshot.hasData) {
-        //                     return Column(children: [Progress.getLoadingProgress(context: context)]);
-        //                   }
-        //                   return getBody(context, data);
-        //                 },
-        //               );
-        //             },
-        //           ),
-        //         )
-        //       ],
-        //     ),
-        //     onRefresh: () async {},
-        //   ),
-        // )
-      ]),
+        ],
+      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            children: [
+              // SizedBox(
+              //   height: 190,
+              //   child: CustomScrollView(
+              //     slivers: [
+              //       SliverToBoxAdapter(child: getSearch(wallets))
+              //     ],
+              //   ),
+              // ),
+              Image.asset('assets/images/construction.png', width: 300, height: 300),
+              Text('In Construction'.i18n, style: theme.textTheme.titleMedium)
+              // Expanded(
+              //   child: RefreshIndicator(
+              //     child: CustomScrollView(
+              //       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              //       slivers: [
+              //         SliverToBoxAdapter(
+              //           child: ValueListenableBuilder<StatementsRequest>(
+              //             valueListenable: selected,
+              //             builder: (context, value, _) {
+              //               final wallet = value.wallet;
+              //               if (wallet == null) return const Center(child: Text('Select Balance'));
+              //               return FutureBuilder(
+              //                 future: wiseApi.fetchTransfers(createdDateStart: value.intervalStart, wallet: wallet),
+              //                 builder: (BuildContext context, AsyncSnapshot<List<WiseTransactions>> snapshot) {
+              //                   if (snapshot.hasError) inspect(snapshot.error);
+              //                   List<WiseTransactions>? data = snapshot.data;
+              //                   if (data == null || !snapshot.hasData) {
+              //                     return Column(children: [Progress.getLoadingProgress(context: context)]);
+              //                   }
+              //                   return getBody(context, data);
+              //                 },
+              //               );
+              //             },
+              //           ),
+              //         )
+              //       ],
+              //     ),
+              //     onRefresh: () async {},
+              //   ),
+              // )
+            ],
+          )
+        ],
+      ),
     );
   }
 

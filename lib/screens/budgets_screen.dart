@@ -33,16 +33,15 @@ class BudgetsScreenState extends State<BudgetsScreen> {
     if (user == null) return ScreenInit.getScreenInit(context);
 
     return Scaffold(
+      appBar: AppBar(
+        titleTextStyle: theme.textTheme.titleLarge,
+        leading: getLadingButton(context),
+        title: Text('Budgets'.i18n),
+      ),
       body: RefreshIndicator(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
-            SliverAppBar(
-              titleTextStyle: theme.textTheme.titleLarge,
-              pinned: true,
-              leading: getLadingButton(context),
-              title: Text('Budgets'.i18n),
-            ),
             if (budgets.isEmpty)
               SliverToBoxAdapter(
                 child: EmptyList(urlImage: 'assets/images/budget.png', text: 'No budgets at the moment..'.i18n),
@@ -90,7 +89,7 @@ class BudgetItem extends StatelessWidget {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text(budget.name, style: theme.textTheme.bodyMedium),
+                title: Text(budget.name, style: theme.textTheme.titleMedium),
                 content: Text('Are you sure you want to delete?'.i18n),
                 actions: <Widget>[
                   buttonCancelContext(context),

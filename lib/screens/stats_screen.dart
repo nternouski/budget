@@ -74,7 +74,7 @@ class StatsScreenState extends State<StatsScreen> {
       appBar: AppBar(
         titleTextStyle: theme.textTheme.titleLarge,
         leading: getBackButton(context),
-        title: Text('Stats'.i18n),
+        title: Text('Statistics'.i18n),
         actions: [
           IconButton(
             icon: Icon(predictionOnStats.enable ? Icons.auto_graph : Icons.visibility_off),
@@ -188,19 +188,18 @@ class StatsScreenState extends State<StatsScreen> {
                 ]),
               ),
               SliverToBoxAdapter(
-                child: BarChartWidget(
-                  transactions: transactions,
-                  selectedTypes: selectedTypes,
-                  frameDate: frameDate,
-                  frameWindow: frameWindow,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: StatsPieChart(
-                  categoriesSelected: categoriesSelected,
-                  transactions: transactions,
-                  total: totalSelected,
-                  periodStats: periodStats,
+                child: Column(
+                  children: [
+                    BarChartWidget(transactions: transactions, frameDate: frameDate, frameWindow: frameWindow),
+                    const SizedBox(height: 20),
+                    TotalBalance(transactions: transactions, selectedTypes: selectedTypes),
+                    StatsPieChart(
+                      categoriesSelected: categoriesSelected,
+                      transactions: transactions,
+                      total: totalSelected,
+                      periodStats: periodStats,
+                    ),
+                  ],
                 ),
               ),
             ],
