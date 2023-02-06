@@ -70,14 +70,13 @@ class DailyScreenState extends State<DailyScreen> {
           builder: (context, periodStats, child) => SpendGraphic(
             frameRange: periodStats.days,
             user: user,
-            key: Key(Random().nextDouble().toString()),
+            key: Key(periodStats.days.toString()),
           ),
         ),
         Expanded(
           child: Container(
             foregroundDecoration: gradientPrimary,
             child: Container(
-              padding: const EdgeInsets.only(top: 20),
               foregroundDecoration: gradientDisappear,
               child: RefreshIndicator(
                 child: CustomScrollView(
@@ -106,12 +105,12 @@ class DailyScreenState extends State<DailyScreen> {
         } else {
           return SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 130, left: 5, right: 5),
+              padding: const EdgeInsets.only(top: 25, bottom: 130, left: 5, right: 5),
               child: Column(
                 children: [
                   ...List.generate(
                     transactions.length,
-                    (index) => DailyItem(transaction: transactions[index], key: Key(Random().nextDouble().toString())),
+                    (index) => DailyItem(transaction: transactions[index], key: Key(transactions[index].id.toString())),
                   ),
                   if (!fetchAll)
                     TextButton(onPressed: () => setState(() => fetchAll = true), child: Text('See All'.i18n)),

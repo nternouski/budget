@@ -196,10 +196,7 @@ final screens = Translations('en') +
     // stats_screen
     {'en': 'Statistics', 'es': 'Estadísticas'} +
     {
-      'en': 'In the last %d months'
-          .zero('In the last %d months')
-          .one('In the last %d month')
-          .many('In the last %d months'),
+      'en': 'The Last %d months'.zero('The Last %d months').one('The Last %d month').many('The Last %d months'),
       'es': 'En los últimos %d meses'
           .zero('En los últimos %d meses')
           .one('En los últimos mes')

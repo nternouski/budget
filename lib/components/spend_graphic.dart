@@ -145,7 +145,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
             label: HorizontalLineLabel(
               show: true,
               padding: const EdgeInsets.only(right: 5, bottom: 5),
-              style: theme.textTheme.bodyMedium!.copyWith(color: color),
+              style: CurrencyPrettier.getFont(theme.textTheme.bodyMedium!.copyWith(color: color)),
               labelResolver: (line) => '  ${line.y.prettier(withSymbol: true, simplify: true)}',
             ),
           ),

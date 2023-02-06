@@ -117,8 +117,8 @@ class BudgetItem extends StatelessWidget {
 
   getItems(BuildContext context) {
     final theme = Theme.of(context);
-    double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
-    int porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).round();
+    final double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
+    final double porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).roundToDouble();
     Control control = Control.playFromStart;
 
     int daysLeft = budget.initialDate.add(Duration(days: budget.period)).difference(DateTime.now()).inDays;
@@ -133,7 +133,7 @@ class BudgetItem extends StatelessWidget {
             Text(Convert.capitalize(budget.name), style: theme.textTheme.titleMedium),
             Text(
               daysLeft <= 0 ? 'Finished'.i18n : '%d days left'.plural(daysLeft),
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
             ),
           ],
         ),
@@ -142,8 +142,8 @@ class BudgetItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('BALANCE: ${budget.balance.prettier(withSymbol: true)}', style: theme.textTheme.bodyMedium),
-            Text('$porcentaje %', style: theme.textTheme.titleMedium),
+            budget.balance.prettierToText(withSymbol: true, prefix: 'BALANCE: ', style: theme.textTheme.bodyMedium),
+            porcentaje.prettierToText(withSymbol: false, suffix: ' %', style: theme.textTheme.titleMedium)
           ],
         ),
         heightPadding,

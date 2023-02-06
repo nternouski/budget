@@ -85,14 +85,16 @@ class BarChartWidgetState extends State<BarChartWidget> {
                     axisNameWidget: const Text(''),
                     axisNameSize: 4,
                     sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: maxBalance / 3 + 1,
-                      reservedSize: 28,
-                      getTitlesWidget: (double axis, TitleMeta titleMeta) => Text(
-                        axis == 0.0 ? '' : axis.prettier(withSymbol: false, simplify: true),
-                        style: labelTextStyle,
-                      ),
-                    ),
+                        showTitles: true,
+                        interval: maxBalance / 3 + 1,
+                        reservedSize: 28,
+                        getTitlesWidget: (double axis, TitleMeta titleMeta) {
+                          if (axis == 0.0) {
+                            return const Text('');
+                          } else {
+                            return axis.prettierToText(withSymbol: false, simplify: true, style: labelTextStyle);
+                          }
+                        }),
                   ),
                 ),
                 borderData: FlBorderData(show: false),
@@ -116,7 +118,11 @@ class BarChartWidgetState extends State<BarChartWidget> {
           theme.textTheme.bodyLarge!,
           children: rod.rodStackItems.fold<List<TextSpan>>([], (acc, item) {
             if (item.toY.compareTo(0.0) > 0) {
-              acc.add(TextSpan(text: item.toY.prettier(withSymbol: true), style: TextStyle(color: item.color)));
+              acc.add(
+                TextSpan(
+                    text: item.toY.prettier(withSymbol: true),
+                    style: CurrencyPrettier.getFont(TextStyle(color: item.color))),
+              );
             }
             return acc;
           }),

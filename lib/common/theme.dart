@@ -41,7 +41,7 @@ class ThemeProvider extends ChangeNotifier {
         textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
       ),
     ),
-    cardTheme: CardTheme(elevation: 4, color: Colors.grey[50]),
+    cardTheme: const CardTheme(elevation: 0, color: Color(0xFFE3F6F4)),
     colorScheme: const ColorScheme.light().copyWith(
       primary: _primary,
       onPrimary: _white,

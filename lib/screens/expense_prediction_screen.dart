@@ -162,7 +162,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('TOTAL ${total.prettier(withSymbol: true)}', style: theme.textTheme.titleLarge),
+                      total.prettierToText(withSymbol: true, prefix: 'TOTAL ', style: theme.textTheme.titleLarge),
                       Text('in %d days '.plural(period)),
                     ],
                   ),
@@ -313,7 +313,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('Total: ${group.total.prettier(withSymbol: true)}', style: theme.textTheme.titleMedium),
+            group.total.prettierToText(withSymbol: true, prefix: 'Total: ', style: theme.textTheme.titleMedium),
             const SizedBox(width: 30)
           ],
         ),

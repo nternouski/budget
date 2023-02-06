@@ -50,13 +50,12 @@ class StatsPrediction extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       child: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Balance ${'Expense Simulation'.i18n}',
-              style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor),
+              style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -67,10 +66,9 @@ class StatsPrediction extends StatelessWidget {
                   color: color,
                 ),
                 const SizedBox(width: 5),
-                Text(
-                  balancePrediction.prettier(withSymbol: true),
+                balancePrediction.prettierToText(
+                  withSymbol: true,
                   style: theme.textTheme.headlineSmall!.copyWith(color: color),
-                  textAlign: TextAlign.center,
                 )
               ],
             ),
@@ -97,13 +95,12 @@ class StatsBalance extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       child: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'In the last %d months'.plural(maxPeriodBalance),
-              style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor),
+              'The Last %d months'.plural(maxPeriodBalance),
+              style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -114,7 +111,10 @@ class StatsBalance extends StatelessWidget {
                   color: color,
                 ),
                 const SizedBox(width: 5),
-                Text(balance.prettier(withSymbol: true), style: theme.textTheme.headlineSmall!.copyWith(color: color))
+                balance.prettierToText(
+                  withSymbol: true,
+                  style: theme.textTheme.headlineSmall!.copyWith(color: color),
+                )
               ],
             ),
           ],
@@ -131,14 +131,16 @@ class ResumeAcc {
 
   ResumeAcc({this.expense = 0.0, this.income = 0.0, this.transfer = 0.0});
 
-  double byType(TransactionType type) {
+  double byType(TransactionType type, {bool round = false}) {
+    double amount;
     if (type == TransactionType.expense) {
-      return expense;
+      amount = expense.abs();
     } else if (type == TransactionType.income) {
-      return income;
+      amount = income;
     } else {
-      return transfer;
+      amount = transfer;
     }
+    return round ? amount.roundToDouble() : amount;
   }
 }
 
@@ -162,31 +164,37 @@ class TotalBalance extends StatelessWidget {
       return r;
     });
 
+    final items = TransactionType.values.fold<List<Widget>>([], (acc, type) {
+      if (selectedTypes[type] == true) {
+        acc.add(Expanded(
+          child: Card(
+            margin: const EdgeInsets.all(5),
+            color: theme.scaffoldBackgroundColor,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Column(
+                children: [
+                  Text(
+                    Convert.capitalize(type.toShortString()).i18n,
+                    style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
+                  ),
+                  resume.byType(type, round: true).prettierToText(withSymbol: true, style: theme.textTheme.titleLarge)
+                ],
+              ),
+            ),
+          ),
+        ));
+      }
+      return acc;
+    }).toList();
+
     return Card(
-      margin: const EdgeInsets.only(left: 30, right: 30),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Total', style: theme.textTheme.bodyLarge!.copyWith(color: theme.hintColor)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: TransactionType.values.fold<List<Widget>>([], (acc, type) {
-                if (selectedTypes[type] == true) {
-                  acc.add(Column(
-                    children: [
-                      Text(Convert.capitalize(type.toShortString()).i18n),
-                      Text(resume.byType(type).prettier(withSymbol: true), style: theme.textTheme.titleMedium)
-                    ],
-                  ));
-                }
-                return acc;
-              }).toList(),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.all(10),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: items),
       ),
     );
   }

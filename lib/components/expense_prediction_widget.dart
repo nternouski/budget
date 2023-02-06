@@ -14,9 +14,8 @@ class ItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    var titleColor = theme.textTheme.titleMedium?.color;
-    final itemColor = item.check ? titleColor : theme.disabledColor;
-    final textStyle = theme.textTheme.titleMedium?.copyWith(color: itemColor);
+    final itemColor = item.check ? theme.textTheme.bodyMedium?.color : theme.disabledColor;
+    final textStyle = theme.textTheme.bodyMedium?.copyWith(color: itemColor);
 
     return Container(
       color: background,
@@ -32,7 +31,7 @@ class ItemWidget extends StatelessWidget {
           Row(children: [
             const Text('  '),
             Text('in %d days '.plural(item.days), style: TextStyle(color: itemColor)),
-            Text(item.amount.prettier(withSymbol: true), style: textStyle),
+            item.amount.prettierToText(withSymbol: true, style: textStyle),
             const SizedBox(width: 30)
           ]),
         ],

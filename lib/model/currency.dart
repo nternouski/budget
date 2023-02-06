@@ -1,9 +1,29 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+
 import '../common/convert.dart';
 import '../common/classes.dart';
-import 'package:budget/common/error_handler.dart';
+import '../common/error_handler.dart';
 
 extension CurrencyPrettier on double {
+  static TextStyle getFont(TextStyle style) {
+    return style.copyWith(fontFamily: 'Poppins');
+  }
+
+  /// Same of prettier but with format Text
+  Text prettierToText({
+    bool withSymbol = false,
+    bool simplify = false,
+    String prefix = '',
+    String suffix = '',
+    TextStyle? style,
+  }) {
+    return Text(
+      '$prefix${prettier(withSymbol: withSymbol, simplify: simplify)}$suffix',
+      style: getFont(style ?? const TextStyle()),
+    );
+  }
+
   /// The function remove zeros on decimal and round to two decimals.
   /// Examples:
   ///   4.777 => 4.77

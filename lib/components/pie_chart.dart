@@ -98,14 +98,17 @@ class StatsPieChartState extends State<StatsPieChart> {
               Text(title, style: theme.textTheme.titleLarge),
               Padding(
                 padding: const EdgeInsets.only(right: 10, top: 20),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [Text('${'Currency'.i18n} $symbol ${totalSelected.prettier(withSymbol: true)}')]),
+                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  Text('${'Currency'.i18n} $symbol '),
+                  totalSelected.prettierToText(withSymbol: true),
+                ]),
               ),
               ...List.generate(
                 transactionSelected.length,
-                (index) =>
-                    DailyItem(transaction: transactionSelected[index], key: Key(Random().nextDouble().toString())),
+                (index) => DailyItem(
+                  transaction: transactionSelected[index],
+                  key: Key(transactionSelected[index].id.toString()),
+                ),
               ),
             ],
           ),

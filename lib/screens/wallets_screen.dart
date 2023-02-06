@@ -169,8 +169,10 @@ class WalletItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text((wallet.balance + wallet.initialAmount).prettier(withSymbol: true),
-                          style: textTheme.headlineSmall?.copyWith(color: contrastColor)),
+                      (wallet.balance + wallet.initialAmount).prettierToText(
+                        withSymbol: true,
+                        style: textTheme.headlineSmall?.copyWith(color: contrastColor),
+                      ),
                       const SizedBox(width: 5),
                       Text(wallet.currency!.symbol, style: textTheme.bodyLarge?.copyWith(color: contrastColor)),
                     ],
