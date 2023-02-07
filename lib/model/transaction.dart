@@ -97,7 +97,7 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
   }) {
     updateBalance();
     this.createdAt = createdAt ?? DateTime.now();
-    this.category = category ?? defaultCategory;
+    this.category = category ?? defaultCategory.copy();
   }
 
   factory Transaction.fromJson(Map<String, dynamic> json, List<Label> allLabels) {

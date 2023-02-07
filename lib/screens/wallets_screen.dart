@@ -43,12 +43,12 @@ class WalletsScreenState extends State<WalletsScreen> {
       component = SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, idx) => GestureDetector(
-            onTap: () => RouteApp.redirect(
+            onLongPress: () => RouteApp.redirect(
                 context: context, url: URLS.createOrUpdateWallet, param: wallets[idx], fromScaffold: false),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               child: WalletItem(
-                  wallet: wallets[idx], userId: authUser.uid, showBalance: true, showActions: true, selected: true),
+                  wallet: wallets[idx], userId: authUser.uid, showBalance: true, dense: false, selected: true),
             ),
           ),
           childCount: wallets.length,
@@ -89,7 +89,7 @@ class WalletItem extends StatelessWidget {
   final Wallet wallet;
   final String userId;
   final bool showBalance;
-  final bool showActions;
+  final bool dense;
   final bool selected;
 
   const WalletItem({
@@ -97,7 +97,7 @@ class WalletItem extends StatelessWidget {
     required this.wallet,
     required this.userId,
     required this.showBalance,
-    required this.showActions,
+    required this.dense,
     required this.selected,
   }) : super(key: key);
 
@@ -141,23 +141,25 @@ class WalletItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            InkWell(
-              child: IconCircle(icon: wallet.icon, color: contrastColor),
-              onTap: () {
-                if (wallet.balance.compareTo(wallet.balanceFixed) != 0) {
-                  double equivalent = wallet.balanceFixed;
-                  if (wallet.initialAmount != 0) {
-                    CurrencyRate cr = currencyRates.findCurrencyRate(user.defaultCurrency, wallet.currency!);
-                    equivalent += cr.convert(wallet.initialAmount, wallet.currencyId, user.defaultCurrency.id);
+            if (dense) IconCircle(icon: wallet.icon, color: contrastColor),
+            if (!dense)
+              InkWell(
+                child: IconCircle(icon: wallet.icon, color: contrastColor),
+                onTap: () {
+                  if (wallet.balance.compareTo(wallet.balanceFixed) != 0) {
+                    double equivalent = wallet.balanceFixed;
+                    if (wallet.initialAmount != 0) {
+                      CurrencyRate cr = currencyRates.findCurrencyRate(user.defaultCurrency, wallet.currency!);
+                      equivalent += cr.convert(wallet.initialAmount, wallet.currencyId, user.defaultCurrency.id);
+                    }
+                    Display.message(
+                      context,
+                      '${'It\'s equivalent to'.i18n} ${equivalent.prettier(withSymbol: true)} ${user.defaultCurrency.symbol}',
+                      seconds: 4,
+                    );
                   }
-                  Display.message(
-                    context,
-                    '${'It\'s equivalent to'.i18n} ${equivalent.prettier(withSymbol: true)} ${user.defaultCurrency.symbol}',
-                    seconds: 4,
-                  );
-                }
-              },
-            ),
+                },
+              ),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +182,7 @@ class WalletItem extends StatelessWidget {
                 ],
               ],
             ),
-            if (showActions) ...[
+            if (!dense) ...[
               const Expanded(child: Text('')),
               IconButton(
                 onPressed: () => RouteApp.redirect(

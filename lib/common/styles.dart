@@ -38,9 +38,9 @@ class InputStyle {
   }
 }
 
-TextButton buttonCancelContext(BuildContext context) {
-  return TextButton(
-    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+Widget buttonCancelContext(BuildContext context) {
+  return OutlinedButton(
+    style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
     onPressed: () => Navigator.of(context).pop(),
     child: Text('Cancel'.i18n),
   );

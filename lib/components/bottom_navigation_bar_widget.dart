@@ -28,16 +28,8 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   BannerAd? banner;
   int _bannerAdRetry = 0;
 
-  final _checker = AppVersionChecker();
-
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
-  }
-
-  @override
-  initState() {
-    super.initState();
-    Future.delayed(Duration.zero, () => _checker.checkUpdate(context));
   }
 
   Future<bool> onWillPop() {

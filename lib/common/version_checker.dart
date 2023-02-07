@@ -12,7 +12,6 @@ import '../i18n/index.dart';
 import '../model/transaction.dart';
 import '../model/user.dart';
 import '../server/user_service.dart';
-import '../common/error_handler.dart';
 
 enum AndroidStore { googlePlayStore, apkPure }
 
@@ -53,22 +52,6 @@ class AppVersionChecker {
     } else {
       return AppCheckerResult(_currentVersion, null, '',
           'The target platform "%s" is not yet supported by this package.'.fill([Platform.operatingSystem]));
-    }
-  }
-
-  Future<void> checkUpdate(BuildContext context) async {
-    final result = await getStatus();
-    if (result.errorMessage != null) {
-      HandlerError().setError(result.errorMessage!);
-    } else if (result.canUpdate) {
-      // ignore: use_build_context_synchronously
-      Display.message(
-        context,
-        'You have a new version available, please go to the store and update.'.i18n,
-        seconds: 5,
-        actionLabel: 'Open Store',
-        actionOnPress: () => openStore(),
-      );
     }
   }
 

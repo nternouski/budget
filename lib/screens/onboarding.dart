@@ -67,6 +67,7 @@ class _OnBoardingState extends State<OnBoarding> {
                 padding: const EdgeInsets.only(left: 35, right: 35),
                 child: Column(children: [
                   SelectCurrencyFormField(
+                    autovalidateMode: AutovalidateMode.always,
                     initialValue: defaultCurrency,
                     onChange: (c) {
                       setState(() => defaultCurrency = c);
@@ -118,8 +119,8 @@ class _OnBoardingState extends State<OnBoarding> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            TextButton(
-                              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                               onPressed: () => setState(() => authOption = null),
                               child: Text('Cancel'.i18n),
                             ),
@@ -236,8 +237,8 @@ class _OnBoardingState extends State<OnBoarding> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        TextButton(
-                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                           onPressed: () => setState(() => authOption = null),
                           child: Text('Cancel'.i18n),
                         ),
@@ -291,7 +292,7 @@ class _OnBoardingState extends State<OnBoarding> {
                     controller.animateToPage(index, duration: durationAnimation, curve: Curves.ease),
               ),
             ),
-            TextButton(
+            OutlinedButton(
               onPressed: () async {
                 if (isLastPage) {
                   controller.previousPage(duration: durationAnimation, curve: Curves.ease);

@@ -219,7 +219,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                         wallet: wallets[index],
                         userId: userId,
                         showBalance: false,
-                        showActions: false,
+                        dense: true,
                         selected: fromWallet
                             ? transaction.walletFromId == wallets[index].id
                             : transaction.walletToId == wallets[index].id,

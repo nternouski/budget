@@ -41,6 +41,11 @@ class ThemeProvider extends ChangeNotifier {
         textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
       ),
     ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
+    ),
     cardTheme: const CardTheme(elevation: 0, color: Color(0xFFE3F6F4)),
     colorScheme: const ColorScheme.light().copyWith(
       primary: _primary,
@@ -75,6 +80,11 @@ class ThemeProvider extends ChangeNotifier {
       ),
     ),
     textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
       style: ButtonStyle(
         textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
       ),

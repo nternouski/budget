@@ -113,7 +113,7 @@ class DailyScreenState extends State<DailyScreen> {
                     (index) => DailyItem(transaction: transactions[index], key: Key(transactions[index].id.toString())),
                   ),
                   if (!fetchAll)
-                    TextButton(onPressed: () => setState(() => fetchAll = true), child: Text('See All'.i18n)),
+                    OutlinedButton(onPressed: () => setState(() => fetchAll = true), child: Text('See All'.i18n)),
                 ],
               ),
             ),

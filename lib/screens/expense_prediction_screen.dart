@@ -125,7 +125,6 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               scrollController: _scrollController,
               onItemReorder: _onItemReorder,
               onListReorder: _onListReorder,
-              itemDivider: const Divider(thickness: 2, height: 2),
               itemDecorationWhileDragging: BoxDecoration(
                 color: theme.colorScheme.primary,
                 borderRadius: const BorderRadius.all(Radius.circular(6)),

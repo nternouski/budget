@@ -13,7 +13,8 @@ final components = Translations('en') +
     {'en': 'Choose Category', 'es': 'Elegir Categoría'} +
     {'en': 'Long press on category to edit it.', 'es': 'Mantén presionado para editar.'} +
     {'en': 'No categories at the moment..', 'es': 'No hay categoría por el momento.'} +
-    {'en': 'Select Category', 'es': 'Elegir Categoría'} +
+    {'en': 'Select Category', 'es': 'Elegir una Categoría'} +
+    {'en': 'Select Multi Categories', 'es': 'Elegir Multiples Categorías'} +
 
     // create_or_update_label
     {'en': 'Label Search', 'es': 'Buscar Label'} +

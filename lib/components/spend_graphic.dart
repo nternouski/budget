@@ -114,12 +114,12 @@ class _SpendGraphicState extends State<SpendGraphic> {
             .fold<double>(total, (prev, element) => prev - element.getBalanceFromType());
         frame = [];
 
-        return getGraph(theme, frameDate, transactions);
+        return _getGraph(theme, frameDate, transactions);
       },
     );
   }
 
-  Widget getGraph(ThemeData theme, DateTime frameDate, List<Transaction> transactions) {
+  Widget _getGraph(ThemeData theme, DateTime frameDate, List<Transaction> transactions) {
     transactions.sort((a, b) => b.date.compareTo(a.date));
     frame = calcFrame(transactions, firstBalanceOfFrame ?? 0, frameDate);
     spots = List.generate(widget.frameRange + 1, (index) {
@@ -152,6 +152,8 @@ class _SpendGraphicState extends State<SpendGraphic> {
         )
         .toList();
 
+    final dot = FlDotCirclePainter(radius: 6, color: theme.colorScheme.primary);
+
     return Container(
       padding: const EdgeInsets.all(0),
       width: double.infinity,
@@ -168,13 +170,21 @@ class _SpendGraphicState extends State<SpendGraphic> {
             leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           lineTouchData: LineTouchData(
+            getTouchedSpotIndicator: (barData, spotIndexes) => spotIndexes
+                .map(
+                  (e) => TouchedSpotIndicatorData(
+                    FlLine(strokeWidth: 0),
+                    FlDotData(getDotPainter: (spot, percent, barData, index) => dot),
+                  ),
+                )
+                .toList(growable: false),
             getTouchLineEnd: (_, __) => 0,
             touchTooltipData: LineTouchTooltipData(
               fitInsideHorizontally: true,
               fitInsideVertically: true,
               getTooltipItems: (value) => value.map((e) {
                 return LineTooltipItem(
-                  '\$ ${e.y.toInt()} - ${DateFormat(DateFormat.ABBR_MONTH_DAY).format(frame[e.x.toInt()].date)}',
+                  '${e.y.roundToDouble().prettier(withSymbol: true)} - ${DateFormat(DateFormat.ABBR_MONTH_DAY).format(frame[e.x.toInt()].date)}',
                   const TextStyle(),
                 );
               }).toList(),

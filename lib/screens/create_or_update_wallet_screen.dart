@@ -104,14 +104,26 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
   }
 
   Widget buildName() {
-    return TextFormField(
-      initialValue: wallet.name,
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name'.i18n, hintTextStr: 'Bank XX'.i18n),
-      inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
-      validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-      onChanged: (String _) => _formKey.currentState!.validate(),
-      onSaved: (String? value) => wallet.name = value!,
-    );
+    return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      IconPicker(
+        selected: IconMap(wallet.iconName, wallet.icon),
+        color: wallet.color,
+        onSelected: (iconM) => setState(() {
+          wallet.iconName = iconM.name;
+          wallet.icon = iconM.icon;
+        }),
+      ),
+      const SizedBox(width: 5),
+      Expanded(
+          child: TextFormField(
+        initialValue: wallet.name,
+        decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name'.i18n, hintTextStr: 'Bank XX'.i18n),
+        inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
+        validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+        onChanged: (String _) => _formKey.currentState!.validate(),
+        onSaved: (String? value) => wallet.name = value!,
+      )),
+    ]);
   }
 
   Widget getForm(Action action, String title, BuildContext context) {
@@ -136,13 +148,6 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
               ColorPickerType.primary: false,
               ColorPickerType.accent: false,
             },
-          ),
-          IconPicker.picker(
-            IconMap(wallet.iconName, wallet.icon),
-            (iconM) => setState(() {
-              wallet.iconName = iconM.name;
-              wallet.icon = iconM.icon;
-            }),
           ),
           sizedBoxHeight,
           ElevatedButton(

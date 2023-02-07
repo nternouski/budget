@@ -34,11 +34,13 @@ class BarChartWidgetState extends State<BarChartWidget> {
   double maxBalance = 0;
 
   TextStyle? labelTextStyle;
+  bool showVerticalLabel = false;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     labelTextStyle = theme.textTheme.bodyLarge;
+    showVerticalLabel = nowZero.difference(widget.frameDate).inDays > 30;
 
     int index = 0;
     rawBarGroups = [];
@@ -87,7 +89,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                     sideTitles: SideTitles(
                         showTitles: true,
                         interval: maxBalance / 3 + 1,
-                        reservedSize: 28,
+                        reservedSize: 30,
                         getTitlesWidget: (double axis, TitleMeta titleMeta) {
                           if (axis == 0.0) {
                             return const Text('');
@@ -143,23 +145,23 @@ class BarChartWidgetState extends State<BarChartWidget> {
       showTitles: true,
       getTitlesWidget: (double value, TitleMeta meta) {
         DateTime date = rawBarGroups[value.toInt()].y;
-        if (nowZero.difference(widget.frameDate).inDays < 30) {
-          final format = nowZero.month != date.month ? 'd MMM' : 'd';
-          return SideTitleWidget(
-            axisSide: meta.axisSide,
-            space: 5,
-            child: Text(DateFormat(format).format(date), style: labelTextStyle),
-          );
-        } else {
+        if (showVerticalLabel) {
           return SideTitleWidget(
             axisSide: AxisSide.right,
             space: 15,
             angle: 1.57,
             child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
           );
+        } else {
+          final format = nowZero.month != date.month ? 'd MMM' : 'd';
+          return SideTitleWidget(
+            axisSide: meta.axisSide,
+            space: 5,
+            child: Text(DateFormat(format).format(date), style: labelTextStyle),
+          );
         }
       },
-      reservedSize: 30,
+      reservedSize: showVerticalLabel ? 40 : 20,
     );
   }
 }

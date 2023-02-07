@@ -24,7 +24,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
   }) : super(
           validator: validator ?? _defaultValidator,
           initialValue: initialValue ?? _defaultCurrency,
-          autovalidateMode: AutovalidateMode.disabled,
+          autovalidateMode: autovalidateMode,
           builder: (FormFieldState<Currency> state) {
             final theme = Theme.of(state.context);
 

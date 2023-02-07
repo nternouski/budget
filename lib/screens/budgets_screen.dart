@@ -143,7 +143,7 @@ class BudgetItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             budget.balance.prettierToText(withSymbol: true, prefix: 'BALANCE: ', style: theme.textTheme.bodyMedium),
-            porcentaje.prettierToText(withSymbol: false, suffix: ' %', style: theme.textTheme.titleMedium)
+            porcentaje.prettierToText(withSymbol: false, suffix: ' %', style: theme.textTheme.bodyLarge)
           ],
         ),
         heightPadding,
