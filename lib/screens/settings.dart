@@ -85,10 +85,8 @@ class SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
-        child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -119,7 +117,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   _bottomSheetLanguage(BuildContext context, String languageCode) {
@@ -127,10 +125,8 @@ class SettingsScreenState extends State<SettingsScreen> {
     final langNotifier = Provider.of<LanguageNotifier>(context);
 
     return SingleChildScrollView(
-        child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -154,7 +150,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
@@ -260,10 +256,8 @@ class SettingsScreenState extends State<SettingsScreen> {
   _wiseBottomSheetBody(String apiKey, User user, BuildContext context) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
-        child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -294,7 +288,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    ));
+    );
   }
 }
 

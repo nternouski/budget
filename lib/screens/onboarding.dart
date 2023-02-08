@@ -55,6 +55,7 @@ class _OnBoardingState extends State<OnBoarding> {
   }
 
   buildOnBoarding(BuildContext context, ThemeData theme) {
+    final errorColor = Theme.of(context).colorScheme.error;
     var pages = [
       ListView(
         children: [
@@ -120,7 +121,10 @@ class _OnBoardingState extends State<OnBoarding> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             OutlinedButton(
-                              style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: errorColor,
+                                side: borderOutlet.copyWith(color: errorColor),
+                              ),
                               onPressed: () => setState(() => authOption = null),
                               child: Text('Cancel'.i18n),
                             ),
@@ -238,7 +242,10 @@ class _OnBoardingState extends State<OnBoarding> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         OutlinedButton(
-                          style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: errorColor,
+                            side: borderOutlet.copyWith(color: errorColor),
+                          ),
                           onPressed: () => setState(() => authOption = null),
                           child: Text('Cancel'.i18n),
                         ),

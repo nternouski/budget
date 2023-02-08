@@ -324,16 +324,15 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
     ]);
   }
 
-  // DATE PICKER //
-
   Widget buildDateField(ThemeData theme, User user) {
-    const formatDate = 'dd/MM/yyyy';
+    const formatDate = DateFormat.ABBR_MONTH_DAY;
     const formatTime = 'HH:mm';
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Flexible(
-          child: InkWell(
+          child: AppInteractionBorder(
+            margin: const EdgeInsets.all(10),
             onTap: () async {
               var lastDate = DateTime.now();
               if (user.superUser) lastDate = lastDate.add(const Duration(days: 60));
@@ -351,20 +350,17 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }
               dateController.text = DateFormat(formatDate).format(transaction.date);
             },
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.edit_calendar_rounded),
-                  const SizedBox(width: 10),
-                  Text(DateFormat(formatDate).format(transaction.date), style: theme.textTheme.titleMedium)
-                ]),
-              ),
-            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.edit_calendar_rounded),
+              const SizedBox(width: 10),
+              Text(DateFormat(formatDate).format(transaction.date), style: theme.textTheme.titleMedium)
+            ]),
           ),
         ),
+        const SizedBox(width: 15),
         Flexible(
-          child: InkWell(
+          child: AppInteractionBorder(
+            margin: const EdgeInsets.all(10),
             onTap: () async {
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
@@ -384,16 +380,11 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
               }
               timeController.text = DateFormat(formatTime).format(transaction.date);
             },
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.more_time_rounded),
-                  const SizedBox(width: 10),
-                  Text(DateFormat(formatTime).format(transaction.date), style: theme.textTheme.titleMedium)
-                ]),
-              ),
-            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.more_time_rounded),
+              const SizedBox(width: 10),
+              Text(DateFormat(formatTime).format(transaction.date), style: theme.textTheme.titleMedium)
+            ]),
           ),
         ),
       ],
@@ -427,21 +418,18 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                       }
                     },
                     itemBuilder: (BuildContext context) => types,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: borderRadiusApp,
-                        color: colorsTypeTransaction[transaction.type]?.withOpacity(0.2),
+                    child: AppInteractionBorder(
+                      color: colorsTypeTransaction[transaction.type]?.withOpacity(0.2),
+                      borderColor: colorsTypeTransaction[transaction.type],
+                      margin: const EdgeInsets.all(14),
+                      child: Center(
+                        child: Text(
+                          Convert.capitalize(transaction.type.toShortString()),
+                          style: theme.textTheme.titleMedium!.copyWith(
+                            color: colorsTypeTransaction[transaction.type],
+                          ),
+                        ),
                       ),
-                      child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Center(
-                            child: Text(
-                              Convert.capitalize(transaction.type.toShortString()),
-                              style: theme.textTheme.titleMedium!.copyWith(
-                                color: colorsTypeTransaction[transaction.type],
-                              ),
-                            ),
-                          )),
                     ),
                   ),
                 ),

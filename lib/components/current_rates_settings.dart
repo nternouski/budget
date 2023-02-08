@@ -172,10 +172,9 @@ class CurrentRatesSettings extends AbstractSettingsSection {
         bool differentCurrency =
             rate.currencyFrom.id != rate.currencyTo.id && rate.currencyFrom.id != '' && rate.currencyTo.id != '';
         return SingleChildScrollView(
-            child: Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Padding(
-            padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -231,7 +230,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               ],
             ),
           ),
-        ));
+        );
       },
     );
   }

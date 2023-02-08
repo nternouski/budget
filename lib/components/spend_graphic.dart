@@ -184,7 +184,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
               fitInsideVertically: true,
               getTooltipItems: (value) => value.map((e) {
                 return LineTooltipItem(
-                  '${e.y.roundToDouble().prettier(withSymbol: true)} - ${DateFormat(DateFormat.ABBR_MONTH_DAY).format(frame[e.x.toInt()].date)}',
+                  '${e.y.prettier(withSymbol: true, simplify: true)} - ${DateFormat(DateFormat.ABBR_MONTH_DAY).format(frame[e.x.toInt()].date)}',
                   const TextStyle(),
                 );
               }).toList(),

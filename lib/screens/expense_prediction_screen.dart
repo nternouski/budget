@@ -229,7 +229,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
 
     items.add(DragAndDropItem(
       canDrag: false,
-      child: InkWell(
+      child: OutlinedButton(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
@@ -243,7 +243,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             ],
           ),
         ),
-        onTap: () async {
+        onPressed: () async {
           _updateItem = _updateItem.copyWith(name: '', amount: 0.0, days: 7, check: true);
           return showModalBottomSheet(
             context: context,
@@ -341,14 +341,14 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     const sizedBoxHeight = SizedBox(height: 20);
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 20, right: 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.titleLarge,
             ),
             TextFormField(
               initialValue: _updateItem.name,
@@ -411,14 +411,14 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
 
     return SingleChildScrollView(
         child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 20, right: 20),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${create ? 'Create'.i18n : 'Update'.i18n} ${'Group'.i18n}',
-            style: theme.textTheme.bodyLarge,
+            style: theme.textTheme.titleLarge,
           ),
           TextFormField(
             autofocus: true,
@@ -455,10 +455,8 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
-        child: Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -479,6 +477,6 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           ],
         ),
       ),
-    ));
+    );
   }
 }

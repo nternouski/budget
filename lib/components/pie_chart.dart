@@ -1,10 +1,10 @@
-import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
-import '../common/period_stats.dart';
+import '../common/classes.dart';
 import '../common/styles.dart';
 import '../components/daily_item.dart';
 import '../components/icon_circle.dart';
@@ -24,12 +24,12 @@ class StatsPieChart extends StatefulWidget {
   final List<CategorySelected> categoriesSelected;
   final List<Transaction> transactions;
   final double total;
-  final PeriodStats periodStats;
+  final DateTime frameDate;
   const StatsPieChart({
     required this.categoriesSelected,
     required this.transactions,
     required this.total,
-    required this.periodStats,
+    required this.frameDate,
     Key? key,
   }) : super(key: key);
 
@@ -38,6 +38,9 @@ class StatsPieChart extends StatefulWidget {
 }
 
 class StatsPieChartState extends State<StatsPieChart> {
+  DateTimeRange? range;
+  final dateFormat = DateFormat(DateFormat.ABBR_MONTH_DAY);
+
   PieCategory? pieSliceSelected;
 
   StatsPieChartState();
@@ -57,10 +60,20 @@ class StatsPieChartState extends State<StatsPieChart> {
       ];
     }).toList();
 
-    List<Transaction> transactionSelected =
-        widget.transactions.where((t) => t.categoryId == pieSliceSelected?.category.id).toList();
-    User user = Provider.of<User>(context);
+    if (range == null) _setRange(start: widget.frameDate);
+
+    List<Transaction> transactionSelected = widget.transactions
+        .where(
+          (t) =>
+              t.categoryId == pieSliceSelected?.category.id &&
+              t.date.isAfter(range!.start) &&
+              t.date.isBefore(range!.end),
+        )
+        .toList();
+
     double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.balanceFixed + acc);
+
+    User user = Provider.of<User>(context);
     String symbol = user.defaultCurrency.symbol;
 
     String title = 'Select Category'.i18n;
@@ -96,8 +109,10 @@ class StatsPieChartState extends State<StatsPieChart> {
           child: Column(
             children: [
               Text(title, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 10),
+              if (user.superUser) _getRangeFilter(theme),
               Padding(
-                padding: const EdgeInsets.only(right: 10, top: 20),
+                padding: const EdgeInsets.only(right: 10, top: 10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   Text('${'Currency'.i18n} $symbol '),
                   totalSelected.prettierToText(withSymbol: true),
@@ -141,6 +156,39 @@ class StatsPieChartState extends State<StatsPieChart> {
         badgePositionPercentageOffset: 1,
       );
     }).toList();
+  }
+
+  _getRangeFilter(ThemeData theme) {
+    return AppInteractionBorder(
+      margin: const EdgeInsets.all(10),
+      onTap: () async {
+        // Below line stops keyboard from appearing
+        FocusScope.of(context).requestFocus(FocusNode());
+        // Show Date Picker Here
+        final DateTimeRange? picked = await showDateRangePicker(
+          context: context,
+          initialDateRange: range,
+          firstDate: widget.frameDate,
+          lastDate: DateTime.now(),
+        );
+        if (picked != null && picked != range) setState(() => _setRange(start: picked.start, end: picked.end));
+      },
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        const Icon(Icons.edit_calendar_rounded),
+        const SizedBox(width: 10),
+        Text(
+          '${dateFormat.format(range!.start)} - ${dateFormat.format(range!.end)}',
+          style: theme.textTheme.titleMedium,
+        ),
+      ]),
+    );
+  }
+
+  void _setRange({required DateTime start, DateTime? end}) {
+    range = DateTimeRange(
+      start: start.copyWith(toZeroHours: true),
+      end: (end ?? DateTime.now()).copyWith(toLastMomentDay: true),
+    );
   }
 }
 

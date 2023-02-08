@@ -43,6 +43,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: ButtonStyle(
+        side: MaterialStateProperty.all(borderOutlet.copyWith(color: _primary)),
         textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
       ),
     ),
@@ -86,6 +87,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: ButtonStyle(
+        side: MaterialStateProperty.all(borderOutlet.copyWith(color: _primary)),
         textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 16, fontFamily: fontFamily)),
       ),
     ),

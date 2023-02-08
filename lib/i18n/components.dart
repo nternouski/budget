@@ -4,7 +4,7 @@ final components = Translations('en') +
     // classes
     {'en': 'Income', 'es': 'Ingreso'} +
     {'en': 'Expense', 'es': 'Gasto'} +
-    {'en': 'Transfer', 'es': 'Transferencia'} +
+    {'en': 'Transfer', 'es': 'Transfer'} +
 
     // bottom_navigation_bar_widget
     {'en': 'Double Tap to Exit', 'es': 'Doble toque para salir'} +

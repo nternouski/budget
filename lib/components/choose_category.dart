@@ -110,7 +110,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
     return StatefulBuilder(builder: (context, setState) {
       return SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, top: 30, left: 20, right: 20),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -205,11 +205,12 @@ class ChooseCategoryState extends State<ChooseCategory> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   (widget.multi ? 'Select Multi Categories' : 'Select Category').i18n,
                   style: theme.textTheme.titleLarge,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
                 displayCategories(
@@ -245,25 +246,18 @@ class ChooseCategoryState extends State<ChooseCategory> {
           var colorItem = selectedCategories.any((c) => c.id == categories[index].id)
               ? categories[index].color
               : Colors.transparent;
-          return GestureDetector(
+          return AppInteractionBorder(
+            borderColor: colorItem,
+            margin: const EdgeInsets.only(right: 8),
             onLongPress: () => showButtonSheetCreateOrUpdate(context, categories[index]),
             onTap: () => onTap(categories[index]),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(width: 2, color: colorItem),
-                borderRadius: categoryBorderRadius,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconCircle(icon: categories[index].icon, color: categories[index].color),
-                    const SizedBox(width: 5),
-                    Text(categories[index].name)
-                  ],
-                ),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconCircle(icon: categories[index].icon, color: categories[index].color),
+                const SizedBox(width: 8),
+                Text(categories[index].name)
+              ],
             ),
           );
         }),

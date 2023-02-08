@@ -130,32 +130,29 @@ class StatsScreenState extends State<StatsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: selectedTypes.entries
-                        .map((e) => Padding(
+                        .map((select) => Padding(
                               padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
-                              child: GestureDetector(
-                                onTap: () => setState(() => selectedTypes.update(e.key, (value) => !value)),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border: e.value ? Border.all(width: 2, color: colorsTypeTransaction[e.key]!) : null,
-                                    borderRadius: categoryBorderRadius,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        Container(
-                                          width: 16,
-                                          height: 16,
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle, color: colorsTypeTransaction[e.key]),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(Convert.capitalize(e.key.toShortString()),
-                                            style: theme.textTheme.bodyLarge)
-                                      ],
+                              child: AppInteractionBorder(
+                                oval: true,
+                                show: select.value,
+                                borderColor: colorsTypeTransaction[select.key]!,
+                                margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
+                                onTap: () => setState(() => selectedTypes.update(select.key, (value) => !value)),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: colorsTypeTransaction[select.key],
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 5),
+                                    Text(Convert.capitalize(select.key.toShortString()),
+                                        style: theme.textTheme.bodyLarge)
+                                  ],
                                 ),
                               ),
                             ))
@@ -197,7 +194,7 @@ class StatsScreenState extends State<StatsScreen> {
                       categoriesSelected: categoriesSelected,
                       transactions: transactions,
                       total: totalSelected,
-                      periodStats: periodStats,
+                      frameDate: frameDate,
                     ),
                   ],
                 ),
@@ -227,28 +224,23 @@ class _Indicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GestureDetector(
+    return AppInteractionBorder(
+      oval: true,
+      show: isSelected,
+      borderColor: category.color,
+      margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
       onTap: () => onTap(!isSelected, category.id),
-      child: Container(
-        decoration: BoxDecoration(
-          border: isSelected ? Border.all(width: 2, color: category.color) : null,
-          borderRadius: categoryBorderRadius,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
-              ),
-              const SizedBox(width: 5),
-              Text(category.name, style: theme.textTheme.bodyLarge)
-            ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
           ),
-        ),
+          const SizedBox(width: 5),
+          Text(category.name, style: theme.textTheme.bodyLarge)
+        ],
       ),
     );
   }

@@ -126,15 +126,16 @@ extension DateUtils on DateTime {
     int? millisecond,
     int? microsecond,
     bool toZeroHours = false,
+    bool toLastMomentDay = false,
   }) {
-    if (toZeroHours) {
+    if (toZeroHours || toLastMomentDay) {
       hour = 0;
       minute = 0;
       second = 0;
       millisecond = 0;
       microsecond = 0;
     }
-    return DateTime(
+    var result = DateTime(
       year ?? this.year,
       month ?? this.month,
       day ?? this.day,
@@ -144,6 +145,11 @@ extension DateUtils on DateTime {
       millisecond ?? this.millisecond,
       microsecond ?? this.microsecond,
     );
+    if (toLastMomentDay) {
+      return result.add(const Duration(days: 1)).subtract(const Duration(microseconds: 1));
+    } else {
+      return result;
+    }
   }
 }
 

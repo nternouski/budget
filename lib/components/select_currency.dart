@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
+import '../common/styles.dart';
 import '../model/currency.dart';
 
 class SelectCurrencyFormField extends FormField<Currency> {
@@ -37,13 +38,10 @@ class SelectCurrencyFormField extends FormField<Currency> {
               List<PopupMenuItem<Currency>> items =
                   currencies.map((c) => PopupMenuItem(value: c, child: Center(child: Text(c.symbol)))).toList();
 
-              final valueWidget = Container(
-                padding: EdgeInsets.symmetric(vertical: labelText != '' ? 8 : 10, horizontal: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: theme.hoverColor,
-                  border: state.hasError ? Border.all(width: 2, color: Colors.red) : null,
-                ),
+              final valueWidget = AppInteractionBorder(
+                margin: EdgeInsets.symmetric(vertical: labelText != '' ? 8 : 10, horizontal: 10),
+                borderColor: state.hasError ? theme.colorScheme.error : null,
+                color: theme.hoverColor,
                 child: Center(
                   child: Text(
                     state.value != null && state.value!.symbol != '' ? state.value!.symbol : _defaultCurrency.symbol,
