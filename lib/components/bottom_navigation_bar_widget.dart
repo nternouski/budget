@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
 import '../common/ad_helper.dart';
-import '../common/version_checker.dart';
 import '../common/error_handler.dart';
 import '../common/theme.dart';
 import '../common/convert.dart';

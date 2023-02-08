@@ -265,7 +265,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             Text('${'Update'.i18n} ${'Integrations'.i18n}', style: theme.textTheme.titleLarge),
             TextFormField(
               initialValue: apiKey,
-              decoration: InputStyle.inputDecoration(labelTextStr: 'API Key'),
+              decoration: const InputDecoration(labelText: 'API Key'),
               validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
               onChanged: (String newApiKey) => apiKey = newApiKey,
             ),
@@ -273,7 +273,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                buttonCancelContext(context),
+                getButtonCancelContext(context),
                 ElevatedButton(
                   child: Text('Update'.i18n),
                   onPressed: () {
@@ -309,12 +309,12 @@ class DangerZone extends AbstractSettingsSection {
             Text('To delete permanently your user and all the data related to you.'.i18n),
             TextFormField(
               controller: confirmController,
-              decoration: InputStyle.inputDecoration(labelTextStr: '', hintTextStr: confirmationString),
+              decoration: InputDecoration(labelText: '', hintText: confirmationString),
               onChanged: (input) => buttonEnabled.value = confirmController.text == confirmationString,
             ),
           ]),
           actions: <Widget>[
-            buttonCancelContext(context),
+            getButtonCancelContext(context),
             ValueListenableBuilder(
               valueListenable: buttonEnabled,
               builder: (BuildContext context, bool enabled, _) => ElevatedButton(

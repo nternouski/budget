@@ -92,7 +92,7 @@ class BudgetItem extends StatelessWidget {
                 title: Text(budget.name, style: theme.textTheme.titleMedium),
                 content: Text('Are you sure you want to delete?'.i18n),
                 actions: <Widget>[
-                  buttonCancelContext(context),
+                  getButtonCancelContext(context),
                   ElevatedButton(
                     style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                     child: Text('Delete'.i18n),
@@ -153,7 +153,7 @@ class BudgetItem extends StatelessWidget {
             Container(
               width: sizeBar,
               height: 10,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: Colors.grey.withOpacity(0.3)),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: budget.color.withOpacity(0.2)),
             ),
             CustomAnimationBuilder<double>(
               control: control,

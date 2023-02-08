@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
+import '../components/interaction_border.dart';
 import '../components/pie_chart.dart';
 import '../components/stats_widget.dart';
 import '../components/bar_chart.dart';

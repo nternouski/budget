@@ -75,8 +75,8 @@ class FAQPageState extends State<FAQScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: TextFormField(
             controller: search,
-            decoration: InputStyle.inputDecoration(
-              labelTextStr: 'Search'.i18n,
+            decoration: InputDecoration(
+              labelText: 'Search'.i18n,
               suffixIcon: IconButton(
                 onPressed: () {
                   filtered.clear();

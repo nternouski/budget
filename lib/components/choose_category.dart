@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../i18n/index.dart';
 import '../common/theme.dart';
 import '../common/icon_helper.dart';
+import '../components/interaction_border.dart';
 import '../components/icon_circle.dart';
 import '../components/icon_picker.dart';
 import '../server/database/category_rx.dart';
@@ -129,7 +130,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
                 Expanded(
                   child: TextFormField(
                     initialValue: temp.name,
-                    decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+                    decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9  ]')),
                       LengthLimitingTextInputFormatter(Category.MAX_LENGTH_NAME)
@@ -163,7 +164,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
                       onPressed: () =>
                           categoryRx.delete(temp.id, user.uid).whenComplete(() => Navigator.of(context).pop()),
                     ),
-                  buttonCancelContext(context),
+                  getButtonCancelContext(context),
                   ElevatedButton(
                     child: Text(actionButton),
                     onPressed: () {

@@ -353,7 +353,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             TextFormField(
               initialValue: _updateItem.name,
               autofocus: true,
-              decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+              decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
               inputFormatters: [LengthLimitingTextInputFormatter(25)],
               validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
               onChanged: (String name) => _updateItem.name = name,
@@ -364,11 +364,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                   initialValue: _updateItem.amount.toString(),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                  decoration: InputStyle.inputDecoration(
-                    labelTextStr: 'Amount'.i18n,
-                    hintTextStr: '0',
-                    prefix: const Text('\$ '),
-                  ),
+                  decoration: InputDecoration(labelText: 'Amount'.i18n, hintText: '0', prefix: const Text('\$ ')),
                   validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
                   onChanged: (String value) => _updateItem.amount = double.parse(value != '' ? value : '0'),
                 ),
@@ -378,7 +374,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                   initialValue: _updateItem.days.toString(),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Durations (Days)'.i18n, hintTextStr: '0'),
+                  decoration: InputDecoration(labelText: 'Durations (Days)'.i18n, hintText: '0'),
                   validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
                   onChanged: (String value) => _updateItem.days = int.parse(value != '' ? value : '0'),
                 ),
@@ -388,7 +384,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                buttonCancelContext(context),
+                getButtonCancelContext(context),
                 ElevatedButton(
                   child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
                   onPressed: () {
@@ -423,7 +419,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           TextFormField(
             autofocus: true,
             initialValue: group.name,
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+            decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp('[a-zA-Z1-9  ]')),
               LengthLimitingTextInputFormatter(25)
@@ -435,7 +431,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              buttonCancelContext(context),
+              getButtonCancelContext(context),
               ElevatedButton(
                 child: Text(create ? 'Create'.i18n : 'Update'.i18n),
                 onPressed: () {

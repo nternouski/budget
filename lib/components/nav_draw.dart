@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
-import '../common/classes.dart';
+import '../components/about_dialog.dart' as app;
 import '../server/user_service.dart';
 import '../model/user.dart';
 import '../routes.dart';
@@ -73,7 +73,7 @@ class NavDrawer extends StatelessWidget {
             title: Text('About'.i18n),
             onTap: () async {
               Navigator.of(context).pop();
-              AboutDialogClass.show(context);
+              app.AboutDialog.show(context);
             },
           ),
         ],

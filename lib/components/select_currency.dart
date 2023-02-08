@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
-import '../common/styles.dart';
+import '../components/interaction_border.dart';
 import '../model/currency.dart';
 
 class SelectCurrencyFormField extends FormField<Currency> {

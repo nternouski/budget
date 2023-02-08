@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 import '../i18n/index.dart';
-import '../common/theme.dart';
 import '../server/wise_api/wise_api.dart';
 import '../server/currency_rates_service.dart';
 import '../server/database/currency_rate_rx.dart';
@@ -29,7 +28,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
           title: Text('Confirm'.i18n),
           content: Text(content),
           actions: <Widget>[
-            buttonCancelContext(context),
+            getButtonCancelContext(context),
             ElevatedButton(child: Text('YES'.i18n), onPressed: () => Navigator.pop(context, true)),
           ],
         );
@@ -51,7 +50,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                 if (snapshot.data == null) {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [Progress.getLoadingProgress(context: context)],
+                    children: [getLoadingProgress(context: context)],
                   );
                 } else {
                   final rates = snapshot.data!.where((r) => r != null).toList() as List<Rate>;
@@ -73,7 +72,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   );
                 }
               }),
-          actions: <Widget>[buttonCancelContext(context)],
+          actions: <Widget>[getButtonCancelContext(context)],
         );
       },
     );
@@ -208,14 +207,14 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   initialValue: rate.rate.toString(),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,4}'))],
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Rate', hintTextStr: '0'),
+                  decoration: const InputDecoration(labelText: 'Rate', hintText: '0'),
                   onChanged: (String value) => rate.rate = double.parse(value != '' ? value : '0.0'),
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    buttonCancelContext(context),
+                    getButtonCancelContext(context),
                     ElevatedButton(
                       onPressed: differentCurrency && (update || notExist)
                           ? () {

@@ -13,6 +13,19 @@ class ThemeProvider extends ChangeNotifier {
   static const Color _black = Colors.black;
   static final Color _darkGrey = Colors.grey[900] ?? _black;
 
+  static const _inputDecorator = InputDecorationTheme(
+    contentPadding: EdgeInsets.all(10),
+    labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    hintStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    prefixStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    // floatingLabelBehavior: FloatingLabelBehavior.always,
+    alignLabelWithHint: true,
+    // fillColor: Colors.teal.withOpacity(0.2),
+    // filled: true,
+    // border: OutlineInputBorder(),
+    // border: InputBorder.none,
+  );
+
   static final light = ThemeData(
     fontFamily: fontFamily,
     primaryColor: _primary,
@@ -53,6 +66,7 @@ class ThemeProvider extends ChangeNotifier {
       onPrimary: _white,
       secondary: Colors.pink,
     ),
+    inputDecorationTheme: _inputDecorator,
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
     disabledColor: const Color.fromARGB(255, 145, 145, 145),
   );
@@ -98,6 +112,7 @@ class ThemeProvider extends ChangeNotifier {
       error: Colors.red[400],
       onError: _white,
     ),
+    inputDecorationTheme: _inputDecorator,
     popupMenuTheme: PopupMenuThemeData(shape: RoundedRectangleBorder(borderRadius: borderRadiusApp)),
     disabledColor: Colors.grey[600],
   );
@@ -129,37 +144,4 @@ enum ThemeTypes {
   primary,
   accent,
   warn,
-}
-
-class ButtonThemeStyle {
-  static ButtonStyle? getStyle(ThemeTypes type, BuildContext context) {
-    Color? foregroundColor;
-    Color? backgroundColor;
-    if (type == ThemeTypes.primary) {
-      foregroundColor = Theme.of(context).colorScheme.onPrimary;
-      backgroundColor = Theme.of(context).colorScheme.primary;
-    }
-    if (type == ThemeTypes.accent) {
-      foregroundColor = Theme.of(context).colorScheme.onSecondary;
-      backgroundColor = Theme.of(context).colorScheme.secondary;
-    }
-    if (type == ThemeTypes.warn) {
-      foregroundColor = Theme.of(context).colorScheme.onError;
-      backgroundColor = Theme.of(context).colorScheme.error;
-    }
-    return ElevatedButton.styleFrom(foregroundColor: foregroundColor, backgroundColor: backgroundColor, elevation: 0.0);
-  }
-}
-
-class Progress {
-  static getLoadingProgress({required BuildContext context, double size = 45}) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CircularProgressIndicator(
-        strokeWidth: 3,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-    );
-  }
 }

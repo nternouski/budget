@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../i18n/index.dart';
 import '../common/styles.dart';
 import '../model/mobile_calculator.dart';
+import '../components/interaction_border.dart';
 
 class Panel {
   Widget body;
@@ -25,10 +26,12 @@ const int SPENT_DATE_MB_MIN = 0;
 final DateTime now = DateTime.now();
 
 class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
+  static const String _dataFormat = DateFormat.MONTH_DAY;
+
   final sizedBoxHeight = const SizedBox(height: 15);
 
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(now));
+  final TextEditingController _dateController = TextEditingController(text: DateFormat(_dataFormat).format(now));
   final mobileDataFormFields = MobileDataFormFields(now, plans[0], 0);
   MobileCalculatorScreenState();
 
@@ -133,13 +136,13 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
   }
 
   Widget _buildDateAndDataField(ThemeData theme) {
-    const formatDate = 'dd/MM/yyyy';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Flexible(
           fit: FlexFit.tight,
-          child: InkWell(
+          child: AppInteractionBorder(
+            margin: const EdgeInsets.all(10),
             onTap: () async {
               FocusScope.of(context).requestFocus(FocusNode());
               final DateTime? picked = await showDatePicker(
@@ -153,18 +156,13 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
                   mobileDataFormFields.startDate = picked;
                 });
               }
-              _dateController.text = DateFormat(formatDate).format(mobileDataFormFields.startDate);
+              _dateController.text = DateFormat(_dataFormat).format(mobileDataFormFields.startDate);
             },
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.edit_calendar_rounded),
-                  const SizedBox(width: 10),
-                  Text(_dateController.text, style: theme.textTheme.titleMedium)
-                ]),
-              ),
-            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.edit_calendar_rounded),
+              const SizedBox(width: 10),
+              Text(_dateController.text, style: theme.textTheme.titleMedium)
+            ]),
           ),
         ),
         const SizedBox(width: 10),

@@ -109,7 +109,7 @@ class WalletItem extends StatelessWidget {
           title: Text('Are you sure you want to delete?'.i18n),
           content: Text('This action will delete all transaction of this wallets too.'.i18n),
           actions: <Widget>[
-            buttonCancelContext(context),
+            getButtonCancelContext(context),
             ElevatedButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
               child: Text('Delete'.i18n),
@@ -129,7 +129,7 @@ class WalletItem extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final color = selected ? wallet.color : Theme.of(context).disabledColor;
     final List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
-    final contrastColor = TextColor.getContrastOf(color);
+    final contrastColor = getContrastOf(color);
     User? user = Provider.of<User>(context);
 
     return Container(

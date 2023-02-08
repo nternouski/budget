@@ -5,7 +5,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/index.dart';
-import '../common/classes.dart';
+import '../components/about_dialog.dart' as app;
 import '../common/styles.dart';
 import '../common/error_handler.dart';
 import '../components/select_currency.dart';
@@ -31,6 +31,7 @@ class _OnBoardingState extends State<OnBoarding> {
   bool _passwordVisible = true;
   bool _disclosureAcceptedSignUp = false;
 
+  // ignore: non_constant_identifier_names
   final int PASSWORD_MIN = 6;
   final controller = PageController();
   final Duration durationAnimation = const Duration(milliseconds: 500);
@@ -94,7 +95,7 @@ class _OnBoardingState extends State<OnBoarding> {
                           initialValue: email,
                           keyboardType: TextInputType.emailAddress,
                           autovalidateMode: AutovalidateMode.always,
-                          decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                          decoration: const InputDecoration(labelText: 'Email', hintText: 'email@email.com'),
                           validator: (String? value) =>
                               value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
                           onChanged: (String value) => email = value,
@@ -217,7 +218,7 @@ class _OnBoardingState extends State<OnBoarding> {
                       initialValue: email,
                       keyboardType: TextInputType.emailAddress,
                       autovalidateMode: AutovalidateMode.always,
-                      decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                      decoration: const InputDecoration(labelText: 'Email', hintText: 'email@email.com'),
                       validator: (String? value) => value != null && value.isValidEmail() ? null : 'Is Required'.i18n,
                       onChanged: (String value) => email = value,
                     ),
@@ -285,7 +286,7 @@ class _OnBoardingState extends State<OnBoarding> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-                onPressed: () => AboutDialogClass.show(context), icon: const Icon(Icons.info), color: Colors.grey),
+                onPressed: () => app.AboutDialog.show(context), icon: const Icon(Icons.info), color: Colors.grey),
             Center(
               child: SmoothPageIndicator(
                 controller: controller,

@@ -1,10 +1,10 @@
+import 'package:budget/common/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../common/classes.dart';
-import '../common/theme.dart';
 import '../server/database/transaction_rx.dart';
 import '../model/currency.dart';
 import '../model/wallet.dart';
@@ -97,7 +97,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [Progress.getLoadingProgress(context: context)],
+              children: [getLoadingProgress(context: context)],
             ),
           );
         }

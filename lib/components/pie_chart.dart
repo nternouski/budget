@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../common/styles.dart';
+import '../components/interaction_border.dart';
 import '../components/daily_item.dart';
 import '../components/icon_circle.dart';
 import '../model/category.dart';
@@ -144,7 +145,7 @@ class StatsPieChartState extends State<StatsPieChart> {
       final widgetSize = isTouched ? 52.0 : 42.0;
 
       final font = (isTouched ? theme.textTheme.titleLarge : theme.textTheme.bodyLarge)
-          ?.copyWith(color: TextColor.getContrastOf(category.color));
+          ?.copyWith(color: getContrastOf(category.color));
 
       return PieChartSectionData(
         color: category.color,
@@ -211,7 +212,7 @@ class _Badge extends StatelessWidget {
         border: Border.all(color: borderColor, width: 2),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: TextColor.getContrastOf(theme.colorScheme.onBackground).withOpacity(.8),
+            color: getContrastOf(theme.colorScheme.onBackground).withOpacity(.8),
             blurRadius: 4,
           ),
         ],

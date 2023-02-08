@@ -62,7 +62,16 @@ class BarChartWidgetState extends State<BarChartWidget> {
           barsSpace: 0,
           x: index++,
           barRods: rodStackItems
-              .map((item) => BarChartRodData(toY: item.toY, rodStackItems: [item], width: width, color: item.color))
+              .map((item) => BarChartRodData(
+                    toY: item.toY,
+                    rodStackItems: [item],
+                    width: width,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [item.color, item.color.withAlpha(100)],
+                    ),
+                  ))
               .toList(),
         ),
       ));
@@ -114,22 +123,18 @@ class BarChartWidgetState extends State<BarChartWidget> {
   getTooltip(ThemeData theme) {
     return BarTouchData(
       touchTooltipData: BarTouchTooltipData(
-        tooltipBgColor: theme.dialogBackgroundColor,
-        getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
-          '',
-          theme.textTheme.bodyLarge!,
-          children: rod.rodStackItems.fold<List<TextSpan>>([], (acc, item) {
-            if (item.toY.compareTo(0.0) > 0) {
-              acc.add(
-                TextSpan(
-                    text: item.toY.prettier(withSymbol: true),
-                    style: CurrencyPrettier.getFont(TextStyle(color: item.color))),
-              );
-            }
-            return acc;
+          tooltipPadding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          tooltipBgColor: theme.dialogBackgroundColor,
+          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+            String amount = rod.rodStackItems[0].toY.prettier(withSymbol: true);
+            Color color = rod.rodStackItems[0].color;
+            return BarTooltipItem(
+              amount,
+              CurrencyPrettier.getFont(theme.textTheme.bodyLarge!.copyWith(color: color)),
+            );
           }),
-        ),
-      ),
     );
   }
 

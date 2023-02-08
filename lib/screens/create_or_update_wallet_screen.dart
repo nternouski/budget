@@ -90,9 +90,9 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
           controller: decimalInitialAmountController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-          decoration: InputStyle.inputDecoration(
-            labelTextStr: 'Initial Amount'.i18n,
-            hintTextStr: '',
+          decoration: InputDecoration(
+            labelText: 'Initial Amount'.i18n,
+            hintText: '',
             prefix: const Text('\$ '),
           ),
           focusNode: decimalInitialAmountFocusNode,
@@ -117,7 +117,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
       Expanded(
           child: TextFormField(
         initialValue: wallet.name,
-        decoration: InputStyle.inputDecoration(labelTextStr: 'Wallet Name'.i18n, hintTextStr: 'Bank XX'.i18n),
+        decoration: InputDecoration(labelText: 'Wallet Name'.i18n, hintText: 'Bank XX'.i18n),
         inputFormatters: [LengthLimitingTextInputFormatter(Wallet.MAX_LENGTH_NAME)],
         validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
         onChanged: (String _) => _formKey.currentState!.validate(),

@@ -21,11 +21,6 @@ class IconPickerState extends State<IconPicker> {
   List<IconMap> icons = List.from(IconsHelper.list);
   ScrollController scrollCtr = ScrollController();
 
-  final InputDecoration _inputDecoration = InputStyle.inputDecoration(
-    labelTextStr: 'Icon'.i18n,
-    hintTextStr: '${'Icon'.i18n} ${'Name'.i18n}',
-  );
-
   final int xUnit = 50; // min heigh unit pixels per icon
   final double maxVisibleRows = 6;
 
@@ -82,7 +77,7 @@ class IconPickerState extends State<IconPicker> {
               TextFormField(
                 initialValue: '',
                 onChanged: (value) => _onInputChange(setStateBottomSheet, value),
-                decoration: _inputDecoration,
+                decoration: InputDecoration(labelText: 'Icon'.i18n, hintText: '${'Icon'.i18n} ${'Name'.i18n}'),
               ),
               SizedBox(
                 height: icons.isEmpty ? 0 : min(xUnit * (icons.length / 7).ceilToDouble(), xUnit * maxVisibleRows),

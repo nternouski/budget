@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
+import '../common/styles.dart';
 import '../common/theme.dart';
 import '../common/error_handler.dart';
 import '../common/preference.dart';

@@ -14,6 +14,7 @@ import '../model/currency.dart';
 import '../model/user.dart';
 import '../common/convert.dart';
 import '../common/error_handler.dart';
+import '../components/interaction_border.dart';
 import '../components/create_or_update_label.dart';
 import '../screens/wallets_screen.dart';
 import '../server/database/transaction_rx.dart';
@@ -234,6 +235,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget buildAmount(ThemeData theme) {
+    final intStyle = theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -248,11 +250,12 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
               ],
-              style: theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
+              style: intStyle,
+              decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: '\$0',
-                contentPadding: EdgeInsets.only(top: 15),
+                hintStyle: intStyle.copyWith(color: theme.hintColor),
+                contentPadding: const EdgeInsets.only(top: 15),
               ),
               validator: (value) =>
                   value != null && value.isNotEmpty && !int.parse(value).isNegative ? null : 'Is Required'.i18n,
@@ -291,7 +294,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         Expanded(
           child: TextFormField(
             initialValue: transaction.name,
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+            decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
             validator: (String? value) {
               if (value!.isEmpty) return 'Is Required'.i18n;
               return null;
@@ -317,7 +320,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
         keyboardType: TextInputType.multiline,
         maxLines: null,
         inputFormatters: [LengthLimitingTextInputFormatter(Transaction.MAX_LENGTH_DESCRIPTION)],
-        decoration: InputStyle.inputDecoration(labelTextStr: 'Description'.i18n, hintTextStr: ''),
+        decoration: InputDecoration(labelText: 'Description'.i18n, hintText: ''),
         onSaved: (String? value) => transaction.description = value!,
       ),
       const SizedBox(height: 1)
@@ -325,7 +328,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
   }
 
   Widget buildDateField(ThemeData theme, User user) {
-    const formatDate = DateFormat.ABBR_MONTH_DAY;
+    const formatDate = DateFormat.MONTH_DAY;
     const formatTime = 'HH:mm';
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -440,8 +443,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
                 initialValue: transaction.fee.toString(),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                decoration:
-                    InputStyle.inputDecoration(labelTextStr: 'Fee'.i18n, hintTextStr: '0', prefix: const Text('\$ ')),
+                decoration: InputDecoration(labelText: 'Fee'.i18n, hintText: '0', prefix: const Text('\$ ')),
                 validator: (String? value) => num.tryParse(value ?? '')?.toDouble() == null ? 'Is Required'.i18n : null,
                 onSaved: (String? value) => transaction.fee = double.parse(value!),
               ),

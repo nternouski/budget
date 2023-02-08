@@ -95,7 +95,7 @@ class ProfileSettings extends AbstractSettingsSection {
           title: Text('Are you sure?'.i18n),
           content: Text(body),
           actions: <Widget>[
-            buttonCancelContext(context),
+            getButtonCancelContext(context),
             ElevatedButton(
               child: Text('YES'.i18n),
               onPressed: () => Navigator.pop(context, true),
@@ -124,7 +124,7 @@ class ProfileSettings extends AbstractSettingsSection {
                 Text('${'Update'.i18n} ${'Profile'.i18n}', style: theme.textTheme.titleLarge),
                 TextFormField(
                   initialValue: user.name,
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+                  decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp('[a-zA-Z1-9  ]')),
                     LengthLimitingTextInputFormatter(30)
@@ -136,7 +136,7 @@ class ProfileSettings extends AbstractSettingsSection {
                 TextFormField(
                   initialValue: user.email,
                   autovalidateMode: AutovalidateMode.always,
-                  decoration: InputStyle.inputDecoration(labelTextStr: 'Email', hintTextStr: 'email@email.com'),
+                  decoration: const InputDecoration(labelText: 'Email', hintText: 'email@email.com'),
                   validator: (String? value) =>
                       value != null && value.isValidEmail() ? null : 'Email ${'Is Required'.i18n}.',
                   onChanged: (String email) => user.email = email,
@@ -175,9 +175,9 @@ class ProfileSettings extends AbstractSettingsSection {
                       initialValue: user.initialAmount.toString(),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                      decoration: InputStyle.inputDecoration(
-                        labelTextStr: 'Initial Amount'.i18n,
-                        hintTextStr: '',
+                      decoration: InputDecoration(
+                        labelText: 'Initial Amount'.i18n,
+                        hintText: '',
                         prefix: const Text('\$ '),
                       ),
                       validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
@@ -189,7 +189,7 @@ class ProfileSettings extends AbstractSettingsSection {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    buttonCancelContext(context),
+                    getButtonCancelContext(context),
                     ElevatedButton(
                       child: Text('Update'.i18n),
                       onPressed: () {

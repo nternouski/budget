@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
 import '../server/database/label_rx.dart';
-import '../common/styles.dart';
 import '../model/label.dart';
 
 class CreateOrUpdateLabel extends StatelessWidget {
@@ -44,7 +43,7 @@ class CreateOrUpdateLabel extends StatelessWidget {
           nameController = controller;
           return TextFormField(
             controller: nameController,
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Label Search'.i18n),
+            decoration: InputDecoration(labelText: 'Label Search'.i18n),
             focusNode: focus,
           );
         },

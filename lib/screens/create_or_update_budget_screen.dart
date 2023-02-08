@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../i18n/index.dart';
 import '../common/error_handler.dart';
 import '../common/period_stats.dart';
+import '../components/interaction_border.dart';
 import '../components/choose_category.dart';
 import '../model/budget.dart';
 import '../server/database/budget_rx.dart';
@@ -90,11 +91,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
           initialValue: budget.amount.toString(),
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-          decoration: InputStyle.inputDecoration(
-            labelTextStr: 'Amount'.i18n,
-            hintTextStr: '0',
-            prefix: const Text('\$ '),
-          ),
+          decoration: InputDecoration(labelText: 'Amount'.i18n, hintText: '0', prefix: const Text('\$ ')),
           validator: (String? value) => (value!.isEmpty) ? 'Is Required'.i18n : null,
           onSaved: (String? value) => budget.amount = double.parse(value!),
         ),
@@ -105,7 +102,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   Widget buildName() {
     return TextFormField(
       initialValue: budget.name,
-      decoration: InputStyle.inputDecoration(labelTextStr: 'Name'.i18n, hintTextStr: ''),
+      decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
       inputFormatters: [LengthLimitingTextInputFormatter(Budget.MAX_LENGTH_NAME)],
       validator: (String? value) => (value!.isEmpty) ? 'Is Required'.i18n : null,
       onSaved: (String? value) => budget.name = value!,
@@ -113,13 +110,14 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   }
 
   Widget buildDateField(BuildContext context, ThemeData theme) {
-    const formatDate = 'dd/MM/yyyy';
+    const formatDate = DateFormat.MONTH_DAY;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Flexible(
-          child: TextFormField(
-            controller: dateController,
+          fit: FlexFit.tight,
+          child: AppInteractionBorder(
+            margin: const EdgeInsets.all(10),
             onTap: () async {
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
@@ -135,8 +133,15 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               }
               dateController.text = DateFormat(formatDate).format(budget.initialDate);
             },
-            decoration: InputStyle.inputDecoration(labelTextStr: 'Date'.i18n, hintTextStr: formatDate),
-            validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.edit_calendar_rounded),
+                const SizedBox(width: 10),
+                Text(DateFormat(formatDate).format(budget.initialDate), style: theme.textTheme.titleMedium)
+              ],
+            ),
           ),
         ),
         Flexible(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../common/styles.dart';
+import '../components/interaction_border.dart';
 
 class IconCircle extends StatelessWidget {
   final IconData icon;
