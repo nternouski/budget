@@ -13,13 +13,14 @@ extension CurrencyPrettier on double {
   /// Same of prettier but with format Text
   Text prettierToText({
     bool withSymbol = false,
+    bool withoutDecimal = false,
     bool simplify = false,
     String prefix = '',
     String suffix = '',
     TextStyle? style,
   }) {
     return Text(
-      '$prefix${prettier(withSymbol: withSymbol, simplify: simplify)}$suffix',
+      '$prefix${prettier(withSymbol: withSymbol, simplify: simplify, withoutDecimal: withoutDecimal)}$suffix',
       style: getFont(style ?? const TextStyle()),
     );
   }
@@ -29,12 +30,12 @@ extension CurrencyPrettier on double {
   ///   4.777 => 4.77
   ///   52.0  => 5
   /// Or simplify from 12000 to 12k
-  String prettier({bool withSymbol = false, bool simplify = false}) {
+  String prettier({bool withSymbol = false, bool simplify = false, bool withoutDecimal = false}) {
     String amount;
     if (simplify) {
       amount = this > 1000 ? '${(_removeZeros(this / 1000, 1))}k' : toInt().toString();
     } else {
-      amount = _removeZeros(this, 2);
+      amount = _removeZeros(this, withoutDecimal ? 0 : 2);
     }
     return '${isNegative ? '- ' : ''}${withSymbol ? '\$' : ''}$amount';
   }

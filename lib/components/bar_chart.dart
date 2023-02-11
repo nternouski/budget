@@ -158,11 +158,10 @@ class BarChartWidgetState extends State<BarChartWidget> {
             child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
           );
         } else {
-          final format = nowZero.month != date.month ? 'd MMM' : 'd';
           return SideTitleWidget(
             axisSide: meta.axisSide,
             space: 5,
-            child: Text(DateFormat(format).format(date), style: labelTextStyle),
+            child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
           );
         }
       },

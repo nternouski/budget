@@ -40,7 +40,7 @@ class NavDrawer extends StatelessWidget {
             onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
           ),
           ListTile(
-            leading: const Icon(Icons.list),
+            leading: const Icon(Icons.local_grocery_store_rounded),
             title: Text('Expense Simulation'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.expensePrediction),
           ),

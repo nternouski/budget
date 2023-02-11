@@ -117,7 +117,10 @@ class DailyItemState extends State<DailyItem> {
                 ),
               ],
             ),
-            transaction.balance.prettierToText(withSymbol: true, style: TextStyle(color: theme.disabledColor))
+            transaction.balance.prettierToText(
+              withSymbol: true,
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.disabledColor),
+            )
           ],
         )
       ],

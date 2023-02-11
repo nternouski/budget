@@ -103,9 +103,8 @@ class StatsScreenState extends State<StatsScreen> {
             if (t.date.isAfter(frameDate) && t.type == TransactionType.expense) {
               totalExpensePeriod += t.balanceFixed.abs();
             }
-            return t.date.isAfter(frameDate) &&
-                selectedCategories!.contains(t.categoryId) &&
-                selectedTypes[t.type] == true;
+            final containCategory = (selectedCategories != null && selectedCategories!.contains(t.categoryId));
+            return t.date.isAfter(frameDate) && containCategory && selectedTypes[t.type] == true;
           }).toList();
 
           double totalSelected = 0;

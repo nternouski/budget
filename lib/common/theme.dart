@@ -6,7 +6,7 @@ class ThemeProvider extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
   final Preferences _preferences = Preferences();
 
-  static const String? fontFamily = null;
+  static const String? fontFamily = 'Figtree';
 
   static const Color _primary = Colors.teal;
   static const Color _white = Colors.white;

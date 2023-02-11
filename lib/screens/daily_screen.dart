@@ -1,3 +1,4 @@
+import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -62,6 +63,13 @@ class DailyScreenState extends State<DailyScreen> {
         titleTextStyle: theme.textTheme.titleLarge,
         leading: getLadingButton(context),
         title: Text('Daily Transaction'.i18n),
+        actions: [
+          if (user.superUser)
+            IconButton(
+              onPressed: () => RouteApp.redirect(context: context, url: URLS.stats),
+              icon: const Icon(Icons.query_stats),
+            )
+        ],
       ),
       body: Column(children: [
         ValueListenableBuilder<PeriodStats>(

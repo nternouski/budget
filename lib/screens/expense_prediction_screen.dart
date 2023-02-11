@@ -207,7 +207,10 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           direction: DismissDirection.endToStart,
           child: InkWell(
             child: ItemWidget(item: group.items[index]),
-            onTap: () => setState(() => group.items[index].check = !group.items[index].check),
+            onTap: () => setState(() {
+              docChanged = true;
+              group.items[index].check = !group.items[index].check;
+            }),
             onLongPress: () => showModalBottomSheet(
               context: context,
               isScrollControlled: true,

@@ -28,7 +28,10 @@ class StatsPrediction extends StatelessWidget {
 
     List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
     List<Currency> currencies = Provider.of<List<Currency>>(context);
-    User user = Provider.of<User>(context);
+    // ignore: unnecessary_cast
+    final user = Provider.of<User>(context) as User?;
+    if (user == null) return getLoadingProgress(context: context);
+
     Currency pCurrency = currencies.firstWhere((c) => c.id == temp[0].currencyId, orElse: () => user.defaultCurrency);
 
     final groups =
@@ -68,6 +71,7 @@ class StatsPrediction extends StatelessWidget {
                 const SizedBox(width: 5),
                 balancePrediction.prettierToText(
                   withSymbol: true,
+                  withoutDecimal: true,
                   style: theme.textTheme.headlineSmall!.copyWith(color: color),
                 )
               ],
@@ -87,9 +91,9 @@ class StatsBalance extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    int maxPeriodBalance = (TransactionRx.windowFetchTransactions.inDays / 30).floor();
-    double balance = transactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
-    Color color = balance.isNegative ? theme.colorScheme.error : theme.primaryColor;
+    final maxPeriodBalance = (TransactionRx.windowFetchTransactions.inDays / 30).floor();
+    final balance = transactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
+    final color = balance.isNegative ? theme.colorScheme.error : theme.primaryColor;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
@@ -113,6 +117,7 @@ class StatsBalance extends StatelessWidget {
                 const SizedBox(width: 5),
                 balance.prettierToText(
                   withSymbol: true,
+                  withoutDecimal: true,
                   style: theme.textTheme.headlineSmall!.copyWith(color: color),
                 )
               ],
