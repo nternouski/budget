@@ -42,7 +42,7 @@ class Budget implements ModelCommonInterface {
       0.0,
       (prev, t) {
         if (t.date.isAfter(initialDate) && budgetCategories.where((c) => c.id == t.categoryId).isNotEmpty) {
-          return prev + t.balance;
+          return prev + t.getBalanceFromType().abs();
         } else {
           return prev;
         }

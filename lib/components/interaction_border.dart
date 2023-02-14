@@ -37,7 +37,7 @@ class AppInteractionBorder extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          border: show ? Border.all(width: 2, color: borderColor ?? Theme.of(context).hintColor) : null,
+          border: Border.all(width: 2, color: show ? borderColor ?? Theme.of(context).hintColor : Colors.transparent),
           color: color,
           borderRadius: oval ? borderRadiusApp : BorderRadius.circular(14),
         ),

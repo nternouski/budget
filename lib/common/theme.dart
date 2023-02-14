@@ -15,9 +15,9 @@ class ThemeProvider extends ChangeNotifier {
 
   static const _inputDecorator = InputDecorationTheme(
     contentPadding: EdgeInsets.all(10),
-    labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    hintStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-    prefixStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    hintStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+    prefixStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
     // floatingLabelBehavior: FloatingLabelBehavior.always,
     alignLabelWithHint: true,
     // fillColor: Colors.teal.withOpacity(0.2),

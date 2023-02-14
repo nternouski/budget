@@ -18,18 +18,17 @@ import '../screens/stats_screen.dart';
 class PieCategory extends CategorySelected {
   final double porcentaje;
 
-  PieCategory(super.category, this.porcentaje, super.isSelected) : super();
+  PieCategory({required this.porcentaje, required bool isSelected, required Category category})
+      : super(category: category, isSelected: isSelected);
 }
 
 class StatsPieChart extends StatefulWidget {
   final List<CategorySelected> categoriesSelected;
   final List<Transaction> transactions;
-  final double total;
   final DateTime frameDate;
   const StatsPieChart({
     required this.categoriesSelected,
     required this.transactions,
-    required this.total,
     required this.frameDate,
     Key? key,
   }) : super(key: key);
@@ -49,30 +48,30 @@ class StatsPieChartState extends State<StatsPieChart> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (range == null) _setRange(start: widget.frameDate);
+    List<Transaction> transactionSelected =
+        widget.transactions.where((t) => t.date.isAfter(range!.start) && t.date.isBefore(range!.end)).toList();
+
+    double totalSelectedAbs = transactionSelected.fold(0.0, (acc, t) => t.getBalanceFromType().abs() + acc);
     List<PieCategory> pie = widget.categoriesSelected.fold<List<PieCategory>>([], (acc, item) {
-      if (!item.isSelected || item.totalAmount == 0) return acc;
+      double amount = transactionSelected.fold<double>(
+          0.0, (p, t) => t.categoryId == item.category.id ? p + t.getBalanceFromType().abs() : p);
+      if (!item.isSelected || amount == 0) return acc;
       return [
         ...acc,
         PieCategory(
-          item.category,
-          widget.total == 0 ? 0 : (item.totalAmount * 100) / widget.total,
-          item.isSelected,
+          category: item.category,
+          porcentaje: totalSelectedAbs == 0 ? 0 : (amount * 100) / totalSelectedAbs,
+          isSelected: item.isSelected,
         )
       ];
     }).toList();
 
-    if (range == null) _setRange(start: widget.frameDate);
-
-    List<Transaction> transactionSelected = widget.transactions
-        .where(
-          (t) =>
-              t.categoryId == pieSliceSelected?.category.id &&
-              t.date.isAfter(range!.start) &&
-              t.date.isBefore(range!.end),
-        )
+    transactionSelected = transactionSelected
+        .where((t) => (pieSliceSelected == null || t.categoryId == pieSliceSelected?.category.id))
         .toList();
-
-    double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.balanceFixed + acc);
+    double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.getBalanceFromType() + acc);
 
     User user = Provider.of<User>(context);
     String symbol = user.defaultCurrency.symbol;
@@ -84,10 +83,15 @@ class StatsPieChartState extends State<StatsPieChart> {
 
     return Column(
       children: [
+        if (user.superUser)
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: _getRangeFilter(theme),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: AspectRatio(
-            aspectRatio: 1.2,
+            aspectRatio: 1.4,
             child: PieChart(
               PieChartData(
                 pieTouchData: PieTouchData(touchCallback: (FlTouchEvent event, pieTouchResponse) {
@@ -100,18 +104,17 @@ class StatsPieChartState extends State<StatsPieChart> {
                 borderData: FlBorderData(show: false),
                 sectionsSpace: 0,
                 centerSpaceRadius: 30,
-                sections: showingSections(theme, pie),
+                sections: _showingSections(theme, pie),
               ),
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 15, bottom: 100),
+          padding: const EdgeInsets.only(top: 5, bottom: 100),
           child: Column(
             children: [
               Text(title, style: theme.textTheme.titleLarge),
               const SizedBox(height: 10),
-              if (user.superUser) _getRangeFilter(theme),
               Padding(
                 padding: const EdgeInsets.only(right: 10, top: 10),
                 child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -133,7 +136,7 @@ class StatsPieChartState extends State<StatsPieChart> {
     );
   }
 
-  List<PieChartSectionData> showingSections(ThemeData theme, List<PieCategory> pie) {
+  List<PieChartSectionData> _showingSections(ThemeData theme, List<PieCategory> pie) {
     final List fixedList = Iterable<int>.generate(pie.length).toList();
 
     return fixedList.map((index) {
@@ -150,7 +153,7 @@ class StatsPieChartState extends State<StatsPieChart> {
       return PieChartSectionData(
         color: category.color,
         value: porcentaje,
-        title: porcentaje > 3 ? '${porcentaje.round()}%' : '',
+        title: porcentaje > 4 ? '${porcentaje.round()}%' : '',
         radius: radius,
         titleStyle: font,
         badgeWidget: porcentaje > 5 ? _Badge(category.icon, size: widgetSize, borderColor: category.color) : null,
@@ -172,7 +175,10 @@ class StatsPieChartState extends State<StatsPieChart> {
           firstDate: widget.frameDate,
           lastDate: DateTime.now(),
         );
-        if (picked != null && picked != range) setState(() => _setRange(start: picked.start, end: picked.end));
+        if (picked != null && picked != range) {
+          pieSliceSelected = null;
+          setState(() => _setRange(start: picked.start, end: picked.end));
+        }
       },
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.edit_calendar_rounded),

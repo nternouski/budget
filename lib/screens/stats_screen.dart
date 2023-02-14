@@ -22,10 +22,9 @@ import '../model/transaction.dart';
 
 class CategorySelected {
   final Category category;
-  late double totalAmount;
   final bool isSelected;
 
-  CategorySelected(this.category, this.isSelected, {this.totalAmount = 0});
+  CategorySelected({required this.category, required this.isSelected});
 }
 
 class StatsScreen extends StatefulWidget {
@@ -107,13 +106,12 @@ class StatsScreenState extends State<StatsScreen> {
             return t.date.isAfter(frameDate) && containCategory && selectedTypes[t.type] == true;
           }).toList();
 
-          double totalSelected = 0;
-          List<CategorySelected> categoriesSelected = categories.map((c) {
-            bool isSelected = selectedCategories != null && selectedCategories!.contains(c.id);
-            double acc = transactions.fold<double>(0.0, (p, t) => t.categoryId == c.id ? p + t.balanceFixed.abs() : p);
-            totalSelected += isSelected ? acc : 0;
-            return CategorySelected(c, isSelected, totalAmount: acc);
-          }).toList();
+          List<CategorySelected> categoriesSelected = categories
+              .map((c) => CategorySelected(
+                    category: c,
+                    isSelected: selectedCategories != null && selectedCategories!.contains(c.id),
+                  ))
+              .toList();
 
           return CustomScrollView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -193,7 +191,6 @@ class StatsScreenState extends State<StatsScreen> {
                     StatsPieChart(
                       categoriesSelected: categoriesSelected,
                       transactions: transactions,
-                      total: totalSelected,
                       frameDate: frameDate,
                     ),
                   ],
