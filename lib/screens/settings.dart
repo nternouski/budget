@@ -104,7 +104,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             ...Periods.options.map(
               (option) => CheckboxListTile(
-                activeColor: theme.primaryColor,
+                activeColor: theme.colorScheme.primary,
                 title: Text(option.humanize),
                 value: option.days == periodStats.days,
                 onChanged: (check) {
@@ -274,7 +274,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 getButtonCancelContext(context),
-                ElevatedButton(
+                FilledButton(
                   child: Text('Update'.i18n),
                   onPressed: () {
                     user.integrations.update(IntegrationType.wise, (value) => apiKey, ifAbsent: () => apiKey);
@@ -317,11 +317,13 @@ class DangerZone extends AbstractSettingsSection {
             getButtonCancelContext(context),
             ValueListenableBuilder(
               valueListenable: buttonEnabled,
-              builder: (BuildContext context, bool enabled, _) => ElevatedButton(
-                style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
-                onPressed: enabled ? () => Navigator.pop(context, true) : null,
-                child: Text('Delete'.i18n),
-              ),
+              builder: (BuildContext context, bool enabled, _) {
+                return FilledButton(
+                  style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
+                  onPressed: enabled ? () => Navigator.pop(context, true) : null,
+                  child: Text('Delete'.i18n),
+                );
+              },
             )
           ],
         );
@@ -334,11 +336,11 @@ class DangerZone extends AbstractSettingsSection {
     final theme = Theme.of(context);
     return Column(
       children: [
-        const Divider(thickness: 1.5),
+        const Divider(thickness: 1),
         spacing,
         Text('Danger Zone'.i18n, style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.error)),
         spacing,
-        ElevatedButton(
+        FilledButton(
           style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
           onPressed: () async {
             if (await _confirm(context, 'Delete'.i18n) == true) await userService.delete(userId);

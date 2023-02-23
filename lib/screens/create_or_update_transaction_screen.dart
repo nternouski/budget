@@ -496,7 +496,7 @@ class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
             const SizedBox(height: 10),
             buildDateField(theme, user),
             const SizedBox(height: 10),
-            ElevatedButton(
+            FilledButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();

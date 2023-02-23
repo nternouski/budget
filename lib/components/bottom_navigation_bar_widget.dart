@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
@@ -60,13 +59,17 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           request: const AdRequest())
         ..load();
     }
-
-    final floatingActionButton = FloatingActionButton(
-      onPressed: () => RouteApp.redirect(context: context, url: footer[pageIndex].actionIcon!, fromScaffold: false),
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      child: const Icon(Icons.add, size: 25),
-    );
+    Widget? floatingActionButton;
+    if (footer[pageIndex].actionIcon != null) {
+      floatingActionButton = FloatingActionButton.extended(
+        onPressed: () => RouteApp.redirect(context: context, url: footer[pageIndex].actionIcon!, fromScaffold: false),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+        label: Text('Add'.i18n),
+        isExtended: true,
+        icon: const Icon(Icons.add, size: 25),
+      );
+    }
 
     return WillPopScope(
       onWillPop: () => onWillPop(),
@@ -74,14 +77,14 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         extendBody: true,
         drawer: NavDrawer(),
         body: IndexedStack(index: pageIndex, children: footer.map((f) => f.widget()).toList()),
-        bottomNavigationBar: getFooter(context, theme),
-        floatingActionButton: footer[pageIndex].actionIcon != null ? floatingActionButton : null,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar: getFooter(context, theme, pageIndex, floatingActionButton),
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       ),
     );
   }
 
-  Widget getFooter(BuildContext context, ThemeData theme) {
+  Widget getFooter(BuildContext context, ThemeData theme, int pageIndex, Widget? floatingActionButton) {
     Color backgroundColor;
     if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
       var temp = Convert.increaseColorLightness(theme.colorScheme.primary, 0.55);
@@ -90,23 +93,46 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       backgroundColor = Convert.increaseColorLightness(theme.colorScheme.primary, -0.18);
     }
 
+    // final items = List.generate(
+    //   footer.length,
+    //   (idx) {
+    //     return InkWell(
+    //       child: Column(
+    //         mainAxisSize: MainAxisSize.min,
+    //         mainAxisAlignment: MainAxisAlignment.center,
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           Icon(footer[idx].url == footer[pageIndex].url ? footer[idx].iconSelected : footer[idx].icon),
+    //           if (footer[idx].url == footer[pageIndex].url) Text(footer[idx].label),
+    //         ],
+    //       ),
+    //       onTap: () => selectedTab(footer[idx].url),
+    //     );
+    //   },
+    // ).toList();
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedBottomNavigationBar(
-          activeColor: theme.colorScheme.primary,
-          splashColor: theme.colorScheme.primary,
-          backgroundColor: backgroundColor,
-          inactiveColor: theme.hintColor.withOpacity(0.2),
-          icons: footer.map((f) => f.icon).toList(),
-          activeIndex: pageIndex,
-          gapLocation: GapLocation.center,
-          notchSmoothness: NotchSmoothness.softEdge,
-          leftCornerRadius: 10,
-          iconSize: 25,
-          splashSpeedInMilliseconds: 200,
-          rightCornerRadius: 10,
+        // BottomAppBar(
+        //     child: Row(
+        //   mainAxisSize: MainAxisSize.max,
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [...items, if (floatingActionButton != null) floatingActionButton],
+        // )),
+        BottomNavigationBar(
+          items: List.generate(
+            footer.length,
+            (idx) => BottomNavigationBarItem(
+              icon: Icon(footer[idx].url == footer[pageIndex].url ? footer[idx].iconSelected : footer[idx].icon),
+              label: footer[idx].label,
+              backgroundColor: backgroundColor,
+            ),
+          ).toList(),
+          currentIndex: pageIndex,
+          unselectedItemColor: theme.hintColor.withOpacity(0.4),
+          selectedItemColor: theme.textTheme.titleLarge?.color,
           onTap: (index) => selectedTab(footer[index].url),
         ),
         if (banner != null)

@@ -96,7 +96,7 @@ class ProfileSettings extends AbstractSettingsSection {
           content: Text(body),
           actions: <Widget>[
             getButtonCancelContext(context),
-            ElevatedButton(
+            FilledButton(
               child: Text('YES'.i18n),
               onPressed: () => Navigator.pop(context, true),
             ),
@@ -190,7 +190,7 @@ class ProfileSettings extends AbstractSettingsSection {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     getButtonCancelContext(context),
-                    ElevatedButton(
+                    FilledButton(
                       child: Text('Update'.i18n),
                       onPressed: () {
                         if (user.defaultCurrency.id == '') {

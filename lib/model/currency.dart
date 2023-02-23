@@ -35,7 +35,7 @@ extension CurrencyPrettier on double {
     if (simplify) {
       amount = this > 1000 ? '${(_removeZeros(this / 1000, 1))}k' : toInt().toString();
     } else {
-      amount = _removeZeros(this, withoutDecimal ? 0 : 2);
+      amount = _removeZeros(withoutDecimal ? roundToDouble() : this, 2);
     }
     return '${isNegative ? '- ' : ''}${withSymbol ? '\$' : ''}$amount';
   }

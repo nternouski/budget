@@ -158,14 +158,14 @@ class ChooseCategoryState extends State<ChooseCategory> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   if (temp.id != '')
-                    ElevatedButton(
+                    FilledButton(
                       style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                       child: Text('Delete'.i18n),
                       onPressed: () =>
                           categoryRx.delete(temp.id, user.uid).whenComplete(() => Navigator.of(context).pop()),
                     ),
                   getButtonCancelContext(context),
-                  ElevatedButton(
+                  FilledButton(
                     child: Text(actionButton),
                     onPressed: () {
                       if (temp.name.isEmpty) return;

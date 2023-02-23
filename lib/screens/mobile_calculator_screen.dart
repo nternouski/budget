@@ -46,7 +46,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
         _buildDateAndDataField(theme),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-          child: ElevatedButton(
+          child: FilledButton(
             onPressed: () {
               final form = _formKey.currentState;
               if (form != null && form.validate()) {

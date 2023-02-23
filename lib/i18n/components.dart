@@ -8,6 +8,7 @@ final components = Translations('en') +
 
     // bottom_navigation_bar_widget
     {'en': 'Double Tap to Exit', 'es': 'Doble toque para salir'} +
+    {'en': 'Add', 'es': 'Agregar'} +
 
     // create_or_update_category
     {'en': 'Choose Category', 'es': 'Elegir Categoría'} +
@@ -52,6 +53,7 @@ final components = Translations('en') +
     {'en': 'Profile', 'es': 'Perfil'} +
     {'en': 'Are you sure?', 'es': '¿Estás seguro?'} +
     {'en': 'YES', 'es': 'SI'} +
+    {'en': 'Confirm', 'es': 'Confirmar'} +
     {'en': 'The new default currency will be', 'es': 'La nueva moneda será'} +
     {'en': 'Default Currency', 'es': 'Moneda por Defecto'} +
     {'en': 'The default currency must be set', 'es': 'Debes agregar una moneda por defecto'} +

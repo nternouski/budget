@@ -32,14 +32,17 @@ class AppInteractionBorder extends StatelessWidget {
       finalChild = child;
     }
 
-    return GestureDetector(
+    final borderRadius = oval ? borderRadiusApp : BorderRadius.circular(14);
+
+    return InkWell(
+      borderRadius: borderRadius,
       onLongPress: onLongPress,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(width: 2, color: show ? borderColor ?? Theme.of(context).hintColor : Colors.transparent),
           color: color,
-          borderRadius: oval ? borderRadiusApp : BorderRadius.circular(14),
+          borderRadius: borderRadius,
         ),
         child: finalChild,
       ),

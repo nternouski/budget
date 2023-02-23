@@ -150,7 +150,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             },
           ),
           sizedBoxHeight,
-          ElevatedButton(
+          FilledButton(
             onPressed: () {
               if (!_formKey.currentState!.validate()) return;
               _formKey.currentState!.save();

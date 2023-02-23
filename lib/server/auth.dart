@@ -159,13 +159,13 @@ class AuthError extends StatelessWidget {
                       if (status == LocalAuthState.tryAgain || status == LocalAuthState.nonSupported)
                         const SizedBox(height: 10),
                       if (status == LocalAuthState.nonSupported)
-                        ElevatedButton(
+                        FilledButton(
                           style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                           onPressed: () => localAuth.swapState(),
                           child: Text('Disable Fingerprint'.i18n),
                         ),
                       if (status == LocalAuthState.tryAgain)
-                        ElevatedButton(child: Text('Try again!'.i18n), onPressed: () => localAuth.tryAgain())
+                        FilledButton(child: Text('Try again!'.i18n), onPressed: () => localAuth.tryAgain())
                     ],
                   ),
                 ),

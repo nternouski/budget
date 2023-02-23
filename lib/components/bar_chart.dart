@@ -29,7 +29,6 @@ class BarChartWidget extends StatefulWidget {
 }
 
 class BarChartWidgetState extends State<BarChartWidget> {
-  final double width = 7;
   List<BarChartGroup> rawBarGroups = [];
   double maxBalance = 0;
 
@@ -65,7 +64,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
               .map((item) => BarChartRodData(
                     toY: item.toY,
                     rodStackItems: [item],
-                    width: width,
+                    width: 7,
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -91,7 +90,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                   show: true,
                   rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(sideTitles: bottomTitles()),
+                  bottomTitles: AxisTitles(sideTitles: _bottomTitles()),
                   leftTitles: AxisTitles(
                     axisNameWidget: const Text(''),
                     axisNameSize: 4,
@@ -145,7 +144,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
     });
   }
 
-  bottomTitles() {
+  _bottomTitles() {
     return SideTitles(
       showTitles: true,
       getTitlesWidget: (double value, TitleMeta meta) {

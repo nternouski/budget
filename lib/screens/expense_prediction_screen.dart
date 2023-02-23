@@ -86,6 +86,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           SelectCurrencyFormField(
             key: Key(Random().nextDouble().toString()),
             initialValue: prediction.currency,
+            topPadding: 0,
             onChange: (selected) {
               docChanged = true;
               if (selected != null) {
@@ -155,7 +156,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 const SizedBox(height: 5),
-                Divider(height: 2, color: theme.primaryColor),
+                Divider(thickness: 1, color: theme.colorScheme.primary),
                 Padding(
                   padding: const EdgeInsets.only(top: 15, right: 50, bottom: 80),
                   child: Column(
@@ -171,8 +172,8 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           var group = ExpensePredictionGroupTotal(name: '', items: [], check: true, collapse: false, period: period);
           return showModalBottomSheet(
@@ -189,7 +190,9 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         },
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
-        child: const Icon(Icons.add, size: 25),
+        label: Text('Add'.i18n),
+        isExtended: true,
+        icon: const Icon(Icons.add, size: 25),
       ),
     );
   }
@@ -232,7 +235,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
 
     items.add(DragAndDropItem(
       canDrag: false,
-      child: OutlinedButton(
+      child: ElevatedButton(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
@@ -388,7 +391,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 getButtonCancelContext(context),
-                ElevatedButton(
+                FilledButton(
                   child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
                   onPressed: () {
                     if (index == -1) group.items.add(_updateItem.copyWith());
@@ -435,7 +438,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               getButtonCancelContext(context),
-              ElevatedButton(
+              FilledButton(
                 child: Text(create ? 'Create'.i18n : 'Update'.i18n),
                 onPressed: () {
                   if (create) prediction.groups.add(group.copyWith(period: period));

@@ -129,7 +129,7 @@ class _OnBoardingState extends State<OnBoarding> {
                               onPressed: () => setState(() => authOption = null),
                               child: Text('Cancel'.i18n),
                             ),
-                            ElevatedButton(
+                            FilledButton(
                               onPressed: () async {
                                 if (!email.isValidEmail() || !password.isValidPassword()) {
                                   return HandlerError().setError('First you must set a email and password.'.i18n);
@@ -250,7 +250,7 @@ class _OnBoardingState extends State<OnBoarding> {
                           onPressed: () => setState(() => authOption = null),
                           child: Text('Cancel'.i18n),
                         ),
-                        ElevatedButton(
+                        FilledButton(
                           onPressed: () {
                             if (!email.isValidEmail() || !password.isValidPassword()) {
                               return HandlerError().setError('First you must set a email and password.'.i18n);

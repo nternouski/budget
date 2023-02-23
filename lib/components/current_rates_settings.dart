@@ -29,7 +29,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
           content: Text(content),
           actions: <Widget>[
             getButtonCancelContext(context),
-            ElevatedButton(child: Text('YES'.i18n), onPressed: () => Navigator.pop(context, true)),
+            FilledButton(child: Text('YES'.i18n), onPressed: () => Navigator.pop(context, true)),
           ],
         );
       },
@@ -215,7 +215,8 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     getButtonCancelContext(context),
-                    ElevatedButton(
+                    // FIXME: SE VE RARO ESTA INTERACICION CON EL TECLADO
+                    FilledButton(
                       onPressed: differentCurrency && (update || notExist)
                           ? () {
                               update ? currencyRateRx.update(rate, userId) : currencyRateRx.create(rate, userId);

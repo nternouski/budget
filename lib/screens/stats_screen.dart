@@ -157,7 +157,7 @@ class StatsScreenState extends State<StatsScreen> {
                         .toList(),
                   ),
                   const SizedBox(height: 10),
-                  Divider(color: theme.dividerColor, thickness: 2),
+                  const Divider(),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.all(5),

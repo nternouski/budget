@@ -93,7 +93,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         const SizedBox(height: 20),
         Center(child: Text('Verifying email..'.i18n, textAlign: TextAlign.center)),
         const SizedBox(height: 30),
-        ElevatedButton(
+        FilledButton(
           child: Text('Resend'.i18n),
           onPressed: () {
             try {

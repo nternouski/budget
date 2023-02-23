@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/index.dart';
+import '../common/error_handler.dart';
 import '../common/convert.dart';
 import '../common/period_stats.dart';
 import '../common/prediction_on_stats.dart';
@@ -20,7 +21,6 @@ class StatsPrediction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final predictionOnStats = Provider.of<PredictionOnStatsNotifier>(context);
     final temp = Provider.of<List<ExpensePrediction>>(context);
 
@@ -47,37 +47,52 @@ class StatsPrediction extends StatelessWidget {
       balancePrediction = prediction - totalExpensePeriod;
     }
 
-    var color = balancePrediction.isNegative ? theme.colorScheme.error : theme.primaryColor;
-
     return Card(
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
-        child: Column(
-          children: [
-            Text(
-              'Balance ${'Expense Simulation'.i18n}',
-              style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  balancePrediction.isNegative ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-                  size: 30,
-                  color: color,
-                ),
-                const SizedBox(width: 5),
-                balancePrediction.prettierToText(
-                  withSymbol: true,
-                  withoutDecimal: true,
-                  style: theme.textTheme.headlineSmall!.copyWith(color: color),
-                )
-              ],
-            ),
-          ],
-        ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          final p = prediction.prettier(withSymbol: true, withoutDecimal: true);
+          final t = totalExpensePeriod.prettier(withSymbol: true, withoutDecimal: true);
+          final r = balancePrediction.prettier(withSymbol: true, withoutDecimal: true);
+          final text = '  $p = prediction \n- $t = totalExpensePeriod \n  ----------- \n  $r';
+          Display.message(context, text);
+        },
+        child: getCardContent(context, balancePrediction),
+      ),
+    );
+  }
+
+  Widget getCardContent(BuildContext context, double balancePrediction) {
+    final theme = Theme.of(context);
+    var color = balancePrediction.isNegative ? theme.colorScheme.error : theme.colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
+      child: Column(
+        children: [
+          Text(
+            'Balance ${'Expense Simulation'.i18n}',
+            style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                balancePrediction.isNegative ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                size: 30,
+                color: color,
+              ),
+              const SizedBox(width: 5),
+              balancePrediction.prettierToText(
+                withSymbol: true,
+                withoutDecimal: true,
+                style: theme.textTheme.headlineSmall!.copyWith(color: color),
+              )
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -93,7 +108,7 @@ class StatsBalance extends StatelessWidget {
 
     final maxPeriodBalance = (TransactionRx.windowFetchTransactions.inDays / 30).floor();
     final balance = transactions.fold(0.0, (acc, t) => acc + t.getBalanceFromType());
-    final color = balance.isNegative ? theme.colorScheme.error : theme.primaryColor;
+    final color = balance.isNegative ? theme.colorScheme.error : theme.colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
@@ -174,7 +189,7 @@ class TotalBalance extends StatelessWidget {
         acc.add(Expanded(
           child: Card(
             margin: const EdgeInsets.all(5),
-            color: theme.scaffoldBackgroundColor,
+            color: theme.colorScheme.background,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),

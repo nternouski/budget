@@ -46,7 +46,7 @@ class DailyItemState extends State<DailyItem> {
                 content: Text('Are you sure you want to delete?'.i18n),
                 actions: <Widget>[
                   getButtonCancelContext(context),
-                  ElevatedButton(
+                  FilledButton(
                     style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
                     child: Text('Delete'.i18n),
                     onPressed: () => transactionRx

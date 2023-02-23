@@ -125,7 +125,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
               final DateTime? picked = await showDatePicker(
                 context: context,
                 initialDate: budget.initialDate,
-                firstDate: minInitialDate,
+                firstDate: minInitialDate.isAfter(budget.initialDate) ? budget.initialDate : minInitialDate,
                 lastDate: now.add(const Duration(days: 30)),
               );
               if (picked != null && picked != budget.initialDate) {
@@ -200,7 +200,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
             ),
             buildDateField(context, theme),
             sizedBoxHeight,
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
                 if (!_formKey.currentState!.validate()) return;
                 _formKey.currentState!.save();

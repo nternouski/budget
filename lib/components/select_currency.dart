@@ -12,6 +12,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
   }
 
   final String labelText;
+  final double topPadding;
 
   SelectCurrencyFormField({
     super.key,
@@ -22,6 +23,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
     Currency? initialValue,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     this.labelText = '',
+    this.topPadding = 10,
   }) : super(
           validator: validator ?? _defaultValidator,
           initialValue: initialValue ?? _defaultCurrency,
@@ -39,7 +41,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
                   currencies.map((c) => PopupMenuItem(value: c, child: Center(child: Text(c.symbol)))).toList();
 
               final valueWidget = AppInteractionBorder(
-                margin: EdgeInsets.symmetric(vertical: labelText != '' ? 8 : 10, horizontal: 10),
+                margin: EdgeInsets.symmetric(vertical: labelText != '' ? 6 : 8, horizontal: 8),
                 borderColor: state.hasError ? theme.colorScheme.error : null,
                 color: theme.hoverColor,
                 child: Center(
@@ -61,7 +63,7 @@ class SelectCurrencyFormField extends FormField<Currency> {
                 },
                 itemBuilder: (BuildContext context) => items,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
+                  padding: EdgeInsets.only(top: topPadding, left: 5, right: 5),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

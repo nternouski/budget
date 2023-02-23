@@ -110,7 +110,7 @@ class WalletItem extends StatelessWidget {
           content: Text('This action will delete all transaction of this wallets too.'.i18n),
           actions: <Widget>[
             getButtonCancelContext(context),
-            ElevatedButton(
+            FilledButton(
               style: ButtonThemeStyle.getStyle(ThemeTypes.warn, context),
               child: Text('Delete'.i18n),
               onPressed: () {

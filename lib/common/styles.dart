@@ -47,7 +47,7 @@ class ButtonThemeStyle {
       foregroundColor = Theme.of(context).colorScheme.onError;
       backgroundColor = Theme.of(context).colorScheme.error;
     }
-    return ElevatedButton.styleFrom(foregroundColor: foregroundColor, backgroundColor: backgroundColor, elevation: 0.0);
+    return FilledButton.styleFrom(foregroundColor: foregroundColor, backgroundColor: backgroundColor, elevation: 0.0);
   }
 }
 
