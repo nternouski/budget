@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'package:budget/routes.dart';
-import 'package:budget/screens/settings.dart';
-import 'package:budget/screens/wallets_screen.dart';
+import '../routes.dart';
+import '../screens/create_or_update_wallet_screen.dart';
+import '../screens/create_or_update_budget_screen.dart';
+import '../screens/create_or_update_transaction_screen.dart';
+import '../screens/settings.dart';
+import '../screens/wallets_screen.dart';
 import '../screens/budgets_screen.dart';
 import '../screens/daily_screen.dart';
 
 class Footer {
   final Widget Function({dynamic param}) widget;
   final URLS url;
-  final URLS? actionIcon;
+  final Widget? actionIcon;
   final String label;
 
   final IconData icon;
@@ -34,21 +37,21 @@ List<Footer> footer = [
       icon: Icons.calendar_today_outlined,
       iconSelected: Icons.calendar_month,
       label: 'Daily',
-      actionIcon: URLS.createOrUpdateTransaction),
+      actionIcon: const CreateOrUpdateTransactionScreen()),
   Footer(
       widget: ({param}) => const WalletsScreen(),
       url: URLS.wallets,
       icon: Icons.account_balance_wallet_outlined,
       iconSelected: Icons.account_balance_wallet_rounded,
       label: 'Wallets',
-      actionIcon: URLS.createOrUpdateWallet),
+      actionIcon: const CreateOrUpdateWalletScreen()),
   Footer(
       widget: ({param}) => const BudgetsScreen(),
       url: URLS.budgets,
       icon: Icons.monitor_heart_outlined,
       iconSelected: Icons.monitor_heart_rounded,
       label: 'Budget',
-      actionIcon: URLS.createOrUpdateBudgets),
+      actionIcon: const CreateOrUpdateBudgetScreen()),
   Footer(
     widget: ({param}) => const SettingsScreen(),
     url: URLS.settings,

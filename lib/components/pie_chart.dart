@@ -73,7 +73,8 @@ class StatsPieChartState extends State<StatsPieChart> {
         .toList();
     double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.getBalanceFromType() + acc);
 
-    User user = Provider.of<User>(context);
+    final user = Provider.of<User>(context) as User?;
+    if (user == null) return SizedBox();
     String symbol = user.defaultCurrency.symbol;
 
     String title = 'Select Category'.i18n;

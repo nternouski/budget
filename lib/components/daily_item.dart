@@ -58,6 +58,7 @@ class DailyItemState extends State<DailyItem> {
             });
       },
       child: InkWell(
+        splashColor: theme.colorScheme.background.withOpacity(0.5),
         child: Padding(
           padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 10),
           child: getItems(theme, widget.transaction),

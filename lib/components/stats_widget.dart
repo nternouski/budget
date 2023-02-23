@@ -36,16 +36,15 @@ class StatsPrediction extends StatelessWidget {
 
     final groups =
         temp[0].groups.map((g) => ExpensePredictionGroupTotal.fromExpensePredictionGroup(g, periodStats.days)).toList();
-    final prediction = groups.fold<double>(0.0, (acc, g) => acc + g.updateTotal(periodStats.days));
+    double prediction = groups.fold<double>(0.0, (acc, g) => acc + g.updateTotal(periodStats.days));
 
     double balancePrediction = 0.0;
     try {
       CurrencyRate cr = currencyRates.findCurrencyRate(pCurrency, user.defaultCurrency);
       double converted = cr.convert(prediction, pCurrency.id, user.defaultCurrency.id);
-      balancePrediction = converted - totalExpensePeriod;
-    } catch (e) {
-      balancePrediction = prediction - totalExpensePeriod;
-    }
+      prediction = converted;
+    } catch (e) {}
+    balancePrediction = prediction - totalExpensePeriod;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),

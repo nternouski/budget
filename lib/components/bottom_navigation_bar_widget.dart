@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+import 'package:animations/animations.dart';
 
 import '../i18n/index.dart';
 import '../common/ad_helper.dart';
@@ -61,13 +62,24 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
     }
     Widget? floatingActionButton;
     if (footer[pageIndex].actionIcon != null) {
-      floatingActionButton = FloatingActionButton.extended(
-        onPressed: () => RouteApp.redirect(context: context, url: footer[pageIndex].actionIcon!, fromScaffold: false),
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        label: Text('Add'.i18n),
-        isExtended: true,
-        icon: const Icon(Icons.add, size: 25),
+      floatingActionButton = OpenContainer(
+        transitionType: ContainerTransitionType.fade,
+        openBuilder: (BuildContext context, VoidCallback _) => footer[pageIndex].actionIcon!,
+        closedElevation: 6.0,
+        closedShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(60 / 2)),
+        ),
+        closedColor: theme.colorScheme.primary,
+        closedBuilder: (BuildContext context, VoidCallback openContainer) {
+          return FloatingActionButton.extended(
+            onPressed: openContainer,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: Colors.white,
+            label: Text('Add'.i18n),
+            isExtended: true,
+            icon: const Icon(Icons.add, size: 25),
+          );
+        },
       );
     }
 
@@ -76,15 +88,25 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       child: Scaffold(
         extendBody: true,
         drawer: NavDrawer(),
-        body: IndexedStack(index: pageIndex, children: footer.map((f) => f.widget()).toList()),
-        bottomNavigationBar: getFooter(context, theme, pageIndex, floatingActionButton),
+        body: PageTransitionSwitcher(
+          duration: const Duration(milliseconds: 400),
+          transitionBuilder: (
+            Widget child,
+            Animation<double> animation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return FadeThroughTransition(animation: animation, secondaryAnimation: secondaryAnimation, child: child);
+          },
+          child: footer[pageIndex].widget(),
+        ),
+        bottomNavigationBar: getFooter(context, theme, pageIndex),
         floatingActionButton: floatingActionButton,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       ),
     );
   }
 
-  Widget getFooter(BuildContext context, ThemeData theme, int pageIndex, Widget? floatingActionButton) {
+  Widget getFooter(BuildContext context, ThemeData theme, int pageIndex) {
     Color backgroundColor;
     if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
       var temp = Convert.increaseColorLightness(theme.colorScheme.primary, 0.55);
@@ -93,34 +115,10 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       backgroundColor = Convert.increaseColorLightness(theme.colorScheme.primary, -0.18);
     }
 
-    // final items = List.generate(
-    //   footer.length,
-    //   (idx) {
-    //     return InkWell(
-    //       child: Column(
-    //         mainAxisSize: MainAxisSize.min,
-    //         mainAxisAlignment: MainAxisAlignment.center,
-    //         crossAxisAlignment: CrossAxisAlignment.center,
-    //         children: [
-    //           Icon(footer[idx].url == footer[pageIndex].url ? footer[idx].iconSelected : footer[idx].icon),
-    //           if (footer[idx].url == footer[pageIndex].url) Text(footer[idx].label),
-    //         ],
-    //       ),
-    //       onTap: () => selectedTab(footer[idx].url),
-    //     );
-    //   },
-    // ).toList();
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // BottomAppBar(
-        //     child: Row(
-        //   mainAxisSize: MainAxisSize.max,
-        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //   children: [...items, if (floatingActionButton != null) floatingActionButton],
-        // )),
         BottomNavigationBar(
           items: List.generate(
             footer.length,

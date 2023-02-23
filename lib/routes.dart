@@ -38,7 +38,7 @@ class RouteApp {
     URLS.settings.toString(): (context) => const SettingsScreen(),
     URLS.stats.toString(): (context) => const StatsScreen(),
     URLS.wiseSync.toString(): (context) => const WiseSyncScreen(),
-    URLS.createOrUpdateTransaction.toString(): (context) => const CreateOrUpdateTransaction(),
+    URLS.createOrUpdateTransaction.toString(): (context) => const CreateOrUpdateTransactionScreen(),
     URLS.createOrUpdateWallet.toString(): (context) => const CreateOrUpdateWalletScreen(),
     URLS.createOrUpdateBudgets.toString(): (context) => const CreateOrUpdateBudgetScreen(),
     URLS.mobileCalculator.toString(): (context) => const MobileCalculatorScreen(),

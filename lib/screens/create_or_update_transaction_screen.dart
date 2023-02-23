@@ -28,11 +28,11 @@ const MAX_LENGTH_AMOUNT = 5;
 
 enum Action { create, update }
 
-class CreateOrUpdateTransaction extends StatefulWidget {
-  const CreateOrUpdateTransaction({Key? key}) : super(key: key);
+class CreateOrUpdateTransactionScreen extends StatefulWidget {
+  const CreateOrUpdateTransactionScreen({Key? key}) : super(key: key);
 
   @override
-  CreateOrUpdateTransactionState createState() => CreateOrUpdateTransactionState();
+  CreateOrUpdateTransactionScreenState createState() => CreateOrUpdateTransactionScreenState();
 }
 
 final now = DateTime.now();
@@ -43,7 +43,7 @@ class SelectedType {
   SelectedType(this.type, this.isSelected);
 }
 
-class CreateOrUpdateTransactionState extends State<CreateOrUpdateTransaction> {
+class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransactionScreen> {
   HandlerError handlerError = HandlerError();
   Transaction transaction = Transaction(
     id: '',
