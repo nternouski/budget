@@ -98,12 +98,12 @@ class StatsScreenState extends State<StatsScreen> {
           selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
           double totalExpensePeriod = 0.0;
           var transactions = allTransactions.where((t) {
+            final isInTheFrame = t.date.isAfter(frameDate) && t.date.isBefore(DateTime.now());
             // calc totalPeriod to compare prediction
-            if (t.date.isAfter(frameDate) && t.type == TransactionType.expense) {
-              totalExpensePeriod += t.balanceFixed.abs();
-            }
+            if (isInTheFrame && t.type == TransactionType.expense) totalExpensePeriod += t.getBalanceFromType().abs();
+
             final containCategory = (selectedCategories != null && selectedCategories!.contains(t.categoryId));
-            return t.date.isAfter(frameDate) && containCategory && selectedTypes[t.type] == true;
+            return isInTheFrame && containCategory && selectedTypes[t.type] == true;
           }).toList();
 
           List<CategorySelected> categoriesSelected = categories

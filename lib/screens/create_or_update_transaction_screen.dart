@@ -162,7 +162,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
       if (t.id != '') {
         walletFromSelected = wallets.firstWhereOrNull((w) => w.id == transaction.walletFromId);
         action = Action.update;
-        title = 'Update'.i18n;
+        title = '${'Update'.i18n} ${'Transaction'.i18n}';
       }
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
@@ -349,7 +349,13 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
                 lastDate: lastDate,
               );
               if (picked != null && picked != transaction.date) {
-                setState(() => transaction.date = picked);
+                setState(() {
+                  transaction.date = picked.copyWith(
+                    hour: transaction.date.hour,
+                    minute: transaction.date.minute,
+                    second: transaction.date.second,
+                  );
+                });
               }
               dateController.text = DateFormat(formatDate).format(transaction.date);
             },
@@ -542,7 +548,11 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
                   await transactionRx.update(
                       transaction, user.id, walletFromSelected!, currencyRates, walletToSelected);
                 }
-                await _showInterstitialAd();
+                try {
+                  await _showInterstitialAd();
+                } catch (e) {
+                  handlerError.showError(context, text: e.toString());
+                }
                 Navigator.of(context).pop();
               },
               child: Text(title),

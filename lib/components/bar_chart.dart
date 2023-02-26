@@ -91,21 +91,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
                   rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   bottomTitles: AxisTitles(sideTitles: _bottomTitles()),
-                  leftTitles: AxisTitles(
-                    axisNameWidget: const Text(''),
-                    axisNameSize: 4,
-                    sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: maxBalance / 3 + 1,
-                        reservedSize: 30,
-                        getTitlesWidget: (double axis, TitleMeta titleMeta) {
-                          if (axis == 0.0) {
-                            return const Text('');
-                          } else {
-                            return axis.prettierToText(withSymbol: false, simplify: true, style: labelTextStyle);
-                          }
-                        }),
-                  ),
+                  leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: _leftTitles()),
                 ),
                 borderData: FlBorderData(show: false),
                 barTouchData: getTooltip(theme),
@@ -142,6 +128,21 @@ class BarChartWidgetState extends State<BarChartWidget> {
       final matchDate = t.date.isAtSameMomentAs(after) || (t.date.isAfter(after) && t.date.isBefore(before));
       return t.type == type && matchDate ? acc + t.balanceFixed.abs() : acc;
     });
+  }
+
+  _leftTitles() {
+    return SideTitles(
+      showTitles: true,
+      interval: maxBalance / 3 + 1,
+      reservedSize: 35,
+      getTitlesWidget: (double axis, TitleMeta titleMeta) {
+        if (axis == 0.0) {
+          return const Text('');
+        } else {
+          return axis.prettierToText(withSymbol: false, simplify: true, style: labelTextStyle);
+        }
+      },
+    );
   }
 
   _bottomTitles() {
