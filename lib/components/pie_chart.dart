@@ -1,3 +1,4 @@
+import 'package:budget/common/convert.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -77,11 +78,6 @@ class StatsPieChartState extends State<StatsPieChart> {
     if (user == null) return SizedBox();
     String symbol = user.defaultCurrency.symbol;
 
-    String title = 'Select Category'.i18n;
-    if (pieSliceSelected != null) {
-      title = '${'Category'.i18n} ${pieSliceSelected?.category.name}';
-    }
-
     return Column(
       children: [
         if (user.superUser)
@@ -114,14 +110,24 @@ class StatsPieChartState extends State<StatsPieChart> {
           padding: const EdgeInsets.only(top: 5, bottom: 100),
           child: Column(
             children: [
-              Text(title, style: theme.textTheme.titleLarge),
-              const SizedBox(height: 10),
+              if (pieSliceSelected == null) Text('Select Category'.i18n, style: theme.textTheme.titleLarge),
               Padding(
-                padding: const EdgeInsets.only(right: 10, top: 10),
-                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  Text('${'Currency'.i18n} $symbol '),
-                  totalSelected.prettierToText(withSymbol: true),
-                ]),
+                padding: const EdgeInsets.only(right: 10, left: 20, top: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (pieSliceSelected != null) ...[
+                      Text(Convert.capitalize(pieSliceSelected!.category.name), style: theme.textTheme.titleLarge),
+                      IconButton(
+                        onPressed: () => setState(() => pieSliceSelected = null),
+                        icon: const Icon(Icons.cancel_outlined),
+                      ),
+                    ],
+                    const Flexible(fit: FlexFit.tight, child: Text('')),
+                    Text('${'Currency'.i18n} $symbol '),
+                    totalSelected.prettierToText(withSymbol: true),
+                  ],
+                ),
               ),
               ...List.generate(
                 transactionSelected.length,
@@ -176,10 +182,7 @@ class StatsPieChartState extends State<StatsPieChart> {
           firstDate: widget.frameDate,
           lastDate: DateTime.now(),
         );
-        if (picked != null && picked != range) {
-          pieSliceSelected = null;
-          setState(() => _setRange(start: picked.start, end: picked.end));
-        }
+        if (picked != null && picked != range) setState(() => _setRange(start: picked.start, end: picked.end));
       },
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.edit_calendar_rounded),

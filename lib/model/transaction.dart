@@ -167,6 +167,8 @@ class Transaction implements ModelCommonInterface, TransactionBalance {
       return DateFormat(DateFormat.MONTH_DAY).format(date);
     } else if (date.isBefore(now.subtract(const Duration(days: 1)))) {
       return DateFormat(DateFormat.ABBR_MONTH_WEEKDAY_DAY).format(date);
+    } else if (date.isAfter(now.add(const Duration(days: 1)))) {
+      return DateFormat(DateFormat.MONTH_DAY).format(date);
     } else {
       return DateFormat(DateFormat.HOUR24_MINUTE).format(date);
     }

@@ -110,6 +110,7 @@ class ThemeProvider extends ChangeNotifier {
       seedColor: _primary,
       primary: _primary,
       secondary: Colors.blue,
+      error: Colors.red[400],
       brightness: Brightness.dark,
     ),
     inputDecorationTheme: _inputDecorator,
