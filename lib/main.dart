@@ -116,6 +116,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<LocalAuthNotifier>(create: (context) => LocalAuthNotifier(authLoginEnable)),
         ChangeNotifierProvider<AdStateNotifier>(create: (context) => adState),
         ChangeNotifierProvider<LanguageNotifier>(create: (context) => LanguageNotifier()),
+        ChangeNotifierProvider<DailyItemBalanceNotifier>(create: (context) => DailyItemBalanceNotifier()),
         ChangeNotifierProvider<PredictionOnStatsNotifier>(create: (context) => PredictionOnStatsNotifier()),
       ],
       builder: (context, child) {

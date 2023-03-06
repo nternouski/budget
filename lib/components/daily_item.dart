@@ -1,3 +1,4 @@
+import 'package:budget/common/classes.dart';
 import 'package:budget/model/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -71,6 +72,7 @@ class DailyItemState extends State<DailyItem> {
   }
 
   Widget getItems(ThemeData theme, Transaction transaction) {
+    final balance = Provider.of<DailyItemBalanceNotifier>(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -112,16 +114,18 @@ class DailyItemState extends State<DailyItem> {
                     suffix: ') ',
                   ),
                 ],
-                transaction.balanceFixed.prettierToText(
+                (balance.showDefault == ShowBalance.Original ? transaction.balance : transaction.balanceFixed)
+                    .prettierToText(
                   withSymbol: true,
                   style: theme.textTheme.titleMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
                 ),
               ],
             ),
-            transaction.balance.prettierToText(
-              withSymbol: true,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.disabledColor),
-            )
+            if (balance.showDefault == ShowBalance.Both)
+              transaction.balance.prettierToText(
+                withSymbol: true,
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.disabledColor),
+              )
           ],
         )
       ],

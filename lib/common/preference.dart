@@ -3,7 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
-enum PreferenceType { darkTheme, periodStats, authLoginEnable, languageCode, predictionOnStats }
+enum PreferenceType {
+  darkTheme,
+  periodStats,
+  authLoginEnable,
+  languageCode,
+  predictionOnStats,
+  dailyItemBalance,
+}
 
 extension ParseToString on PreferenceType {
   String toShortString() {

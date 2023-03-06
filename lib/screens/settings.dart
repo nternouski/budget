@@ -32,6 +32,13 @@ class LocaleOption {
   const LocaleOption({required this.title, this.locale});
 }
 
+class DefaultBalanceOption {
+  final String title;
+  final ShowBalance balance;
+
+  const DefaultBalanceOption({required this.title, required this.balance});
+}
+
 class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
@@ -54,7 +61,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               if (user != null) {
                 sections = [
                   ProfileSettings(user: user),
-                  getCommon(theme, periodStats),
+                  getCommon(context, theme, periodStats),
                   getIntegration(theme, user),
                   CurrentRatesSettings(user: user),
                   DangerZone(userId: user.id),
@@ -153,9 +160,39 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  SettingsSection getCommon(ThemeData themeData, PeriodStats periodStats) {
+  _bottomSheetDefaultBalance(BuildContext context, DailyItemBalanceNotifier balance) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Show Default Currency'.i18n, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 10),
+            ...[
+              const DefaultBalanceOption(title: 'Original', balance: ShowBalance.Original),
+              const DefaultBalanceOption(title: 'Default', balance: ShowBalance.Default),
+              DefaultBalanceOption(title: 'Both'.i18n, balance: ShowBalance.Both),
+            ].map(
+              (option) => ListTile(
+                title: Text(option.title),
+                onTap: () async {
+                  await balance.setAsDefaultCurrency(option.balance);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  SettingsSection getCommon(BuildContext context, ThemeData themeData, PeriodStats periodStats) {
     final theme = Provider.of<ThemeProvider>(context);
     final localAuth = Provider.of<LocalAuthNotifier>(context);
+    final balance = Provider.of<DailyItemBalanceNotifier>(context);
     final languageCode = I18n.of(context).locale.languageCode;
 
     final titleStyle = themeData.textTheme.titleMedium;
@@ -196,6 +233,22 @@ class SettingsScreenState extends State<SettingsScreen> {
                 enableDrag: false,
                 onClosing: () {},
                 builder: (BuildContext context) => _bottomSheetPeriodStats(periodStats, context),
+              ),
+            ),
+          ),
+          SettingsTile.navigation(
+            leading: const Icon(Icons.attach_money_outlined),
+            title: Text('Show Default Currency'.i18n, style: titleStyle),
+            value: Text(balance.showDefault.name, style: dataStyle),
+            onPressed: (context) => showModalBottomSheet(
+              enableDrag: true,
+              context: context,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              builder: (BuildContext context) => BottomSheet(
+                enableDrag: false,
+                onClosing: () {},
+                builder: (BuildContext context) => _bottomSheetDefaultBalance(context, balance),
               ),
             ),
           ),

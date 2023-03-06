@@ -102,6 +102,7 @@ class _SpendGraphicState extends State<SpendGraphic> {
           );
         }
         List<Transaction> transactions = List.from(snapshot.data ?? []);
+        transactions.sort((a, b) => b.date.compareTo(a.date));
         List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
 
         // Calc Initial value of graph
@@ -120,7 +121,6 @@ class _SpendGraphicState extends State<SpendGraphic> {
   }
 
   Widget _getGraph(ThemeData theme, DateTime frameDate, List<Transaction> transactions) {
-    transactions.sort((a, b) => b.date.compareTo(a.date));
     frame = calcFrame(transactions, firstBalanceOfFrame ?? 0, frameDate);
     spots = List.generate(widget.frameRange + 1, (index) {
       var balance = frame[index].balance;

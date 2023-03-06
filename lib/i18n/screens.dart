@@ -32,6 +32,7 @@ final screens = Translations('en') +
     {'en': 'Choose From Wallet', 'es': 'Billetera origen'} +
     {'en': 'Choose To Wallet', 'es': 'Billetera de destino'} +
     {'en': 'Description', 'es': 'Descripción'} +
+    {'en': 'Amount is Required and Grater than 0', 'es': 'Monto es requerido y mayor a 0'} +
     {
       'en': 'You can\'t update type, please delete the transaction and create a new one.',
       'es': 'No se puede actualizar el tipo, por favor elimine la transacción y vuelva a crearla.'
@@ -184,6 +185,8 @@ final screens = Translations('en') +
     {'en': 'Period of Analytics', 'es': 'Periodo de Análisis'} +
     {'en': 'Auth With Biometric', 'es': 'Autentificar con Huella'} +
     {'en': 'Dark Theme', 'es': 'Modo Oscuro'} +
+    {'en': 'Show Default Currency', 'es': 'Mostrar moneda por defecto'} +
+    {'en': 'Both', 'es': 'Ambos'} +
     {'en': 'Integrations', 'es': 'Integraciones'} +
     {'en': 'Please write', 'es': 'Por favor escribe'} +
     {

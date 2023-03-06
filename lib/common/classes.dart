@@ -96,3 +96,31 @@ class LanguageNotifier extends ChangeNotifier {
   String get localeShort => Intl.shortLocale(_locale.languageCode);
   Locale get locale => _locale;
 }
+
+enum ShowBalance { Original, Default, Both }
+
+class DailyItemBalanceNotifier extends ChangeNotifier {
+  ShowBalance _showDefault = ShowBalance.Original;
+  final Preferences _preferences = Preferences();
+
+  DailyItemBalanceNotifier() {
+    _preferences.getString(PreferenceType.dailyItemBalance).then((dailyItemBalance) {
+      if (dailyItemBalance == 'Original') {
+        _showDefault = ShowBalance.Original;
+      } else if (dailyItemBalance == 'Default') {
+        _showDefault = ShowBalance.Default;
+      } else {
+        _showDefault = ShowBalance.Both;
+      }
+      notifyListeners();
+    });
+  }
+
+  Future<void> setAsDefaultCurrency(ShowBalance balance) async {
+    _showDefault = balance;
+    await _preferences.setString(PreferenceType.dailyItemBalance, balance.name);
+    notifyListeners();
+  }
+
+  ShowBalance get showDefault => _showDefault;
+}

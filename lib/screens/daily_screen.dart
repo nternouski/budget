@@ -1,7 +1,7 @@
-import 'package:budget/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../routes.dart';
 import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../common/period_stats.dart';

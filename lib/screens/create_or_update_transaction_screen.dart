@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -48,7 +47,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   Transaction transaction = Transaction(
     id: '',
     name: '',
-    amount: -1,
+    amount: 0,
     fee: 0,
     balance: 0,
     balanceFixed: 0,
@@ -66,8 +65,8 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   final _showMoreField = ValueNotifier<bool>(false);
   final dateController = TextEditingController(text: '');
   final timeController = TextEditingController(text: '');
-  final decimalAmountController = TextEditingController(text: '0');
-  final decimalAmountFocusNode = FocusNode();
+  final amountController = TextEditingController(text: '0');
+  final amountFocusNode = FocusNode();
 
   final List<PopupMenuItem<TransactionType>> types = TransactionType.values
       .map((t) => PopupMenuItem(
@@ -88,12 +87,10 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   @override
   void initState() {
     super.initState();
-    decimalAmountFocusNode.addListener(() {
-      int? decimal = int.tryParse(decimalAmountController.text);
-      if (decimalAmountFocusNode.hasFocus) {
-        if (decimal == 0) decimalAmountController.text = '';
-      } else {
-        if (decimal == null) decimalAmountController.text = '0';
+    amountFocusNode.addListener(() {
+      double? num = double.tryParse(amountController.text);
+      if (num != null) {
+        amountController.text = num <= 0.0 ? '' : num.toString();
       }
     });
   }
@@ -103,7 +100,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     if (_interstitialAd != null) _interstitialAd!.dispose();
     dateController.dispose();
     timeController.dispose();
-    decimalAmountController.dispose();
+    amountController.dispose();
     super.dispose();
   }
 
@@ -167,7 +164,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
     timeController.text = DateFormat('hh:mm').format(transaction.date);
-    decimalAmountController.text = transaction.amount.toString().split('.')[1];
+    amountController.text = transaction.amount <= 0.0 ? '' : transaction.amount.toString();
 
     return Scaffold(
       appBar: AppBar(
@@ -235,55 +232,33 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   }
 
   Widget buildAmount(ThemeData theme) {
+    final hasError = double.tryParse(amountController.text) == null;
     final intStyle = theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          flex: 3,
-          child: Directionality(
-            textDirection: ui.TextDirection.rtl, // align errorText to the right
-            child: TextFormField(
-              initialValue: transaction.amount.isNegative ? '' : transaction.amount.toInt().toString(),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
-              ],
-              style: intStyle,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: '\$0',
-                hintStyle: intStyle.copyWith(color: theme.hintColor),
-                contentPadding: const EdgeInsets.only(top: 15),
-              ),
-              validator: (value) =>
-                  value != null && value.isNotEmpty && !int.parse(value).isNegative ? null : 'Is Required'.i18n,
-              onChanged: (String _) => _formKey.currentState!.validate(),
-              onSaved: (String? value) {
-                final decimals = transaction.amount.toString().split('.')[1];
-                transaction.amount = double.parse('$value.$decimals');
-              },
-            ),
-          ),
-        ),
-        Flexible(
-          flex: 1,
-          child: TextFormField(
-            controller: decimalAmountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
-            textAlign: TextAlign.start,
-            style: theme.textTheme.headlineSmall!.copyWith(fontWeight: FontWeight.bold),
-            decoration: const InputDecoration(border: InputBorder.none, hintText: '00'),
-            focusNode: decimalAmountFocusNode,
-            onChanged: (String? value) {
-              final intValue = transaction.amount.toString().split('.')[0];
-              transaction.amount = double.parse('$intValue.$value');
-            },
-          ),
-        )
+    return TextFormField(
+      textAlign: TextAlign.center,
+      controller: amountController,
+      focusNode: amountFocusNode,
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+        LengthLimitingTextInputFormatter(MAX_LENGTH_AMOUNT)
       ],
+      style: intStyle,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        hintText: '\$0',
+        hintStyle: intStyle.copyWith(color: hasError ? theme.colorScheme.error : theme.hintColor),
+        contentPadding: const EdgeInsets.only(top: 15),
+      ),
+      validator: (value) {
+        if (value != null && value.isNotEmpty && double.tryParse(value) != null) {
+          return null;
+        } else {
+          return 'Amount is Required and Grater than 0'.i18n;
+        }
+      },
+      onChanged: (String _) => _formKey.currentState!.validate(),
+      onSaved: (String? value) => transaction.amount = double.parse(transaction.amount.toString()),
     );
   }
 
