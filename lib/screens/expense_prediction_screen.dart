@@ -3,6 +3,7 @@ import 'package:budget/components/expense_prediction_widget.dart';
 import 'package:drag_and_drop_lists/drag_and_drop_lists.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 
@@ -11,6 +12,7 @@ import '../common/styles.dart';
 import '../model/user.dart';
 import '../model/currency.dart';
 import '../model/expense_prediction.dart';
+import '../components/interaction_border.dart';
 import '../components/select_currency.dart';
 import '../components/background_dismissible.dart';
 import '../server/database/expense_prediction_rx.dart';
@@ -32,7 +34,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
   var prediction = ExpensePrediction<ExpensePredictionGroupTotal>(id: defaultPredictionId, name: '', groups: []);
 
   final ScrollController _scrollController = ScrollController();
-  var _updateItem = ExpensePredictionItem(name: '', amount: 0, days: 7, check: true);
+  var _updateItem = ExpensePredictionItem(name: '', amount: 0, days: 7, check: true, lastPurchaseDate: DateTime.now());
 
   @override
   Future<void> dispose() async {
@@ -343,67 +345,106 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
   }
 
   _bottomSheetItem(ThemeData theme, ExpensePredictionGroupTotal group, int index) {
+    const dateFormat = DateFormat.MONTH_DAY;
     docChanged = true;
     const sizedBoxHeight = SizedBox(height: 20);
-    return SingleChildScrollView(
-      child: Container(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
-              style: theme.textTheme.titleLarge,
-            ),
-            TextFormField(
-              initialValue: _updateItem.name,
-              autofocus: true,
-              decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
-              inputFormatters: [LengthLimitingTextInputFormatter(25)],
-              validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
-              onChanged: (String name) => _updateItem.name = name,
-            ),
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Expanded(
-                child: TextFormField(
-                  initialValue: _updateItem.amount.toString(),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                  decoration: InputDecoration(labelText: 'Amount'.i18n, hintText: '0', prefix: const Text('\$ ')),
-                  validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-                  onChanged: (String value) => _updateItem.amount = double.parse(value != '' ? value : '0'),
-                ),
-              ),
-              Expanded(
-                child: TextFormField(
-                  initialValue: _updateItem.days.toString(),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                  decoration: InputDecoration(labelText: 'Durations (Days)'.i18n, hintText: '0'),
-                  validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
-                  onChanged: (String value) => _updateItem.days = int.parse(value != '' ? value : '0'),
-                ),
-              ),
-            ]),
-            sizedBoxHeight,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return SingleChildScrollView(
+          child: Container(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                getButtonCancelContext(context),
-                FilledButton(
-                  child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
-                  onPressed: () {
-                    if (index == -1) group.items.add(_updateItem.copyWith());
-                    setState(() {});
-                    Navigator.pop(context);
-                  },
+                Text(
+                  '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
+                  style: theme.textTheme.titleLarge,
                 ),
+                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Flexible(
+                    child: TextFormField(
+                      initialValue: _updateItem.name,
+                      autofocus: true,
+                      decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
+                      inputFormatters: [LengthLimitingTextInputFormatter(25)],
+                      validator: (String? value) => value!.isEmpty ? '${'Name'.i18n} ${'Is Required'.i18n}' : null,
+                      onChanged: (String name) => _updateItem.name = name,
+                    ),
+                  ),
+                  Flexible(
+                    flex: 0,
+                    child: AppInteractionBorder(
+                      margin: const EdgeInsets.all(10),
+                      onTap: () async {
+                        var lastDate = DateTime.now();
+                        // Below line stops keyboard from appearing
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        // Show Date Picker Here
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: _updateItem.lastPurchaseDate,
+                          firstDate: DateTime(2010),
+                          lastDate: lastDate,
+                        );
+                        if (picked != null && picked != _updateItem.lastPurchaseDate) {
+                          setState(() => _updateItem.lastPurchaseDate = picked);
+                        }
+                      },
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.edit_calendar_rounded),
+                        const SizedBox(width: 10),
+                        Text(
+                          DateFormat(dateFormat).format(_updateItem.lastPurchaseDate),
+                          style: theme.textTheme.titleMedium,
+                        )
+                      ]),
+                    ),
+                  ),
+                ]),
+                Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _updateItem.amount.toString(),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                      decoration: InputDecoration(labelText: 'Amount'.i18n, hintText: '0', prefix: const Text('\$ ')),
+                      validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+                      onChanged: (String value) => _updateItem.amount = double.parse(value != '' ? value : '0'),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _updateItem.days.toString(),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                      decoration: InputDecoration(labelText: 'Durations (Days)'.i18n, hintText: '0'),
+                      validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
+                      onChanged: (String value) => _updateItem.days = int.parse(value != '' ? value : '0'),
+                    ),
+                  ),
+                ]),
+                sizedBoxHeight,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    getButtonCancelContext(context),
+                    FilledButton(
+                      child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
+                      onPressed: () {
+                        if (index == -1) group.items.add(_updateItem.copyWith());
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                )
               ],
-            )
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 

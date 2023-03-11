@@ -7,7 +7,15 @@ class ExpensePredictionItem implements ModelCommonFunctions {
   double amount;
   int days;
   bool check;
-  ExpensePredictionItem({required this.name, required this.amount, required this.days, required this.check});
+  DateTime lastPurchaseDate;
+
+  ExpensePredictionItem({
+    required this.name,
+    required this.amount,
+    required this.days,
+    required this.check,
+    required this.lastPurchaseDate,
+  });
 
   factory ExpensePredictionItem.fromJson(Map<String, dynamic> json) {
     return ExpensePredictionItem(
@@ -15,6 +23,7 @@ class ExpensePredictionItem implements ModelCommonFunctions {
       amount: Convert.currencyToDouble(json['amount'], json),
       days: Convert.currencyToDouble(json['days'], json).toInt(),
       check: json['check'],
+      lastPurchaseDate: Convert.parseDate(json['lastPurchaseDate'] ?? DateTime.now(), json),
     );
   }
 
@@ -25,16 +34,24 @@ class ExpensePredictionItem implements ModelCommonFunctions {
       'amount': amount,
       'days': days,
       'check': check,
+      'lastPurchaseDate': lastPurchaseDate,
     };
     return data;
   }
 
-  ExpensePredictionItem copyWith({String? name, double? amount, bool? check, int? days}) {
+  ExpensePredictionItem copyWith({
+    String? name,
+    double? amount,
+    bool? check,
+    int? days,
+    DateTime? lastPurchaseDate,
+  }) {
     return ExpensePredictionItem(
       name: name ?? this.name,
       amount: amount ?? this.amount,
       check: check ?? this.check,
       days: days ?? this.days,
+      lastPurchaseDate: lastPurchaseDate ?? this.lastPurchaseDate,
     );
   }
 

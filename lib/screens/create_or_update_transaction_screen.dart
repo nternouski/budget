@@ -23,7 +23,7 @@ import '../common/styles.dart';
 import '../routes.dart';
 
 // ignore: constant_identifier_names
-const MAX_LENGTH_AMOUNT = 5;
+const MAX_LENGTH_AMOUNT = 6;
 
 enum Action { create, update }
 
@@ -67,6 +67,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   final timeController = TextEditingController(text: '');
   final amountController = TextEditingController(text: '0');
   final amountFocusNode = FocusNode();
+  bool alreadyInit = false;
 
   final List<PopupMenuItem<TransactionType>> types = TransactionType.values
       .map((t) => PopupMenuItem(
@@ -161,10 +162,11 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
         action = Action.update;
         title = '${'Update'.i18n} ${'Transaction'.i18n}';
       }
+      if (!alreadyInit) amountController.text = transaction.amount.toString();
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(transaction.date);
     timeController.text = DateFormat('hh:mm').format(transaction.date);
-    amountController.text = transaction.amount <= 0.0 ? '' : transaction.amount.toString();
+    alreadyInit = true;
 
     return Scaffold(
       appBar: AppBar(
@@ -232,7 +234,6 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   }
 
   Widget buildAmount(ThemeData theme) {
-    final hasError = double.tryParse(amountController.text) == null;
     final intStyle = theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold);
     return TextFormField(
       textAlign: TextAlign.center,
@@ -247,7 +248,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
       decoration: InputDecoration(
         border: InputBorder.none,
         hintText: '\$0',
-        hintStyle: intStyle.copyWith(color: hasError ? theme.colorScheme.error : theme.hintColor),
+        hintStyle: intStyle.copyWith(color: theme.hintColor),
         contentPadding: const EdgeInsets.only(top: 15),
       ),
       validator: (value) {
@@ -258,7 +259,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
         }
       },
       onChanged: (String _) => _formKey.currentState!.validate(),
-      onSaved: (String? value) => transaction.amount = double.parse(transaction.amount.toString()),
+      onSaved: (String? value) => transaction.amount = double.parse(value!),
     );
   }
 
