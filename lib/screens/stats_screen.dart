@@ -97,13 +97,16 @@ class StatsScreenState extends State<StatsScreen> {
               .toList();
           selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
           double totalExpensePeriod = 0.0;
-          var transactions = allTransactions.where((t) {
-            final isInTheFrame = t.date.isAfter(frameDate) && t.date.isBefore(DateTime.now());
-            // calc totalPeriod to compare prediction
-            if (isInTheFrame && t.type == TransactionType.expense) totalExpensePeriod += t.getBalanceFromType().abs();
 
+          var transactionsFrame = allTransactions.where((t) {
+            final isInTheFrame = t.date.isAfter(frameDate) && t.date.isBefore(DateTime.now());
+            if (isInTheFrame && t.type == TransactionType.expense) totalExpensePeriod += t.getBalanceFromType().abs();
+            return isInTheFrame;
+          }).toList();
+
+          var transactions = transactionsFrame.where((t) {
             final containCategory = (selectedCategories != null && selectedCategories!.contains(t.categoryId));
-            return isInTheFrame && containCategory && selectedTypes[t.type] == true;
+            return containCategory && selectedTypes[t.type] == true;
           }).toList();
 
           List<CategorySelected> categoriesSelected = categories
@@ -118,7 +121,7 @@ class StatsScreenState extends State<StatsScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: Column(children: [
-                  StatsBalance(transactions: allTransactions),
+                  StatsBalance(transactions: transactionsFrame),
                   const SizedBox(height: 10),
                   if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
                   const SizedBox(height: 10),

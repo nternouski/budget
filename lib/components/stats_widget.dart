@@ -198,7 +198,9 @@ class TotalBalance extends StatelessWidget {
                     Convert.capitalize(type.toShortString()).i18n,
                     style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),
                   ),
-                  resume.byType(type, round: true).prettierToText(withSymbol: true, style: theme.textTheme.titleLarge)
+                  resume
+                      .byType(type, round: true)
+                      .prettierToText(withSymbol: true, simplify: true, style: theme.textTheme.titleLarge)
                 ],
               ),
             ),

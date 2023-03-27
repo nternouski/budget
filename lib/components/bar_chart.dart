@@ -32,13 +32,11 @@ class BarChartWidgetState extends State<BarChartWidget> {
   List<BarChartGroup> rawBarGroups = [];
   double maxBalance = 0;
 
-  TextStyle? labelTextStyle;
   bool showVerticalLabel = false;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    labelTextStyle = theme.textTheme.bodyLarge;
     showVerticalLabel = nowZero.difference(widget.frameDate).inDays > 30;
 
     int index = 0;
@@ -90,8 +88,9 @@ class BarChartWidgetState extends State<BarChartWidget> {
                   show: true,
                   rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(sideTitles: _bottomTitles()),
-                  leftTitles: AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: _leftTitles()),
+                  bottomTitles: AxisTitles(sideTitles: _bottomTitles(theme, step)),
+                  leftTitles:
+                      AxisTitles(axisNameWidget: const Text(''), axisNameSize: 4, sideTitles: _leftTitles(theme)),
                 ),
                 borderData: FlBorderData(show: false),
                 barTouchData: getTooltip(theme),
@@ -130,7 +129,7 @@ class BarChartWidgetState extends State<BarChartWidget> {
     });
   }
 
-  _leftTitles() {
+  _leftTitles(ThemeData theme) {
     return SideTitles(
       showTitles: true,
       interval: maxBalance / 3 + 1,
@@ -139,33 +138,39 @@ class BarChartWidgetState extends State<BarChartWidget> {
         if (axis == 0.0) {
           return const Text('');
         } else {
-          return axis.prettierToText(withSymbol: false, simplify: true, style: labelTextStyle);
+          return axis.prettierToText(
+            withSymbol: false,
+            simplify: true,
+            style: theme.textTheme.bodyLarge,
+          );
         }
       },
     );
   }
 
-  _bottomTitles() {
+  _bottomTitles(ThemeData theme, Duration step) {
+    final style = theme.textTheme.labelSmall;
     return SideTitles(
       showTitles: true,
       getTitlesWidget: (double value, TitleMeta meta) {
         DateTime date = rawBarGroups[value.toInt()].y;
+        DateTime until = date.add(Duration(days: step.inDays - 1));
         if (showVerticalLabel) {
           return SideTitleWidget(
             axisSide: AxisSide.right,
             space: 15,
             angle: 1.57,
-            child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
+            child: Text('${date.day} to ${until.day}', style: style),
           );
         } else {
           return SideTitleWidget(
             axisSide: meta.axisSide,
-            space: 5,
-            child: Text(DateFormat('d MMM').format(date), style: labelTextStyle),
+            space: 2,
+            child: Text('${date.day} to ${until.day}', style: style),
           );
         }
       },
-      reservedSize: showVerticalLabel ? 40 : 20,
+      reservedSize: showVerticalLabel ? 40 : 15,
     );
   }
 }
