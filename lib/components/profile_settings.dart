@@ -121,7 +121,7 @@ class ProfileSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('${'Update'.i18n} ${'Profile'.i18n}', style: theme.textTheme.titleLarge),
+                Text('${'Save'.i18n} ${'Profile'.i18n}', style: theme.textTheme.titleLarge),
                 TextFormField(
                   initialValue: user.name,
                   decoration: InputDecoration(labelText: 'Name'.i18n, hintText: ''),
@@ -191,7 +191,7 @@ class ProfileSettings extends AbstractSettingsSection {
                   children: [
                     getButtonCancelContext(context),
                     FilledButton(
-                      child: Text('Update'.i18n),
+                      child: Text('Save'.i18n),
                       onPressed: () {
                         if (user.defaultCurrency.id == '') {
                           return HandlerError().showError(context, text: 'The default currency must be set'.i18n);

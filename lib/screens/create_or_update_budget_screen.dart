@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 import '../i18n/index.dart';
+import '../common/title_components.dart';
 import '../common/error_handler.dart';
 import '../common/period_stats.dart';
 import '../components/interaction_border.dart';
@@ -13,8 +14,6 @@ import '../components/choose_category.dart';
 import '../model/budget.dart';
 import '../server/database/budget_rx.dart';
 import '../common/styles.dart';
-
-enum Action { create, update }
 
 final now = DateTime.now();
 
@@ -48,8 +47,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
     initialDate: now,
     period: periodOptions[0].days,
   );
-  String title = '${'Create'.i18n} ${'Budget'.i18n}';
-  Action action = Action.create;
+  TitleOfComponent title = TitleOfComponent(action: TitleAction.create, label: 'Budget'.i18n);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController dateController = TextEditingController(text: '');
@@ -66,9 +64,8 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
   Widget build(BuildContext context) {
     final b = ModalRoute.of(context)!.settings.arguments as Budget?;
     if (b != null) {
-      action = Action.update;
+      title = TitleOfComponent(action: TitleAction.update, label: 'Budget'.i18n);
       budget = b;
-      title = '${'Update'.i18n} ${budget.name}';
     }
     dateController.text = DateFormat('dd/MM/yyyy').format(budget.initialDate);
     final theme = Theme.of(context);
@@ -76,7 +73,7 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
       appBar: AppBar(
         titleTextStyle: theme.textTheme.titleLarge,
         leading: getBackButton(context),
-        title: Text(title),
+        title: title.getTitle(theme),
       ),
       body: CustomScrollView(
         slivers: [SliverToBoxAdapter(child: getForm(context, theme))],
@@ -207,10 +204,10 @@ class CreateOrUpdateBudgetState extends State<CreateOrUpdateBudgetScreen> {
                 if (budget.categories.isEmpty) {
                   return handlerError.showError(context, text: 'You need select at least one category.'.i18n);
                 }
-                action == Action.create ? budgetRx.create(budget, user.uid) : budgetRx.update(budget, user.uid);
+                title.createMode() ? budgetRx.create(budget, user.uid) : budgetRx.update(budget, user.uid);
                 Navigator.of(context).pop();
               },
-              child: Text(title),
+              child: title.getButton(),
             ),
             sizedBoxHeight,
             sizedBoxHeight

@@ -135,13 +135,13 @@ class WalletItem extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(borderRadius: borderRadiusApp, color: color),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(dense ? 15 : 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (dense) IconCircle(icon: wallet.icon, color: contrastColor),
+            if (dense) Icon(wallet.icon, color: contrastColor),
             if (!dense)
               InkWell(
                 child: IconCircle(icon: wallet.icon, color: contrastColor),

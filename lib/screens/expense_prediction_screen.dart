@@ -359,7 +359,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  '${index == -1 ? 'Create'.i18n : 'Update'.i18n} ${'Item'.i18n}',
+                  '${index == -1 ? 'Create'.i18n : 'Save'.i18n} ${'Item'.i18n}',
                   style: theme.textTheme.titleLarge,
                 ),
                 Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -431,7 +431,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                   children: [
                     getButtonCancelContext(context),
                     FilledButton(
-                      child: Text(index == -1 ? 'Create'.i18n : 'Update'.i18n),
+                      child: Text(index == -1 ? 'Create'.i18n : 'Save'.i18n),
                       onPressed: () {
                         if (index == -1) group.items.add(_updateItem.copyWith());
                         setState(() {});
@@ -460,7 +460,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${create ? 'Create'.i18n : 'Update'.i18n} ${'Group'.i18n}',
+            '${create ? 'Create'.i18n : 'Save'.i18n} ${'Group'.i18n}',
             style: theme.textTheme.titleLarge,
           ),
           TextFormField(
@@ -480,7 +480,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
             children: [
               getButtonCancelContext(context),
               FilledButton(
-                child: Text(create ? 'Create'.i18n : 'Update'.i18n),
+                child: Text(create ? 'Create'.i18n : 'Save'.i18n),
                 onPressed: () {
                   if (create) prediction.groups.add(group.copyWith(period: period));
                   setState(() {});

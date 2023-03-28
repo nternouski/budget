@@ -178,7 +178,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(update ? 'Update'.i18n : 'Create'.i18n, style: theme.textTheme.titleLarge),
+                Text(update ? 'Save'.i18n : 'Create'.i18n, style: theme.textTheme.titleLarge),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -223,7 +223,7 @@ class CurrentRatesSettings extends AbstractSettingsSection {
                               Navigator.pop(context);
                             }
                           : null,
-                      child: Text(update ? 'Update'.i18n : 'Create'.i18n),
+                      child: Text(update ? 'Save'.i18n : 'Create'.i18n),
                     ),
                   ],
                 )

@@ -1,3 +1,4 @@
+import 'package:budget/common/title_components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -11,8 +12,6 @@ import '../components/select_currency.dart';
 import '../components/icon_picker.dart';
 import '../model/wallet.dart';
 import '../common/styles.dart';
-
-enum Action { create, update }
 
 class CreateOrUpdateWalletScreen extends StatefulWidget {
   const CreateOrUpdateWalletScreen({Key? key}) : super(key: key);
@@ -56,8 +55,9 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     final w = ModalRoute.of(context)!.settings.arguments as Wallet?;
 
     if (w != null) wallet = w;
-    final action = wallet.id == '' ? Action.create : Action.update;
-    final title = wallet.id == '' ? '${'Create'.i18n} ${'Wallet'.i18n}' : 'Update'.i18n;
+    final title = wallet.id == ''
+        ? TitleOfComponent(action: TitleAction.create, label: 'Wallet'.i18n)
+        : TitleOfComponent(action: TitleAction.update, label: 'Wallet'.i18n);
     final textTheme = Theme.of(context).textTheme;
     decimalInitialAmountController.text = wallet.initialAmount.toString();
 
@@ -65,15 +65,15 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
       appBar: AppBar(
         titleTextStyle: textTheme.titleLarge,
         leading: getBackButton(context),
-        title: Text('$title ${wallet.name}'),
+        title: title.getTitle(Theme.of(context)),
       ),
       body: CustomScrollView(
-        slivers: [SliverToBoxAdapter(child: getForm(action, title, context))],
+        slivers: [SliverToBoxAdapter(child: getForm(title, context))],
       ),
     );
   }
 
-  Widget buildAmount(Action action) {
+  Widget buildAmount(TitleOfComponent title) {
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Expanded(
         child: SelectCurrencyFormField(
@@ -82,7 +82,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
             wallet.currencyId = c?.id ?? '';
             wallet.currency = c;
           },
-          enabled: action != Action.update,
+          enabled: title.createMode(),
         ),
       ),
       Expanded(
@@ -126,14 +126,14 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
     ]);
   }
 
-  Widget getForm(Action action, String title, BuildContext context) {
+  Widget getForm(TitleOfComponent title, BuildContext context) {
     auth.User user = Provider.of<auth.User>(context, listen: false);
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Column(children: <Widget>[
-          buildAmount(action),
+          buildAmount(title),
           buildName(),
           ColorPicker(
             color: wallet.color,
@@ -155,14 +155,14 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
               if (!_formKey.currentState!.validate()) return;
               _formKey.currentState!.save();
 
-              if (action == Action.create) {
+              if (title.createMode()) {
                 walletRx.create(wallet, user.uid);
               } else {
                 walletRx.update(wallet, user.uid);
               }
               Navigator.of(context).pop();
             },
-            child: Text(title),
+            child: title.getButton(),
           )
         ]),
       ),

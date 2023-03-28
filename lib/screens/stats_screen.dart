@@ -98,15 +98,13 @@ class StatsScreenState extends State<StatsScreen> {
           selectedCategories ??= categories.isEmpty ? null : categories.map((c) => c.id).toList();
           double totalExpensePeriod = 0.0;
 
-          var transactionsFrame = allTransactions.where((t) {
-            final isInTheFrame = t.date.isAfter(frameDate) && t.date.isBefore(DateTime.now());
-            if (isInTheFrame && t.type == TransactionType.expense) totalExpensePeriod += t.getBalanceFromType().abs();
-            return isInTheFrame;
-          }).toList();
+          var transactionsFrame = allTransactions.where((t) => t.date.isBefore(DateTime.now())).toList();
 
           var transactions = transactionsFrame.where((t) {
+            final isInTheFrame = t.date.isAfter(frameDate);
+            if (isInTheFrame && t.type == TransactionType.expense) totalExpensePeriod += t.getBalanceFromType().abs();
             final containCategory = (selectedCategories != null && selectedCategories!.contains(t.categoryId));
-            return containCategory && selectedTypes[t.type] == true;
+            return isInTheFrame && containCategory && selectedTypes[t.type] == true;
           }).toList();
 
           List<CategorySelected> categoriesSelected = categories

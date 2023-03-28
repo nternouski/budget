@@ -315,7 +315,7 @@ class SettingsScreenState extends State<SettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${'Update'.i18n} ${'Integrations'.i18n}', style: theme.textTheme.titleLarge),
+            Text('${'Save'.i18n} ${'Integrations'.i18n}', style: theme.textTheme.titleLarge),
             TextFormField(
               initialValue: apiKey,
               decoration: const InputDecoration(labelText: 'API Key'),
@@ -328,7 +328,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               children: [
                 getButtonCancelContext(context),
                 FilledButton(
-                  child: Text('Update'.i18n),
+                  child: Text('Save'.i18n),
                   onPressed: () {
                     user.integrations.update(IntegrationType.wise, (value) => apiKey, ifAbsent: () => apiKey);
                     UserService().update(user);

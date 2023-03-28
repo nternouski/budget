@@ -3,7 +3,7 @@ import 'package:i18n_extension/i18n_extension.dart';
 final screens = Translations('en') +
     // COMMONS
     {'en': 'Create', 'es': 'Crear'} +
-    {'en': 'Update', 'es': 'Actualizar'} +
+    {'en': 'Save', 'es': 'Actualizar'} +
     {'en': 'Edit', 'es': 'Editar'} +
     {'en': 'Delete', 'es': 'Eliminar'} +
     {'en': 'Are you sure you want to delete?', 'es': '¿Esta seguro de eliminarlo?'} +
@@ -29,8 +29,10 @@ final screens = Translations('en') +
 
     // create_or_update_transaction_screen
     {'en': 'Transaction', 'es': 'Transacción'} +
-    {'en': 'Choose From Wallet', 'es': 'Billetera origen'} +
-    {'en': 'Choose To Wallet', 'es': 'Billetera de destino'} +
+    {'en': 'Add money To', 'es': 'Billetera origen'} +
+    {'en': 'From', 'es': 'Desde'} +
+    {'en': 'To', 'es': 'Hacia'} +
+    {'en': 'Pay with', 'es': 'Billetera de destino'} +
     {'en': 'Description', 'es': 'Descripción'} +
     {'en': 'Amount is Required and Grater than 0', 'es': 'Monto es requerido y mayor a 0'} +
     {
