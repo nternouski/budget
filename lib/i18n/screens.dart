@@ -32,7 +32,7 @@ final screens = Translations('en') +
     {'en': 'Add money To', 'es': 'Billetera origen'} +
     {'en': 'From', 'es': 'Desde'} +
     {'en': 'To', 'es': 'Hacia'} +
-    {'en': 'Pay with', 'es': 'Billetera de destino'} +
+    {'en': 'Pay with', 'es': 'Pagando con'} +
     {'en': 'Description', 'es': 'Descripción'} +
     {'en': 'Amount is Required and Grater than 0', 'es': 'Monto es requerido y mayor a 0'} +
     {
@@ -44,7 +44,7 @@ final screens = Translations('en') +
     {'en': 'You must choice a wallet first.', 'es': 'Debes elegir un billetera.'} +
     {
       'en': 'You must choice the wallet of from and to transaction is made.',
-      'es': 'Debes elegir un billetera the origen y destino.'
+      'es': 'Debes elegir la billetera que va a extraer y la de destino.'
     } +
     {'en': 'Wallet must not be the same.', 'es': 'Las billetera no deben ser iguales.'} +
     {'en': 'You must have a default currency first.', 'es': 'Debes tener una moneda por defecto.'} +
@@ -173,6 +173,7 @@ final screens = Translations('en') +
     {'en': 'Terms & Conditions', 'es': 'Términos & Condiciones'} +
     {'en': ' and ', 'es': ' y '} +
     {'en': 'Privacy Policy', 'es': 'Políticas de Privacidad'} +
+    {'en': 'Open Store', 'es': 'Abrir Tienda'} +
     {'en': ' and allow to verify credentials.', 'es': ' y acepto verificar las credenciales.'} +
     {'en': 'BACK', 'es': 'ATRÁS'} +
     {'en': 'LOGIN', 'es': 'INICIAR SESIÓN'} +
@@ -200,6 +201,8 @@ final screens = Translations('en') +
 
     // stats_screen
     {'en': 'Statistics', 'es': 'Estadísticas'} +
+    {'en': 'Transaction types', 'es': 'Tipos de transacción'} +
+    {'en': 'Categories', 'es': 'Categorías'} +
     {
       'en': 'The Last %d months'.zero('The Last %d months').one('The Last %d month').many('The Last %d months'),
       'es': 'En los últimos %d meses'
@@ -213,7 +216,7 @@ final screens = Translations('en') +
 
     // wallets_screen
     {'en': 'No wallets at the moment.', 'es': 'No hay billeteras por el momento'} +
-    {'en': 'Wallets', 'es': 'Billetera'} +
+    {'en': 'Wallets', 'es': 'Billeteras'} +
     {'en': 'Re calculate Wallets', 'es': 'Re-calcular billetera'} +
     {
       'en': 'This action will delete all transaction of this wallets too.',

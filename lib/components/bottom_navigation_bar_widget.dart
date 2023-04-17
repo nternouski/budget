@@ -124,6 +124,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             footer.length,
             (idx) => BottomNavigationBarItem(
               icon: Icon(footer[idx].url == footer[pageIndex].url ? footer[idx].iconSelected : footer[idx].icon),
+              tooltip: footer[idx].label,
               label: footer[idx].label,
               backgroundColor: backgroundColor,
             ),

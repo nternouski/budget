@@ -61,8 +61,8 @@ class DailyItemState extends State<DailyItem> {
       child: InkWell(
         splashColor: theme.colorScheme.background.withOpacity(0.5),
         child: Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 10, left: 10, right: 10),
-          child: getItems(theme, widget.transaction),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          child: getItem(theme, widget.transaction),
         ),
         onLongPress: () {
           RouteApp.redirect(context: context, url: URLS.createOrUpdateTransaction, param: widget.transaction);
@@ -71,7 +71,7 @@ class DailyItemState extends State<DailyItem> {
     );
   }
 
-  Widget getItems(ThemeData theme, Transaction transaction) {
+  Widget getItem(ThemeData theme, Transaction transaction) {
     final balance = Provider.of<DailyItemBalanceNotifier>(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,7 +89,6 @@ class DailyItemState extends State<DailyItem> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(transaction.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 7),
                     Text(
                       transaction.getDateFormat(),
                       style: theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor),

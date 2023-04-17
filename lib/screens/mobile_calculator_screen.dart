@@ -69,7 +69,7 @@ class MobileCalculatorScreenState extends State<MobileCalculatorScreen> {
         slivers: [
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding: const EdgeInsets.only(left: 28, right: 28, bottom: 30),
               child: Builder(builder: (context) => form),
             ),
           )

@@ -118,77 +118,87 @@ class StatsScreenState extends State<StatsScreen> {
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             slivers: [
               SliverToBoxAdapter(
-                child: Column(children: [
-                  StatsBalance(transactions: transactionsFrame),
-                  const SizedBox(height: 10),
-                  if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
-                  const SizedBox(height: 10),
-                  Text('${'Period'.i18n}: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 10),
-                  StatsPrediction(totalExpensePeriod: totalExpensePeriod, periodStats: periodStats),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: selectedTypes.entries
-                        .map((select) => Padding(
-                              padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
-                              child: AppInteractionBorder(
-                                oval: true,
-                                show: select.value,
-                                borderColor: colorsTypeTransaction[select.key]!,
-                                margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
-                                onTap: () => setState(() => selectedTypes.update(select.key, (value) => !value)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: colorsTypeTransaction[select.key],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(Convert.capitalize(select.key.toShortString()),
-                                        style: theme.textTheme.bodyLarge)
-                                  ],
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: categoriesSelected.map((p) {
-                        return _Indicator(
-                          category: p.category,
-                          isSelected: p.isSelected,
-                          onTap: (bool isSelected, String id) {
-                            if (isSelected) {
-                              selectedCategories = [...(selectedCategories ?? []), id];
-                            } else {
-                              selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
-                            }
-                            setState(() {});
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ]),
-              ),
-              SliverToBoxAdapter(
                 child: Column(
                   children: [
+                    StatsBalance(transactions: transactionsFrame),
+                    Text('${'Period'.i18n}: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 10),
+                    StatsPrediction(totalExpensePeriod: totalExpensePeriod, periodStats: periodStats),
+                    const Divider(),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                          child: Text('Transaction types'.i18n, style: theme.textTheme.bodyLarge),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: selectedTypes.entries
+                          .map((select) => Padding(
+                                padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
+                                child: AppInteractionBorder(
+                                  oval: true,
+                                  show: select.value,
+                                  borderColor: colorsTypeTransaction[select.key]!,
+                                  margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
+                                  onTap: () => setState(() => selectedTypes.update(select.key, (value) => !value)),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Container(
+                                        width: 16,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: colorsTypeTransaction[select.key],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(Convert.capitalize(select.key.toShortString()),
+                                          style: theme.textTheme.bodyLarge)
+                                    ],
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                          child: Text('Categories'.i18n, style: theme.textTheme.bodyLarge),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: categoriesSelected.map((p) {
+                          return _Indicator(
+                            category: p.category,
+                            isSelected: p.isSelected,
+                            onTap: (bool isSelected, String id) {
+                              if (isSelected) {
+                                selectedCategories = [...(selectedCategories ?? []), id];
+                              } else {
+                                selectedCategories = (selectedCategories ?? []).where((s) => s != id).toList();
+                              }
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
                     BarChartWidget(transactions: transactions, frameDate: frameDate, frameWindow: frameWindow),
                     const SizedBox(height: 20),
                     TotalBalance(transactions: transactions, selectedTypes: selectedTypes),
+                    const SizedBox(height: 10),
+                    if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
                     StatsPieChart(
                       categoriesSelected: categoriesSelected,
                       transactions: transactions,

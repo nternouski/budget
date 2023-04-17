@@ -26,4 +26,7 @@ final common = Translations('en') +
     {
       'en': '%d Months'.zero('%d Months').one('%d Month').many('%d Months'),
       'es': '%d Meses'.zero('%d Meses').one('%d Mes').many('%d Meses')
-    };
+    } +
+    // Footer
+    {'en': 'Daily', 'es': 'Actividad'} +
+    {'en': 'Daily', 'es': 'Actividad'};

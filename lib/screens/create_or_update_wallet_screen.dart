@@ -90,11 +90,7 @@ class CreateOrUpdateWalletState extends State<CreateOrUpdateWalletScreen> {
           controller: decimalInitialAmountController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-          decoration: InputDecoration(
-            labelText: 'Initial Amount'.i18n,
-            hintText: '',
-            prefix: const Text('\$ '),
-          ),
+          decoration: InputDecoration(labelText: 'Initial Amount'.i18n, hintText: '', prefix: const Text('\$ ')),
           focusNode: decimalInitialAmountFocusNode,
           validator: (String? value) => value!.isEmpty ? 'Is Required'.i18n : null,
           onSaved: (String? value) => wallet.initialAmount = double.parse(value!),

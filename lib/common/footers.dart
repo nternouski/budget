@@ -1,3 +1,4 @@
+import 'package:budget/i18n/index.dart';
 import 'package:flutter/material.dart';
 
 import '../routes.dart';
@@ -36,27 +37,27 @@ List<Footer> footer = [
       url: URLS.dailyTransactions,
       icon: Icons.calendar_today_outlined,
       iconSelected: Icons.calendar_month,
-      label: 'Daily',
+      label: 'Daily'.i18n,
       actionIcon: const CreateOrUpdateTransactionScreen()),
   Footer(
       widget: ({param}) => const WalletsScreen(),
       url: URLS.wallets,
       icon: Icons.account_balance_wallet_outlined,
       iconSelected: Icons.account_balance_wallet_rounded,
-      label: 'Wallets',
+      label: 'Wallets'.i18n,
       actionIcon: const CreateOrUpdateWalletScreen()),
   Footer(
       widget: ({param}) => const BudgetsScreen(),
       url: URLS.budgets,
       icon: Icons.monitor_heart_outlined,
       iconSelected: Icons.monitor_heart_rounded,
-      label: 'Budget',
+      label: 'Budget'.i18n,
       actionIcon: const CreateOrUpdateBudgetScreen()),
   Footer(
     widget: ({param}) => const SettingsScreen(),
     url: URLS.settings,
     icon: Icons.settings_outlined,
     iconSelected: Icons.settings,
-    label: 'Settings',
+    label: 'Settings'.i18n,
   ),
 ];

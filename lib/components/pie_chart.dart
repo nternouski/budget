@@ -75,7 +75,7 @@ class StatsPieChartState extends State<StatsPieChart> {
     double totalSelected = transactionSelected.fold(0.0, (acc, t) => t.getBalanceFromType() + acc);
 
     final user = Provider.of<User>(context) as User?;
-    if (user == null) return SizedBox();
+    if (user == null) return const SizedBox();
     String symbol = user.defaultCurrency.symbol;
 
     return Column(

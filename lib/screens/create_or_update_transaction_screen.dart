@@ -74,7 +74,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
       .map((t) => PopupMenuItem(
           value: t,
           child: Center(
-            child: Text(Convert.capitalize(t.toShortString()), style: TextStyle(color: colorsTypeTransaction[t])),
+            child: Text(Convert.capitalize(t.toShortString()).i18n, style: TextStyle(color: colorsTypeTransaction[t])),
           )))
       .toList();
   Wallet? walletFromSelected;
@@ -192,7 +192,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
               borderColor: colorsTypeTransaction[transaction.type],
               margin: const EdgeInsets.all(12),
               child: Text(
-                Convert.capitalize(transaction.type.toShortString()),
+                Convert.capitalize(transaction.type.toShortString()).i18n,
                 style: theme.textTheme.titleMedium!.copyWith(
                   color: colorsTypeTransaction[transaction.type],
                 ),
@@ -205,32 +205,25 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
         slivers: [SliverToBoxAdapter(child: getForm(context, wallets, user))],
       ),
       bottomSheet: SizedBox(
-        height: transaction.type == TransactionType.transfer ? 370 : 280,
+        height: transaction.type == TransactionType.transfer ? 330 : 210,
         child: Column(children: [
           buildWallet(context, user.id, wallets, transaction.type, true),
           if (transaction.type == TransactionType.transfer)
             buildWallet(context, user.id, wallets, transaction.type, false),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Flexible(flex: 5, child: buildAmount(theme)),
               Flexible(
                 flex: 5,
-                child: Text(walletFromSelected?.currency?.symbol ?? '', style: theme.textTheme.titleMedium),
-              )
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
+                child: Text(walletFromSelected?.currency?.symbol ?? '    ', style: theme.textTheme.titleMedium),
+              ),
+              Flexible(flex: 5, child: buildAmount(theme)),
               FilledButton(
                 onPressed: () => onSubmit(wallets, user, currencyRates),
                 child: title.getButton(),
               ),
-              const SizedBox(width: 10)
             ],
-          )
+          ),
         ]),
       ),
     );
@@ -297,7 +290,6 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   Widget buildAmount(ThemeData theme) {
     final intStyle = theme.textTheme.displayMedium!.copyWith(fontWeight: FontWeight.bold);
     return TextFormField(
-      textAlign: TextAlign.end,
       controller: amountController,
       focusNode: amountFocusNode,
       keyboardType: TextInputType.number,
@@ -319,13 +311,12 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
           return 'Amount is Required and Grater than 0'.i18n;
         }
       },
-      onChanged: (String _) => _formKey.currentState!.validate(),
-      onSaved: (String? value) => transaction.amount = double.parse(value!),
+      onChanged: (String value) => transaction.amount = double.parse(value),
     );
   }
 
   Widget buildName(ThemeData theme) {
-    final intStyle = theme.textTheme.displaySmall!.copyWith(fontWeight: FontWeight.bold);
+    final intStyle = theme.textTheme.headlineLarge!.copyWith(fontWeight: FontWeight.bold);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -443,6 +434,9 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   }
 
   void onSubmit(List<Wallet> wallets, User user, List<CurrencyRate> currencyRates) async {
+    debugPrint('=======================');
+    debugPrint('${transaction.amount}');
+    debugPrint('=======================');
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
@@ -496,66 +490,66 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     final theme = Theme.of(context);
 
     return Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
-          child: Column(children: <Widget>[
-            buildName(theme),
-            if (transaction.type == TransactionType.transfer)
-              TextFormField(
-                initialValue: transaction.fee.toString(),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-                decoration: InputDecoration(labelText: 'Fee'.i18n, hintText: '0', prefix: const Text('\$ ')),
-                validator: (String? value) => num.tryParse(value ?? '')?.toDouble() == null ? 'Is Required'.i18n : null,
-                onSaved: (String? value) => transaction.fee = double.parse(value!),
-              ),
-            ValueListenableBuilder(
-              valueListenable: _showMoreField,
-              builder: (BuildContext context, dynamic show, _) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return SizeTransition(sizeFactor: animation, child: child);
-                  },
-                  child: show
-                      ? CreateOrUpdateLabel(
-                          labels: transaction.labels,
-                          onSelect: (selection) {
-                            if (!transaction.labels.any((l) => l.id == selection.id)) {
-                              setState(() => transaction.labels.add(selection));
-                            }
-                          },
-                          onDelete: (label) => setState(
-                            () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
-                          ),
-                        )
-                      : null,
-                );
-              },
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
+        child: Column(children: <Widget>[
+          buildName(theme),
+          if (transaction.type == TransactionType.transfer)
+            TextFormField(
+              initialValue: transaction.fee.toString(),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+              decoration: InputDecoration(labelText: 'Fee'.i18n, hintText: '0', prefix: const Text('\$ ')),
+              validator: (String? value) => num.tryParse(value ?? '')?.toDouble() == null ? 'Is Required'.i18n : null,
+              onSaved: (String? value) => transaction.fee = double.parse(value!),
             ),
-            ValueListenableBuilder(
-              valueListenable: _showMoreField,
-              builder: (BuildContext context, dynamic show, _) => AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
+          ValueListenableBuilder(
+            valueListenable: _showMoreField,
+            builder: (BuildContext context, dynamic show, _) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return SizeTransition(sizeFactor: animation, child: child);
                 },
-                child: show ? buildDescription() : null,
-              ),
-            ),
-            ChooseCategory(
-              selected: [transaction.category],
-              multi: false,
-              onSelected: (c) {
-                transaction.category = c;
-                transaction.categoryId = c.id;
+                child: show
+                    ? CreateOrUpdateLabel(
+                        labels: transaction.labels,
+                        onSelect: (selection) {
+                          if (!transaction.labels.any((l) => l.id == selection.id)) {
+                            setState(() => transaction.labels.add(selection));
+                          }
+                        },
+                        onDelete: (label) => setState(
+                          () => transaction.labels = transaction.labels.where((l) => l.id != label.id).toList(),
+                        ),
+                      )
+                    : null,
+              );
+            },
+          ),
+          ValueListenableBuilder(
+            valueListenable: _showMoreField,
+            builder: (BuildContext context, dynamic show, _) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return SizeTransition(sizeFactor: animation, child: child);
               },
+              child: show ? buildDescription() : null,
             ),
-            const SizedBox(height: 10),
-            buildDateField(theme, user),
-            const SizedBox(height: 40),
-          ]),
-        ));
+          ),
+          ChooseCategory(
+            selected: [transaction.category],
+            multi: false,
+            onSelected: (c) {
+              transaction.category = c;
+              transaction.categoryId = c.id;
+            },
+          ),
+          const SizedBox(height: 10),
+          buildDateField(theme, user),
+        ]),
+      ),
+    );
   }
 }

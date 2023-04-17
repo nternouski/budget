@@ -2,9 +2,9 @@ import 'package:i18n_extension/i18n_extension.dart';
 
 final components = Translations('en') +
     // classes
-    {'en': 'Income', 'es': 'Ingreso'} +
-    {'en': 'Expense', 'es': 'Gasto'} +
-    {'en': 'Transfer', 'es': 'Transfer'} +
+    {'en': 'Income', 'es': 'Ingresos'} +
+    {'en': 'Expense', 'es': 'Gastos'} +
+    {'en': 'Transfer', 'es': 'Transfers'} +
 
     // bottom_navigation_bar_widget
     {'en': 'Double Tap to Exit', 'es': 'Doble toque para salir'} +
@@ -14,7 +14,7 @@ final components = Translations('en') +
     {'en': 'Choose Category', 'es': 'Elegir Categoría'} +
     {'en': 'Long press on category to edit it.', 'es': 'Mantén presionado para editar.'} +
     {'en': 'No categories at the moment..', 'es': 'No hay categoría por el momento.'} +
-    {'en': 'Select Category', 'es': 'Elegir una Categoría'} +
+    {'en': 'Select Category', 'es': 'Elige una Categoría'} +
     {'en': 'Select Multi Categories', 'es': 'Elegir Multiples Categorías'} +
 
     // create_or_update_label

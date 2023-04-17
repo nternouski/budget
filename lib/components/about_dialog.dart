@@ -27,7 +27,7 @@ class AboutDialog {
             children: [
               ElevatedButton(
                 onPressed: () => AppVersionChecker().openStore(),
-                child: const Text('Open Store'),
+                child: Text('Open Store'.i18n),
               ),
               RichText(
                 text: TextSpan(

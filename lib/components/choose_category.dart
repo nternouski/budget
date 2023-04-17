@@ -40,24 +40,19 @@ class ChooseCategoryState extends State<ChooseCategory> {
     selectedCategories = List.from(widget.selected);
   }
 
-  bool _notSelected() {
-    return selectedCategories.isEmpty || (selectedCategories.isNotEmpty && selectedCategories[0].id == '');
-  }
-
   @override
   Widget build(BuildContext context) {
     List<Category> categories = Provider.of<List<Category>>(context);
-    final theme = Theme.of(context);
     selectedCategories = categories.where((c) => selectedCategories.any((select) => select.id == c.id)).toList();
 
     return Column(
       children: [
         Row(
           children: [
-            Text('Choose Category'.i18n, style: theme.textTheme.titleMedium),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => showButtonSheetCreateOrUpdate(context, defaultCategory.copy()),
+            Text(
+              (widget.multi ? 'Select Multi Categories' : 'Select Category').i18n,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
             IconButton(
               icon: const Icon(Icons.info_outline),
@@ -65,24 +60,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
             )
           ],
         ),
-        if (categories.isNotEmpty && _notSelected())
-          OutlinedButton(onPressed: () => openSelect(theme, categories), child: const Text('Select')),
-        if (categories.isNotEmpty && !_notSelected())
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [displayCategories(selectedCategories, onTap: (c) => openSelect(theme, categories))],
-          ),
-        if (categories.isEmpty)
-          SizedBox(
-            height: 60,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [Text('No categories at the moment..'.i18n)],
-            ),
-          ),
+        displayCategories(context, categories),
       ],
     );
   }
@@ -103,8 +81,8 @@ class ChooseCategoryState extends State<ChooseCategory> {
   }
 
   _bottomSheetCreateOrUpdate(BuildContext context, Category original, Category temp) {
-    var title = temp.id == '' ? '${'Create'.i18n} ${'Category'.i18n}' : '${'Update'.i18n} ${temp.name}';
-    var actionButton = temp.id == '' ? 'Create'.i18n : 'Update'.i18n;
+    var title = temp.id == '' ? '${'Create'.i18n} ${'Category'.i18n}' : '${'Save'.i18n} ${temp.name}';
+    var actionButton = temp.id == '' ? 'Create'.i18n : 'Save'.i18n;
 
     auth.User user = Provider.of<auth.User>(context, listen: false);
 
@@ -188,80 +166,54 @@ class ChooseCategoryState extends State<ChooseCategory> {
     });
   }
 
-  void openSelect(ThemeData theme, List<Category> categories) async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      builder: (BuildContext context) => BottomSheet(
-        enableDrag: false,
-        onClosing: () {},
-        builder: (BuildContext context) =>
-            StatefulBuilder(builder: (BuildContext context, StateSetter setStateBottomSheet) {
-          List<Category> db = Provider.of<List<Category>>(context);
-          if (db.length != categories.length) categories = db;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  (widget.multi ? 'Select Multi Categories' : 'Select Category').i18n,
-                  style: theme.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-                displayCategories(
-                  categories,
-                  onTap: (selected) => setState(() {
-                    if (!widget.multi) {
-                      selectedCategories = [selected];
-                    } else if (selectedCategories.any((c) => c.id == selected.id)) {
-                      selectedCategories = selectedCategories.where((c) => c.id != selected.id).toList();
-                    } else {
-                      selectedCategories.add(selected);
-                    }
-                    if (widget.onSelected != null) widget.onSelected!(selected);
-                    if (!widget.multi) Navigator.pop(context);
-                    setStateBottomSheet(() {});
-                  }),
-                )
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
+  Widget displayCategories(BuildContext context, List<Category> categories) {
+    List<Category> db = Provider.of<List<Category>>(context);
+    if (db.length != categories.length) categories = db;
 
-  Widget displayCategories(List<Category> categories, {required void Function(Category) onTap}) {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Wrap(
-        spacing: 5,
-        runSpacing: 5,
-        children: List.generate(categories.length, (index) {
-          var colorItem = selectedCategories.any((c) => c.id == categories[index].id)
-              ? categories[index].color
-              : Colors.transparent;
-          return AppInteractionBorder(
-            borderColor: colorItem,
-            margin: const EdgeInsets.only(right: 8),
-            onLongPress: () => showButtonSheetCreateOrUpdate(context, categories[index]),
-            onTap: () => onTap(categories[index]),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconCircle(icon: categories[index].icon, color: categories[index].color),
-                const SizedBox(width: 8),
-                Text(categories[index].name)
-              ],
-            ),
-          );
-        }),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Wrap(
+          spacing: 5,
+          runSpacing: 5,
+          children: [
+            ...List.generate(categories.length, (index) {
+              final selected = categories[index];
+              var colorItem = selectedCategories.any((c) => c.id == categories[index].id)
+                  ? categories[index].color
+                  : Colors.transparent;
+              return AppInteractionBorder(
+                borderColor: colorItem,
+                margin: const EdgeInsets.only(right: 8),
+                onLongPress: () => showButtonSheetCreateOrUpdate(context, categories[index]),
+                onTap: () => setState(() {
+                  if (!widget.multi) {
+                    selectedCategories = [selected];
+                  } else if (selectedCategories.any((c) => c.id == selected.id)) {
+                    selectedCategories = selectedCategories.where((c) => c.id != selected.id).toList();
+                  } else {
+                    selectedCategories.add(selected);
+                  }
+                  if (widget.onSelected != null) widget.onSelected!(selected);
+                  setState(() {});
+                }),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconCircle(icon: categories[index].icon, color: categories[index].color),
+                    const SizedBox(width: 8),
+                    Text(categories[index].name)
+                  ],
+                ),
+              );
+            }),
+            AppInteractionBorder(
+              child: const IconCircle(icon: Icons.add, color: Colors.white),
+              onTap: () => showButtonSheetCreateOrUpdate(context, defaultCategory.copy()),
+            )
+          ],
+        ),
       ),
     );
   }

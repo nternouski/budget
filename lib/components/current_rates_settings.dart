@@ -178,7 +178,10 @@ class CurrentRatesSettings extends AbstractSettingsSection {
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(update ? 'Save'.i18n : 'Create'.i18n, style: theme.textTheme.titleLarge),
+                Text(
+                  '${update ? 'Save'.i18n : 'Create'.i18n} ${'Currency Rates'.i18n}',
+                  style: theme.textTheme.titleLarge,
+                ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -47,7 +47,7 @@ class StatsPrediction extends StatelessWidget {
     balancePrediction = prediction - totalExpensePeriod;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
+      margin: const EdgeInsets.only(bottom: 15, left: 20, right: 20),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -110,7 +110,7 @@ class StatsBalance extends StatelessWidget {
     final color = balance.isNegative ? theme.colorScheme.error : theme.colorScheme.primary;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 15, left: 30, right: 30),
+      margin: const EdgeInsets.only(bottom: 15, left: 20, right: 20),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       child: Padding(
         padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 5),
@@ -211,7 +211,7 @@ class TotalBalance extends StatelessWidget {
     }).toList();
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 12),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(radiusApp)),
       child: Padding(
         padding: const EdgeInsets.all(10),
