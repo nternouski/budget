@@ -167,16 +167,17 @@ class ChooseCategoryState extends State<ChooseCategory> {
   }
 
   Widget displayCategories(BuildContext context, List<Category> categories) {
+    ThemeData theme = Theme.of(context);
     List<Category> db = Provider.of<List<Category>>(context);
     if (db.length != categories.length) categories = db;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
       child: Align(
         alignment: Alignment.topLeft,
         child: Wrap(
-          spacing: 5,
-          runSpacing: 5,
+          spacing: 1,
+          runSpacing: 1,
           children: [
             ...List.generate(categories.length, (index) {
               final selected = categories[index];
@@ -209,7 +210,7 @@ class ChooseCategoryState extends State<ChooseCategory> {
               );
             }),
             AppInteractionBorder(
-              child: const IconCircle(icon: Icons.add, color: Colors.white),
+              child: IconCircle(icon: Icons.add, color: theme.iconTheme.color!),
               onTap: () => showButtonSheetCreateOrUpdate(context, defaultCategory.copy()),
             )
           ],

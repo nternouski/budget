@@ -173,7 +173,7 @@ final screens = Translations('en') +
     {'en': 'Terms & Conditions', 'es': 'Términos & Condiciones'} +
     {'en': ' and ', 'es': ' y '} +
     {'en': 'Privacy Policy', 'es': 'Políticas de Privacidad'} +
-    {'en': 'Open Store', 'es': 'Abrir Tienda'} +
+    {'en': 'Open Store', 'es': 'Tienda'} +
     {'en': ' and allow to verify credentials.', 'es': ' y acepto verificar las credenciales.'} +
     {'en': 'BACK', 'es': 'ATRÁS'} +
     {'en': 'LOGIN', 'es': 'INICIAR SESIÓN'} +

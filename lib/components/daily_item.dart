@@ -113,14 +113,14 @@ class DailyItemState extends State<DailyItem> {
                     suffix: ') ',
                   ),
                 ],
-                (balance.showDefault == ShowBalance.Original ? transaction.balance : transaction.balanceFixed)
+                (balance.showDefault == ShowBalance.original ? transaction.balance : transaction.balanceFixed)
                     .prettierToText(
                   withSymbol: true,
                   style: theme.textTheme.titleMedium?.copyWith(color: colorsTypeTransaction[transaction.type]),
                 ),
               ],
             ),
-            if (balance.showDefault == ShowBalance.Both)
+            if (balance.showDefault == ShowBalance.both)
               transaction.balance.prettierToText(
                 withSymbol: true,
                 style: theme.textTheme.bodyMedium?.copyWith(color: theme.disabledColor),

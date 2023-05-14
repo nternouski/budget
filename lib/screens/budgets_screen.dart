@@ -6,13 +6,13 @@ import '../i18n/index.dart';
 import '../common/classes.dart';
 import '../model/currency.dart';
 import '../model/user.dart';
+import '../model/budget.dart';
 import '../server/database/budget_rx.dart';
 import '../common/convert.dart';
 import '../common/styles.dart';
 import '../common/theme.dart';
 import '../components/empty_list.dart';
 import '../components/background_dismissible.dart';
-import '../model/budget.dart';
 import '../routes.dart';
 
 class BudgetsScreen extends StatefulWidget {
@@ -117,6 +117,10 @@ class BudgetItem extends StatelessWidget {
 
   getItems(BuildContext context) {
     final theme = Theme.of(context);
+
+    final user = Provider.of<User>(context) as User?;
+    if (user == null) return const SizedBox();
+
     final double sizeBar = MediaQuery.of(context).size.width - (widthPaddingValue * 2);
     final double porcentaje = budget.amount == 0.0 ? 0 : ((budget.balance * 100) / budget.amount).roundToDouble();
     Control control = Control.playFromStart;
@@ -142,7 +146,11 @@ class BudgetItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            budget.balance.prettierToText(withSymbol: true, prefix: 'BALANCE: ', style: theme.textTheme.bodyMedium),
+            budget.balance.prettierToText(
+              withSymbol: true,
+              prefix: 'BALANCE: ${user.defaultCurrency.symbol} ',
+              style: theme.textTheme.bodyMedium,
+            ),
             porcentaje.prettierToText(withSymbol: false, suffix: ' %', style: theme.textTheme.bodyLarge)
           ],
         ),

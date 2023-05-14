@@ -349,7 +349,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
     docChanged = true;
     const sizedBoxHeight = SizedBox(height: 20);
     return StatefulBuilder(
-      builder: (context, setState) {
+      builder: (context, setStateBottomSheet) {
         return SingleChildScrollView(
           child: Container(
             padding:
@@ -389,7 +389,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                           lastDate: lastDate,
                         );
                         if (picked != null && picked != _updateItem.lastPurchaseDate) {
-                          setState(() => _updateItem.lastPurchaseDate = picked);
+                          setStateBottomSheet(() => _updateItem.lastPurchaseDate = picked);
                         }
                       },
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -434,6 +434,7 @@ class _ExpensePredictionScreenState extends State<ExpensePredictionScreenState> 
                       child: Text(index == -1 ? 'Create'.i18n : 'Save'.i18n),
                       onPressed: () {
                         if (index == -1) group.items.add(_updateItem.copyWith());
+                        setStateBottomSheet(() {});
                         setState(() {});
                         Navigator.pop(context);
                       },

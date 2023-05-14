@@ -171,9 +171,9 @@ class SettingsScreenState extends State<SettingsScreen> {
             Text('Show Default Currency'.i18n, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
             ...[
-              const DefaultBalanceOption(title: 'Original', balance: ShowBalance.Original),
-              const DefaultBalanceOption(title: 'Default', balance: ShowBalance.Default),
-              DefaultBalanceOption(title: 'Both'.i18n, balance: ShowBalance.Both),
+              const DefaultBalanceOption(title: 'Original', balance: ShowBalance.original),
+              const DefaultBalanceOption(title: 'Default', balance: ShowBalance.defaultValue),
+              DefaultBalanceOption(title: 'Both'.i18n, balance: ShowBalance.both),
             ].map(
               (option) => ListTile(
                 title: Text(option.title),

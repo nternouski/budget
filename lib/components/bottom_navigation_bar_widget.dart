@@ -53,9 +53,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
           adUnitId: adState.bannerAdUnitId,
           listener: adState.bannerAdListener(onFailed: () {
-            setState(() {
-              banner = null;
-            });
+            setState(() => banner = null);
           }),
           request: const AdRequest())
         ..load();
@@ -108,6 +106,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
 
   Widget getFooter(BuildContext context, ThemeData theme, int pageIndex) {
     Color backgroundColor;
+    // TODO: fix background color when initialize for the first time
     if (Provider.of<ThemeProvider>(context).themeMode == ThemeMode.light) {
       var temp = Convert.increaseColorLightness(theme.colorScheme.primary, 0.55);
       backgroundColor = Convert.increaseColorSaturation(temp, -0.5);

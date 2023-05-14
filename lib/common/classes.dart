@@ -97,20 +97,20 @@ class LanguageNotifier extends ChangeNotifier {
   Locale get locale => _locale;
 }
 
-enum ShowBalance { Original, Default, Both }
+enum ShowBalance { original, defaultValue, both }
 
 class DailyItemBalanceNotifier extends ChangeNotifier {
-  ShowBalance _showDefault = ShowBalance.Original;
+  ShowBalance _showDefault = ShowBalance.original;
   final Preferences _preferences = Preferences();
 
   DailyItemBalanceNotifier() {
     _preferences.getString(PreferenceType.dailyItemBalance).then((dailyItemBalance) {
-      if (dailyItemBalance == 'Original') {
-        _showDefault = ShowBalance.Original;
-      } else if (dailyItemBalance == 'Default') {
-        _showDefault = ShowBalance.Default;
+      if (dailyItemBalance == 'original') {
+        _showDefault = ShowBalance.original;
+      } else if (dailyItemBalance == 'default') {
+        _showDefault = ShowBalance.defaultValue;
       } else {
-        _showDefault = ShowBalance.Both;
+        _showDefault = ShowBalance.both;
       }
       notifyListeners();
     });
