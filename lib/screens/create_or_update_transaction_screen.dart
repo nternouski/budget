@@ -150,7 +150,6 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     User user = Provider.of<User>(context);
-    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(context);
 
     final adState = Provider.of<AdStateNotifier>(context);
     interstitialAdUnitId = adState.interstitialAdUnitId;
@@ -204,28 +203,6 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
       body: CustomScrollView(
         slivers: [SliverToBoxAdapter(child: getForm(context, wallets, user))],
       ),
-      bottomSheet: SizedBox(
-        height: transaction.type == TransactionType.transfer ? 330 : 210,
-        child: Column(children: [
-          buildWallet(context, user.id, wallets, transaction.type, true),
-          if (transaction.type == TransactionType.transfer)
-            buildWallet(context, user.id, wallets, transaction.type, false),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                flex: 5,
-                child: Text(walletFromSelected?.currency?.symbol ?? '    ', style: theme.textTheme.titleMedium),
-              ),
-              Flexible(flex: 5, child: buildAmount(theme)),
-              FilledButton(
-                onPressed: () => onSubmit(wallets, user, currencyRates),
-                child: title.getButton(),
-              ),
-            ],
-          ),
-        ]),
-      ),
     );
   }
 
@@ -234,6 +211,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     String userId,
     List<Wallet> wallets,
     TransactionType transactionType,
+    StateSetter setStateBottomSheet,
     bool fromWallet,
   ) {
     final theme = Theme.of(context);
@@ -253,7 +231,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
             ...wallets
                 .map(
                   (wallet) => GestureDetector(
-                    onTap: () => setState(() {
+                    onTap: () => setStateBottomSheet(() {
                       if (fromWallet) {
                         transaction.walletFromId = wallet.id;
                         walletFromSelected = wallet;
@@ -433,36 +411,68 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     );
   }
 
-  void onSubmit(List<Wallet> wallets, User user, List<CurrencyRate> currencyRates) async {
-    debugPrint('=======================');
-    debugPrint('${transaction.amount}');
-    debugPrint('=======================');
+  _bottomSheet(
+    BuildContext rootContext,
+    ThemeData theme,
+    User user,
+    List<Wallet> wallets,
+    List<CurrencyRate> currencyRates,
+  ) {
+    return StatefulBuilder(
+      builder: (BuildContext contextStateFull, StateSetter setStateBottomSheet) {
+        return SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(contextStateFull).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
+            child: Column(children: [
+              buildWallet(rootContext, user.id, wallets, transaction.type, setStateBottomSheet, true),
+              if (transaction.type == TransactionType.transfer)
+                buildWallet(rootContext, user.id, wallets, transaction.type, setStateBottomSheet, false),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    flex: 5,
+                    child: Text(walletFromSelected?.currency?.symbol ?? '    ', style: theme.textTheme.titleMedium),
+                  ),
+                  Flexible(flex: 5, child: buildAmount(theme)),
+                  FilledButton(
+                    onPressed: () => onSubmit(rootContext, wallets, user, currencyRates),
+                    child: title.getButton(),
+                  ),
+                ],
+              ),
+            ]),
+          ),
+        );
+      },
+    );
+  }
+
+  void onSubmit(BuildContext rootContext, List<Wallet> wallets, User user, List<CurrencyRate> currencyRates) async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
     if (transaction.walletFromId == '' || walletFromSelected == null) {
-      return handlerError.showError(context, text: 'You must choice a wallet first.'.i18n);
+      return handlerError.showError(rootContext, text: 'You must choice a wallet first.'.i18n);
     }
     if (transaction.type == TransactionType.transfer) {
       if (transaction.walletToId == '' || walletToSelected == null) {
-        return handlerError.showError(context,
+        return handlerError.showError(rootContext,
             text: 'You must choice the wallet of from and to transaction is made.'.i18n);
       }
       if (transaction.walletFromId == transaction.walletToId) {
-        return handlerError.showError(context, text: 'Wallet must not be the same.'.i18n);
+        return handlerError.showError(rootContext, text: 'Wallet must not be the same.'.i18n);
       }
     } else {
       transaction.walletToId = '';
       transaction.fee = 0.0;
     }
     if (user.defaultCurrency.id == '') {
-      return handlerError.showError(context, text: 'You must have a default currency first.'.i18n);
-    }
-    if (transaction.categoryId == '') {
-      return handlerError.showError(context, text: 'You must choice a category first.'.i18n);
+      return handlerError.showError(rootContext, text: 'You must have a default currency first.'.i18n);
     }
     if (transaction.amount <= 0.0) {
-      return handlerError.showError(context, text: 'Amount is required and must be grater than 0.'.i18n);
+      return handlerError.showError(rootContext, text: 'Amount is required and must be grater than 0.'.i18n);
     }
     Wallet wallet = wallets.firstWhere((w) => w.id == transaction.walletFromId);
     transaction.updateBalance();
@@ -481,13 +491,15 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     try {
       await _showInterstitialAd();
     } catch (e) {
-      handlerError.showError(context, text: e.toString());
+      handlerError.showError(rootContext, text: e.toString());
     }
-    Navigator.of(context).pop();
+    Navigator.of(rootContext).pop();
+    Navigator.of(rootContext).pop();
   }
 
-  Widget getForm(BuildContext context, List<Wallet> wallets, User user) {
-    final theme = Theme.of(context);
+  Widget getForm(BuildContext rootContext, List<Wallet> wallets, User user) {
+    final theme = Theme.of(rootContext);
+    List<CurrencyRate> currencyRates = Provider.of<List<CurrencyRate>>(rootContext);
 
     return Form(
       key: _formKey,
@@ -542,12 +554,40 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
             selected: [transaction.category],
             multi: false,
             onSelected: (c) {
+              FocusManager.instance.primaryFocus?.unfocus();
               transaction.category = c;
               transaction.categoryId = c.id;
             },
           ),
           const SizedBox(height: 10),
           buildDateField(theme, user),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FilledButton(
+                onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
+                  _formKey.currentState!.save();
+                  if (transaction.categoryId == '') {
+                    return handlerError.showError(rootContext, text: 'You must choice a category first.'.i18n);
+                  }
+                  await showModalBottomSheet(
+                    context: rootContext,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: radiusApp)),
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    builder: (BuildContext context) => BottomSheet(
+                      enableDrag: false,
+                      onClosing: () {},
+                      builder: (BuildContext _) => _bottomSheet(rootContext, theme, user, wallets, currencyRates),
+                    ),
+                  );
+                },
+                child: Text('Next Step'.i18n, style: theme.textTheme.labelLarge!.copyWith(color: Colors.white)),
+              ),
+            ],
+          )
         ]),
       ),
     );

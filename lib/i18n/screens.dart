@@ -53,6 +53,7 @@ final screens = Translations('en') +
       'en': 'Amount is required and must be grater than 0.',
       'es': 'El monto es requerido y tiene que ser mayor a cero.'
     } +
+    {'en': 'Next Step', 'es': 'Siguiente'} +
 
     // create_or_update_wallet_screen
     {'en': 'Wallet must not be the same.', 'es': 'Las billetera no deben ser iguales.'} +

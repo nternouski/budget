@@ -73,7 +73,7 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             onPressed: openContainer,
             backgroundColor: theme.colorScheme.primary,
             foregroundColor: Colors.white,
-            label: Text('Add'.i18n),
+            label: Text('${'Add'.i18n} ${footer[pageIndex].label}'),
             isExtended: true,
             icon: const Icon(Icons.add, size: 25),
           );

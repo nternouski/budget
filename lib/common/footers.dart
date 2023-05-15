@@ -37,14 +37,14 @@ List<Footer> footer = [
       url: URLS.dailyTransactions,
       icon: Icons.calendar_today_outlined,
       iconSelected: Icons.calendar_month,
-      label: 'Daily'.i18n,
+      label: 'Transaction'.i18n,
       actionIcon: const CreateOrUpdateTransactionScreen()),
   Footer(
       widget: ({param}) => const WalletsScreen(),
       url: URLS.wallets,
       icon: Icons.account_balance_wallet_outlined,
       iconSelected: Icons.account_balance_wallet_rounded,
-      label: 'Wallets'.i18n,
+      label: 'Wallet'.i18n,
       actionIcon: const CreateOrUpdateWalletScreen()),
   Footer(
       widget: ({param}) => const BudgetsScreen(),
