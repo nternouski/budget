@@ -86,6 +86,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final FocusNode nameFocusNode = FocusNode();
   @override
   void initState() {
     super.initState();
@@ -94,6 +95,9 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
       if (num != null) {
         amountController.text = num <= 0.0 ? '' : num.toString();
       }
+    });
+    Future.delayed(const Duration(milliseconds: 1100), () {
+      nameFocusNode.requestFocus();
     });
   }
 
@@ -301,6 +305,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
         Expanded(
           child: TextFormField(
             initialValue: transaction.name,
+            focusNode: nameFocusNode,
             decoration: InputDecoration(
               hintText: 'Name'.i18n,
               hintStyle: intStyle.copyWith(color: theme.hintColor),
@@ -423,7 +428,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
         return SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.only(
-                bottom: MediaQuery.of(contextStateFull).viewInsets.bottom + 30, top: 30, left: 20, right: 20),
+                bottom: MediaQuery.of(contextStateFull).viewInsets.bottom + 20, top: 10, left: 20, right: 20),
             child: Column(children: [
               buildWallet(rootContext, user.id, wallets, transaction.type, setStateBottomSheet, true),
               if (transaction.type == TransactionType.transfer)
@@ -504,7 +509,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20),
+        padding: const EdgeInsets.only(left: 10, right: 10),
         child: Column(children: <Widget>[
           buildName(theme),
           if (transaction.type == TransactionType.transfer)

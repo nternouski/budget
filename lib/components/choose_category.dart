@@ -1,3 +1,7 @@
+import 'dart:developer';
+
+import 'package:budget/common/period_stats.dart';
+import 'package:budget/model/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
@@ -14,6 +18,13 @@ import '../server/database/category_rx.dart';
 import '../common/error_handler.dart';
 import '../common/styles.dart';
 import '../model/category.dart';
+
+class CategoryGroup {
+  List<Category> toDisplay = List.from([]);
+  List<Category> toHide = List.from([]);
+
+  CategoryGroup();
+}
 
 class ChooseCategory extends StatefulWidget {
   final List<Category> selected;
@@ -34,6 +45,7 @@ class ChooseCategory extends StatefulWidget {
 class ChooseCategoryState extends State<ChooseCategory> {
   late List<Category> selectedCategories;
 
+  bool showHiddenCategories = false;
   @override
   void initState() {
     super.initState();
@@ -45,23 +57,78 @@ class ChooseCategoryState extends State<ChooseCategory> {
     List<Category> categories = Provider.of<List<Category>>(context);
     selectedCategories = categories.where((c) => selectedCategories.any((select) => select.id == c.id)).toList();
 
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text(
-              (widget.multi ? 'Select Multi Categories' : 'Select Category').i18n,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () => Display.message(context, 'Long press on category to edit it.'.i18n, seconds: 4),
-            )
-          ],
-        ),
-        displayCategories(context, categories),
-      ],
+    ThemeData theme = Theme.of(context);
+    List<Transaction> transactions = Provider.of<List<Transaction>>(context);
+    List<Category> db = Provider.of<List<Category>>(context);
+    if (db.length != categories.length) categories = db;
+
+    return ValueListenableBuilder<PeriodStats>(
+      valueListenable: periods.selected,
+      builder: (context, periodStats, child) {
+        final CategoryGroup group = CategoryGroup();
+        final DateTime now = DateTime.now();
+        final periodTime = now.subtract(Duration(days: periodStats.days));
+        for (var c in categories) {
+          final isUsed = transactions.any((t) => periodTime.isBefore(t.createdAt) && t.categoryId == c.id);
+          final isCreatedToday = now.subtract(const Duration(days: 1)).isBefore(c.createdAt);
+          if (isUsed || isCreatedToday) {
+            group.toDisplay.add(c);
+          } else {
+            group.toHide.add(c);
+          }
+        }
+        return Card(
+          margin: const EdgeInsets.only(top: 10),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15, right: 10),
+                    child: Text(
+                      (widget.multi ? 'Select Multi Categories' : 'Select Category').i18n,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => Display.message(context, 'Long press on category to edit it.'.i18n, seconds: 4),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_rounded),
+                    onPressed: () => showButtonSheetCreateOrUpdate(context, defaultCategory.copy()),
+                  ),
+                ],
+              ),
+              Padding(padding: const EdgeInsets.only(left: 15), child: displayCategories(context, group.toDisplay)),
+              InkWell(
+                borderRadius: borderRadiusApp,
+                onTap: () => setState(() => showHiddenCategories = !showHiddenCategories),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 15, top: 7, bottom: 7),
+                  child: Row(
+                    children: [
+                      Icon(showHiddenCategories ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_down),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Text('Hidden Categories'.i18n, style: Theme.of(context).textTheme.labelMedium),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (showHiddenCategories) ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: 15, right: 10),
+                  child: displayCategories(context, group.toHide),
+                ),
+                const SizedBox(height: 15),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -167,54 +234,43 @@ class ChooseCategoryState extends State<ChooseCategory> {
   }
 
   Widget displayCategories(BuildContext context, List<Category> categories) {
-    ThemeData theme = Theme.of(context);
-    List<Category> db = Provider.of<List<Category>>(context);
-    if (db.length != categories.length) categories = db;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: Wrap(
-          spacing: 1,
-          runSpacing: 1,
-          children: [
-            ...List.generate(categories.length, (index) {
-              final selected = categories[index];
-              var colorItem = selectedCategories.any((c) => c.id == categories[index].id)
-                  ? categories[index].color
-                  : Colors.transparent;
-              return AppInteractionBorder(
-                borderColor: colorItem,
-                margin: const EdgeInsets.only(right: 8),
-                onLongPress: () => showButtonSheetCreateOrUpdate(context, categories[index]),
-                onTap: () => setState(() {
-                  if (!widget.multi) {
-                    selectedCategories = [selected];
-                  } else if (selectedCategories.any((c) => c.id == selected.id)) {
-                    selectedCategories = selectedCategories.where((c) => c.id != selected.id).toList();
-                  } else {
-                    selectedCategories.add(selected);
-                  }
-                  if (widget.onSelected != null) widget.onSelected!(selected);
-                  setState(() {});
-                }),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconCircle(icon: categories[index].icon, color: categories[index].color),
-                    const SizedBox(width: 8),
-                    Text(categories[index].name)
-                  ],
-                ),
-              );
-            }),
-            AppInteractionBorder(
-              child: IconCircle(icon: Icons.add, color: theme.iconTheme.color!),
-              onTap: () => showButtonSheetCreateOrUpdate(context, defaultCategory.copy()),
-            )
-          ],
-        ),
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Wrap(
+        spacing: 1,
+        runSpacing: 1,
+        children: [
+          ...List.generate(categories.length, (index) {
+            final selected = categories[index];
+            var colorItem = selectedCategories.any((c) => c.id == categories[index].id)
+                ? categories[index].color
+                : Colors.transparent;
+            return AppInteractionBorder(
+              borderColor: colorItem,
+              margin: const EdgeInsets.only(right: 8),
+              onLongPress: () => showButtonSheetCreateOrUpdate(context, categories[index]),
+              onTap: () => setState(() {
+                if (!widget.multi) {
+                  selectedCategories = [selected];
+                } else if (selectedCategories.any((c) => c.id == selected.id)) {
+                  selectedCategories = selectedCategories.where((c) => c.id != selected.id).toList();
+                } else {
+                  selectedCategories.add(selected);
+                }
+                if (widget.onSelected != null) widget.onSelected!(selected);
+                setState(() {});
+              }),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconCircle(icon: categories[index].icon, color: categories[index].color),
+                  const SizedBox(width: 8),
+                  Text(categories[index].name)
+                ],
+              ),
+            );
+          })
+        ],
       ),
     );
   }

@@ -127,6 +127,14 @@ class ThemeProvider extends ChangeNotifier {
     });
   }
 
+  bool isDarkMode(BuildContext context) {
+    return themeMode == ThemeMode.dark || Theme.of(context).brightness == Brightness.dark;
+  }
+
+  bool isLightMode(BuildContext context) {
+    return themeMode == ThemeMode.light || Theme.of(context).brightness == Brightness.light;
+  }
+
   Future<void> swapTheme() async {
     if (themeMode == ThemeMode.dark) {
       themeMode = ThemeMode.light;

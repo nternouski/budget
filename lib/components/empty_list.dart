@@ -12,6 +12,7 @@ class EmptyList extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 20),
           Image.asset(urlImage, width: 270, height: 270),

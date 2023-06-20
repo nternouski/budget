@@ -24,8 +24,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int pageIndex = 0;
   DateTime? backPressTime;
   final durationBackTime = const Duration(seconds: 2);
-  BannerAd? banner;
-  int _bannerAdRetry = 0;
 
   BottomNavigationBarWidgetState() {
     assert(footer.length == 4);
@@ -43,21 +41,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final adState = Provider.of<AdStateNotifier>(context);
-    // ignore: unnecessary_cast
-    bool showAds = (Provider.of<User>(context) as User?)?.showAds() ?? true;
-
-    if (showAds && banner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
-      _bannerAdRetry++;
-      banner = BannerAd(
-          size: AdSize(height: AdSize.banner.height, width: MediaQuery.of(context).size.width.toInt()),
-          adUnitId: adState.bannerAdUnitId,
-          listener: adState.bannerAdListener(onFailed: () {
-            setState(() => banner = null);
-          }),
-          request: const AdRequest())
-        ..load();
-    }
     Widget? floatingActionButton;
     if (footer[pageIndex].actionIcon != null) {
       floatingActionButton = OpenContainer(
@@ -133,12 +116,6 @@ class BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           selectedItemColor: theme.textTheme.titleLarge?.color,
           onTap: (index) => selectedTab(footer[index].url),
         ),
-        if (banner != null)
-          Container(
-            height: banner!.size.height.toDouble(),
-            color: theme.scaffoldBackgroundColor,
-            child: AdWidget(ad: banner!),
-          ),
       ],
     );
   }

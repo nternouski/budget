@@ -1,3 +1,4 @@
+import 'package:budget/common/theme.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,8 @@ class StatsScreenState extends State<StatsScreen> {
   List<String>? selectedCategories;
   Map<TransactionType, bool> selectedTypes = TransactionType.values.asMap().map((_, value) => MapEntry(value, true));
 
-  BannerAd? banner;
+  NativeAd? nativeBanner;
+  bool adLoaded = false;
   int _bannerAdRetry = 0;
 
   final frameWindow = 7;
@@ -48,7 +50,8 @@ class StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final themeData = Theme.of(context);
+    final theme = Provider.of<ThemeProvider>(context);
     List<Transaction> allTransactions = Provider.of<List<Transaction>>(context);
     // ignore: unnecessary_cast
     final user = Provider.of<User>(context) as User?;
@@ -56,23 +59,25 @@ class StatsScreenState extends State<StatsScreen> {
     final adState = Provider.of<AdStateNotifier>(context);
     bool showAds = user?.showAds() ?? true;
 
-    if (showAds && banner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
+    if (showAds && nativeBanner == null && _bannerAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST) {
       _bannerAdRetry++;
-      banner = BannerAd(
-          size: AdSize.largeBanner,
-          adUnitId: adState.bannerAdUnitId,
-          listener: adState.bannerAdListener(onFailed: () {
-            setState(() => banner = null);
-          }),
-          request: const AdRequest())
-        ..load();
+      nativeBanner = NativeAd(
+        adUnitId: adState.nativeAdUnitId,
+        factoryId: 'listTile',
+        listener: adState.nativeAdListener(
+          onAdLoaded: () => setState(() => adLoaded = true),
+          onFailed: () => setState(() => nativeBanner = null),
+        ),
+        request: const AdRequest(),
+        customOptions: {'darkMode': theme.isDarkMode(context)},
+      )..load();
     }
 
     PredictionOnStatsNotifier predictionOnStats = Provider.of<PredictionOnStatsNotifier>(context);
 
     return Scaffold(
       appBar: AppBar(
-        titleTextStyle: theme.textTheme.titleLarge,
+        titleTextStyle: themeData.textTheme.titleLarge,
         leading: getBackButton(context),
         title: Text('Statistics'.i18n),
         actions: [
@@ -121,7 +126,7 @@ class StatsScreenState extends State<StatsScreen> {
                 child: Column(
                   children: [
                     StatsBalance(transactions: transactionsFrame),
-                    Text('${'Period'.i18n}: ${periodStats.humanize}', style: theme.textTheme.titleMedium),
+                    Text('${'Period'.i18n}: ${periodStats.humanize}', style: themeData.textTheme.titleMedium),
                     const SizedBox(height: 10),
                     StatsPrediction(totalExpensePeriod: totalExpensePeriod, periodStats: periodStats),
                     const Divider(),
@@ -129,7 +134,7 @@ class StatsScreenState extends State<StatsScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                          child: Text('Transaction types'.i18n, style: theme.textTheme.bodyLarge),
+                          child: Text('Transaction types'.i18n, style: themeData.textTheme.bodyLarge),
                         ),
                       ],
                     ),
@@ -157,7 +162,7 @@ class StatsScreenState extends State<StatsScreen> {
                                       ),
                                       const SizedBox(width: 5),
                                       Text(Convert.capitalize(select.key.toShortString()),
-                                          style: theme.textTheme.bodyLarge)
+                                          style: themeData.textTheme.bodyLarge)
                                     ],
                                   ),
                                 ),
@@ -168,7 +173,7 @@ class StatsScreenState extends State<StatsScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                          child: Text('Categories'.i18n, style: theme.textTheme.bodyLarge),
+                          child: Text('Categories'.i18n, style: themeData.textTheme.bodyLarge),
                         ),
                       ],
                     ),
@@ -198,7 +203,7 @@ class StatsScreenState extends State<StatsScreen> {
                     const SizedBox(height: 20),
                     TotalBalance(transactions: transactions, selectedTypes: selectedTypes),
                     const SizedBox(height: 10),
-                    if (banner != null) SizedBox(height: banner!.size.height.toDouble(), child: AdWidget(ad: banner!)),
+                    if (nativeBanner != null && adLoaded) SizedBox(height: 60, child: AdWidget(ad: nativeBanner!)),
                     StatsPieChart(
                       categoriesSelected: categoriesSelected,
                       transactions: transactions,
@@ -230,7 +235,7 @@ class _Indicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final themeData = Theme.of(context);
 
     return AppInteractionBorder(
       oval: true,
@@ -247,7 +252,7 @@ class _Indicator extends StatelessWidget {
             decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
           ),
           const SizedBox(width: 5),
-          Text(category.name, style: theme.textTheme.bodyLarge)
+          Text(category.name, style: themeData.textTheme.bodyLarge)
         ],
       ),
     );

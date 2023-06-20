@@ -67,6 +67,7 @@ final screens = Translations('en') +
     {'en': 'Daily Transaction', 'es': 'Transacciones'} +
     {'en': 'What will be your first spend?', 'es': 'Cual es to primer gasto?'} +
     {'en': 'See All', 'es': 'Ver Más'} +
+    {'en': 'Go to Stats', 'es': 'Ir a Estadísticas'} +
 
     // email_verification_screen
     {'en': 'Email Successfully Verified', 'es': 'Se verificó el email correctamente'} +

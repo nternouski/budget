@@ -26,6 +26,20 @@ class AdStateNotifier extends ChangeNotifier {
     throw ErrorWidget('bannerAdUnitId - Key not found!');
   }
 
+  String get nativeAdUnitId {
+    String? key;
+
+    if (Platform.isAndroid) {
+      key = dotenv.env['NATIVE_AD_UNIT_ID_ANDROID'];
+    } else if (Platform.isIOS) {
+      key = dotenv.env['NATIVE_AD_UNIT_ID_IOS'];
+    } else {
+      throw UnsupportedError('nativeAdUnitId - Unsupported platform');
+    }
+    if (key != null) return key;
+    throw ErrorWidget('nativeAdUnitId - Key not found!');
+  }
+
   String get interstitialAdUnitId {
     String? key;
 
@@ -55,7 +69,6 @@ class AdStateNotifier extends ChangeNotifier {
   }
 
   BannerAdListener Function({Function()? onFailed}) get bannerAdListener => _getBanner;
-
   BannerAdListener _getBanner({Function()? onFailed}) {
     return BannerAdListener(
       // Called when un ad is successfully received.
@@ -70,6 +83,29 @@ class AdStateNotifier extends ChangeNotifier {
       onAdOpened: (Ad ad) => debugPrint('Ad opened.'),
       // Called when an ad removes an overlay that covers the screen.
       onAdClosed: (Ad ad) => debugPrint('Ad closed.'),
+      // Called when an ad is in the process of leaving the application.
+      onAdWillDismissScreen: (Ad ad) => debugPrint('Left application.'),
+    );
+  }
+
+  NativeAdListener Function({required Function() onAdLoaded, Function()? onFailed}) get nativeAdListener => _getNative;
+  NativeAdListener _getNative({required Function() onAdLoaded, Function()? onFailed}) {
+    return NativeAdListener(
+      // Called when un ad is successfully received.
+      onAdLoaded: (Ad ad) {
+        debugPrint('Native Ad loaded.');
+        onAdLoaded();
+      },
+      // Called when an ad request failed.
+      onAdFailedToLoad: (Ad ad, LoadAdError error) {
+        ad.dispose();
+        if (onFailed != null) onFailed();
+        debugPrint('Native Ad failed to Load: ${error.toString()}');
+      },
+      // Called when an ad opens an overlay that covers the screen.
+      onAdOpened: (Ad ad) => debugPrint('Native Ad opened.'),
+      // Called when an ad removes an overlay that covers the screen.
+      onAdClosed: (Ad ad) => debugPrint('Native Ad closed.'),
       // Called when an ad is in the process of leaving the application.
       onAdWillDismissScreen: (Ad ad) => debugPrint('Left application.'),
     );

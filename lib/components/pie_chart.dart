@@ -82,7 +82,7 @@ class StatsPieChartState extends State<StatsPieChart> {
       children: [
         if (user.superUser)
           Padding(
-            padding: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.only(top: 10),
             child: _getRangeFilter(theme),
           ),
         Padding(

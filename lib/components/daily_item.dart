@@ -15,7 +15,9 @@ import '../model/transaction.dart';
 
 class DailyItem extends StatefulWidget {
   final Transaction transaction;
+  // TODO: implent action on component
   final String? action;
+  // TODO: implent actionIcon on component
   final IconData? actionIcon;
 
   const DailyItem({Key? key, required this.transaction, this.action, this.actionIcon}) : super(key: key);
@@ -25,8 +27,6 @@ class DailyItem extends StatefulWidget {
 }
 
 class DailyItemState extends State<DailyItem> {
-  final paddingSlide = const SizedBox(width: 10);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -61,7 +61,7 @@ class DailyItemState extends State<DailyItem> {
       child: InkWell(
         splashColor: theme.colorScheme.background.withOpacity(0.5),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
           child: getItem(theme, widget.transaction),
         ),
         onLongPress: () {
@@ -77,8 +77,8 @@ class DailyItemState extends State<DailyItem> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        IconCircle(icon: transaction.category.icon, color: transaction.category.color),
-        paddingSlide,
+        IconCircle(icon: transaction.category.icon, color: transaction.category.color, size: 42),
+        const SizedBox(width: 10),
         Flexible(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,

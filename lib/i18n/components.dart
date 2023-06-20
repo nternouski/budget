@@ -13,6 +13,7 @@ final components = Translations('en') +
     // create_or_update_category
     {'en': 'Choose Category', 'es': 'Elegir Categoría'} +
     {'en': 'Long press on category to edit it.', 'es': 'Mantén presionado para editar.'} +
+    {'en': 'Hidden Categories', 'es': 'Categorías Ocultas'} +
     {'en': 'No categories at the moment..', 'es': 'No hay categoría por el momento.'} +
     {'en': 'Select Category', 'es': 'Elige una Categoría'} +
     {'en': 'Select Multi Categories', 'es': 'Elegir Multiples Categorías'} +

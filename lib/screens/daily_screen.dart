@@ -1,4 +1,8 @@
+import 'package:budget/common/ad_helper.dart';
+import 'package:budget/common/device_info_notifier.dart';
+import 'package:budget/common/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 
 import '../routes.dart';
@@ -25,6 +29,12 @@ class DailyScreen extends StatefulWidget {
 class DailyScreenState extends State<DailyScreen> {
   Preferences preferences = Preferences();
   bool fetchAll = false;
+  List<Transaction> transactions = List.from([]);
+
+  List<NativeAd>? nativeBanners;
+  int _nativeAdRetry = 0;
+  int adsLoaded = 0;
+  final int showAdsEach = 7;
 
   DailyScreenState();
 
@@ -58,6 +68,9 @@ class DailyScreenState extends State<DailyScreen> {
     List<Wallet> wallets = List.from(Provider.of<List<Wallet>>(context));
     if (user == null) return ScreenInit.getScreenInit(context);
 
+    // ignore: unnecessary_cast
+    bool showAds = (Provider.of<User>(context) as User?)?.showAds() ?? true;
+
     return Scaffold(
       appBar: AppBar(
         titleTextStyle: theme.textTheme.titleLarge,
@@ -68,7 +81,14 @@ class DailyScreenState extends State<DailyScreen> {
             IconButton(
               onPressed: () => RouteApp.redirect(context: context, url: URLS.stats),
               icon: const Icon(Icons.query_stats),
-            )
+              tooltip: 'Go to Stats'.i18n,
+            ),
+          if (!fetchAll)
+            IconButton(
+              onPressed: () => setState(() => fetchAll = true),
+              icon: const Icon(Icons.download_rounded),
+              tooltip: 'See All'.i18n,
+            ),
         ],
       ),
       body: Column(children: [
@@ -86,10 +106,7 @@ class DailyScreenState extends State<DailyScreen> {
             child: Container(
               foregroundDecoration: gradientDisappear,
               child: RefreshIndicator(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                  slivers: [getBody(theme, user, wallets)],
-                ),
+                child: getBody(theme, user, wallets, showAds),
                 onRefresh: () async => setState(() {}),
               ),
             ),
@@ -99,31 +116,68 @@ class DailyScreenState extends State<DailyScreen> {
     );
   }
 
-  Widget getBody(ThemeData theme, User user, List<Wallet> wallets) {
+  Widget getBody(ThemeData themeData, User user, List<Wallet> wallets, bool showAds) {
+    final deviceInfo = Provider.of<DeviceInfoNotifier>(context);
+    final adState = Provider.of<AdStateNotifier>(context);
+    final theme = Provider.of<ThemeProvider>(context);
+
     return StreamBuilder<List<Transaction>>(
       stream: transactionRx.getTransactions(user.id, fetchAll: fetchAll),
       builder: (BuildContext context, snapshot) {
         List<Transaction> transactions = List.castFrom(snapshot.data ?? []);
+        final canInit = showAds &&
+            transactions.isNotEmpty &&
+            _nativeAdRetry <= AdStateNotifier.MAXIMUM_NUMBER_OF_AD_REQUEST &&
+            deviceInfo.isPhysicalDevice;
+
+        final cantOfBanners = (transactions.length + 1) ~/ showAdsEach;
+        final createdAmount = nativeBanners?.length ?? 0;
+        if (canInit) {
+          nativeBanners ??= List.from([]);
+          for (int i = 0; i < (cantOfBanners - createdAmount); i++) {
+            nativeBanners!.add(
+              NativeAd(
+                adUnitId: adState.nativeAdUnitId,
+                factoryId: 'listTile',
+                listener: adState.nativeAdListener(
+                  onAdLoaded: () => setState(() => adsLoaded++),
+                  onFailed: () => setState(() {
+                    _nativeAdRetry++;
+                    nativeBanners = null;
+                  }),
+                ),
+                request: const AdRequest(),
+                customOptions: {'darkMode': theme.isDarkMode(context)},
+              )..load(),
+            );
+          }
+        }
         transactions.sort((a, b) => b.date.compareTo(a.date));
+
         if (transactions.isEmpty) {
-          return SliverToBoxAdapter(
-            child: EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'.i18n),
-          );
+          return EmptyList(urlImage: 'assets/images/new-spend.png', text: 'What will be your first spend?'.i18n);
         } else {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 25, bottom: 130, left: 5, right: 5),
-              child: Column(
-                children: [
-                  ...List.generate(
-                    transactions.length,
-                    (index) => DailyItem(transaction: transactions[index], key: Key(transactions[index].id.toString())),
-                  ),
-                  if (!fetchAll)
-                    OutlinedButton(onPressed: () => setState(() => fetchAll = true), child: Text('See All'.i18n)),
-                ],
-              ),
-            ),
+          return ListView.separated(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            shrinkWrap: true,
+            itemCount: transactions.length,
+            separatorBuilder: (context, index) {
+              // Show ads each ${showAdsEach} items counting from n = showAdsEach
+              if ((index + 1) % showAdsEach == 0 && nativeBanners != null) {
+                final native = nativeBanners?[(((index + 1) / showAdsEach) - 1).toInt()];
+                if (native == null || adsLoaded != nativeBanners?.length) return Container();
+                return Container(
+                  height: 45,
+                  color: themeData.scaffoldBackgroundColor,
+                  child: AdWidget(ad: native),
+                );
+              } else {
+                return Container();
+              }
+            },
+            itemBuilder: (context, index) {
+              return DailyItem(transaction: transactions[index], key: Key(transactions[index].id));
+            },
           );
         }
       },

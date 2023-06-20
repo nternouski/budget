@@ -62,6 +62,7 @@ class LocalAuthNotifier extends ChangeNotifier {
     bool supported = await authenticateIsAvailable();
     if (!supported) return LocalAuthState.nonSupported;
     try {
+      if (!enable) return LocalAuthState.success;
       final authenticated = await _localAuth.authenticate(
         localizedReason: 'Please authenticate to show account balance'.i18n,
         options: const AuthenticationOptions(stickyAuth: true, useErrorDialogs: false),

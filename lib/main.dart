@@ -1,5 +1,6 @@
 // @dart=2.9
 import 'dart:async';
+import 'package:budget/common/device_info_notifier.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -114,6 +115,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<EmailVerificationNotifier>(create: (context) => EmailVerificationNotifier()),
         ChangeNotifierProvider<ThemeProvider>(create: (context) => ThemeProvider()),
         ChangeNotifierProvider<LocalAuthNotifier>(create: (context) => LocalAuthNotifier(authLoginEnable)),
+        ChangeNotifierProvider<DeviceInfoNotifier>(create: (context) => DeviceInfoNotifier()),
         ChangeNotifierProvider<AdStateNotifier>(create: (context) => adState),
         ChangeNotifierProvider<LanguageNotifier>(create: (context) => LanguageNotifier()),
         ChangeNotifierProvider<DailyItemBalanceNotifier>(create: (context) => DailyItemBalanceNotifier()),
