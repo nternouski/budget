@@ -77,12 +77,18 @@ class DailyScreenState extends State<DailyScreen> {
         leading: getLadingButton(context),
         title: Text('Daily Transaction'.i18n),
         actions: [
-          if (user.superUser)
+          if (user.superUser) ...[
+            IconButton(
+              onPressed: () => RouteApp.redirect(context: context, url: URLS.playlistListenerScreen),
+              icon: const Icon(Icons.youtube_searched_for),
+              tooltip: 'Playlist Listener'.i18n,
+            ),
             IconButton(
               onPressed: () => RouteApp.redirect(context: context, url: URLS.stats),
               icon: const Icon(Icons.query_stats),
               tooltip: 'Go to Stats'.i18n,
             ),
+          ],
           if (!fetchAll)
             IconButton(
               onPressed: () => setState(() => fetchAll = true),

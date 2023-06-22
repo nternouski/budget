@@ -265,7 +265,10 @@ class ChooseCategoryState extends State<ChooseCategory> {
                 children: [
                   IconCircle(icon: categories[index].icon, color: categories[index].color),
                   const SizedBox(width: 8),
-                  Text(categories[index].name)
+                  Text(
+                    categories[index].name,
+                    style: TextStyle(color: categories[index].color),
+                  )
                 ],
               ),
             );

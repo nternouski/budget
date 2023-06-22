@@ -39,6 +39,12 @@ class NavDrawer extends StatelessWidget {
             title: Text('Mobile Calculator'.i18n),
             onTap: () => RouteApp.redirect(context: context, url: URLS.mobileCalculator),
           ),
+          if (dbUser != null && dbUser.superUser)
+            ListTile(
+              leading: const Icon(Icons.youtube_searched_for),
+              title: Text('Playlist Listener'.i18n),
+              onTap: () => RouteApp.redirect(context: context, url: URLS.playlistListenerScreen),
+            ),
           ListTile(
             leading: const Icon(Icons.local_grocery_store_rounded),
             title: Text('Expense Simulation'.i18n),

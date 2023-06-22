@@ -69,6 +69,14 @@ final screens = Translations('en') +
     {'en': 'See All', 'es': 'Ver Más'} +
     {'en': 'Go to Stats', 'es': 'Ir a Estadísticas'} +
 
+    // playlist listener
+    {'en': 'Open in app', 'es': 'Abrir en la app'} +
+    {'en': 'Mark as watched', 'es': 'Marcar como visto'} +
+    {'en': 'Add Playlist', 'es': 'Agregar Playlist'} +
+    {'en': 'No playlist added yet', 'es': 'No hay Playlist todavía'} +
+    {'en': 'Set Days as Pending Video', 'es': 'Días pendientes'} +
+    {'en': 'Set Day', 'es': 'Configurar Día'} +
+
     // email_verification_screen
     {'en': 'Email Successfully Verified', 'es': 'Se verificó el email correctamente'} +
     {'en': 'Logout successfully!', 'es': 'Sesión cerrada'} +

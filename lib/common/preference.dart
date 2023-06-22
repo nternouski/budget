@@ -10,6 +10,7 @@ enum PreferenceType {
   languageCode,
   predictionOnStats,
   dailyItemBalance,
+  playlists,
 }
 
 extension ParseToString on PreferenceType {

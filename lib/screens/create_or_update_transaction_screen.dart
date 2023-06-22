@@ -354,7 +354,7 @@ class CreateOrUpdateTransactionScreenState extends State<CreateOrUpdateTransacti
             margin: const EdgeInsets.all(10),
             onTap: () async {
               var lastDate = DateTime.now();
-              if (user.superUser) lastDate = lastDate.add(const Duration(days: 60));
+              if (user.superUser) lastDate = lastDate.add(const Duration(days: 120));
               // Below line stops keyboard from appearing
               FocusScope.of(context).requestFocus(FocusNode());
               // Show Date Picker Here

@@ -1,6 +1,7 @@
 // @dart=2.9
 import 'dart:async';
 import 'package:budget/common/device_info_notifier.dart';
+import 'package:budget/common/playlist_notifier.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -120,6 +121,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<LanguageNotifier>(create: (context) => LanguageNotifier()),
         ChangeNotifierProvider<DailyItemBalanceNotifier>(create: (context) => DailyItemBalanceNotifier()),
         ChangeNotifierProvider<PredictionOnStatsNotifier>(create: (context) => PredictionOnStatsNotifier()),
+        ChangeNotifierProvider<PlaylistNotifier>(create: (context) => PlaylistNotifier()),
       ],
       builder: (context, child) {
         LanguageNotifier langNotifier = Provider.of<LanguageNotifier>(context);

@@ -1,3 +1,4 @@
+import 'package:budget/screens/playlist_listener_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../screens/email_verification_screen.dart';
@@ -27,7 +28,8 @@ enum URLS {
   mobileCalculator,
   faq,
   emailVerification,
-  expensePrediction
+  expensePrediction,
+  playlistListenerScreen
 }
 
 class RouteApp {
@@ -42,6 +44,7 @@ class RouteApp {
     URLS.createOrUpdateWallet.toString(): (context) => const CreateOrUpdateWalletScreen(),
     URLS.createOrUpdateBudgets.toString(): (context) => const CreateOrUpdateBudgetScreen(),
     URLS.mobileCalculator.toString(): (context) => const MobileCalculatorScreen(),
+    URLS.playlistListenerScreen.toString(): (context) => const PlaylistListenerScreen(),
     URLS.faq.toString(): (context) => const FAQScreen(),
     URLS.emailVerification.toString(): (context) => const EmailVerificationScreen(),
     URLS.expensePrediction.toString(): (context) => const ExpensePredictionScreenState(),

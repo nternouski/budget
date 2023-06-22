@@ -144,26 +144,16 @@ class StatsScreenState extends State<StatsScreen> {
                           .map((select) => Padding(
                                 padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
                                 child: AppInteractionBorder(
-                                  oval: true,
                                   show: select.value,
                                   borderColor: colorsTypeTransaction[select.key]!,
                                   margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
                                   onTap: () => setState(() => selectedTypes.update(select.key, (value) => !value)),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Container(
-                                        width: 16,
-                                        height: 16,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: colorsTypeTransaction[select.key],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Text(Convert.capitalize(select.key.toShortString()),
-                                          style: themeData.textTheme.bodyLarge)
-                                    ],
+                                  child: Text(
+                                    Convert.capitalize(select.key.toShortString()),
+                                    style: themeData.textTheme.bodyLarge?.copyWith(
+                                      color: colorsTypeTransaction[select.key],
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ))
@@ -204,11 +194,12 @@ class StatsScreenState extends State<StatsScreen> {
                     TotalBalance(transactions: transactions, selectedTypes: selectedTypes),
                     const SizedBox(height: 10),
                     if (nativeBanner != null && adLoaded) SizedBox(height: 60, child: AdWidget(ad: nativeBanner!)),
-                    StatsPieChart(
-                      categoriesSelected: categoriesSelected,
-                      transactions: transactions,
-                      frameDate: frameDate,
-                    ),
+                    if (transactions.isNotEmpty)
+                      StatsPieChart(
+                        categoriesSelected: categoriesSelected,
+                        transactions: transactions,
+                        frameDate: frameDate,
+                      ),
                   ],
                 ),
               ),
@@ -238,23 +229,11 @@ class _Indicator extends StatelessWidget {
     final themeData = Theme.of(context);
 
     return AppInteractionBorder(
-      oval: true,
       show: isSelected,
       borderColor: category.color,
       margin: const EdgeInsets.only(top: 8, bottom: 8, left: 8, right: 10),
       onTap: () => onTap(!isSelected, category.id),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: category.color),
-          ),
-          const SizedBox(width: 5),
-          Text(category.name, style: themeData.textTheme.bodyLarge)
-        ],
-      ),
+      child: Text(category.name, style: themeData.textTheme.bodyLarge?.copyWith(color: category.color)),
     );
   }
 }
