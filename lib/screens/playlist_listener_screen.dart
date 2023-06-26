@@ -138,10 +138,16 @@ class PlaylistListenerScreenState extends State<PlaylistListenerScreen> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: FutureBuilder(
                   future: Future.wait(
-                      playlists.map((id) => youTubeApi.getPlaylistItems(id, daysAsPendingVideo: daysAsPendingVideo))),
+                    playlists.map((id) => youTubeApi.getPlaylistItems(id, daysAsPendingVideo: daysAsPendingVideo)),
+                  ),
                   builder: (_, AsyncSnapshot<List<Playlist>> snapshot) {
                     if (snapshot.data == null) {
-                      return Column(mainAxisSize: MainAxisSize.min, children: [getLoadingProgress(context: context)]);
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(padding: const EdgeInsets.only(top: 20), child: getLoadingProgress(context: context))
+                        ],
+                      );
                     } else {
                       return Column(
                         children: (snapshot.data ?? [])

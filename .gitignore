@@ -132,3 +132,7 @@ app.*.symbols
 /android/app/google-services.json
 /android/app/budget-bb188-firebase-adminsdk-ihph5-51409d3e5a.json
 /clone_collection/**
+
+/publisher/node_modules
+/publisher/privateKey.json
+/publisher/*.js
